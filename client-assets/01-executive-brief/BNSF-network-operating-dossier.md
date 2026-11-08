@@ -105,7 +105,7 @@ Same template, in this order: (1) route miles, divisions, states; (2) the two or
 
 **UP / NS — one combined dossier, already written.** $85B merger; the Sunset Route is structurally the Southern Transcon's analogue but carries ~28–39 trains/day against BNSF's 200+, so **corridor economics do not transfer at the same price point**. Lead with a single-division deployment instead of a corridor. Large commitments are not buyable pre-close due to capex restrictions; a $370K pilot is.
 
-**CN / CPKC — third.** Canadian regulatory frame. The value proposition shifts from FRA exposure toward Transport Canada compliance and cross-border hazmat routing. Note CPKC's distinctive risk profile: the only single-line railroad connecting Canada, the US and Mexico.
+**CN / CPKC — third, and arguably should be earlier.** See `CN-CPKC-canadian-carrier-dossier.md`. The framing shifts from risk reduction to *documented regulatory compliance*: Transport Canada's Key Trains rules mandate WDBD inspection at least every 40 miles on Key Routes, and a confirmed defect triggers a codified 15 mph restriction. Neither carrier has a merger overhang, so **both can buy now** — unlike UP/NS. CN plus CPKC is ~40,000 route miles.
 
 **CSX — fourth.** Eastern network, heavy hazmat corridor exposure through the Appalachians and Northeast. Also moved to dismiss the UP–NS merger.
 

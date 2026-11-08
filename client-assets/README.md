@@ -8,10 +8,10 @@ Working materials that stay internal belong in `/assets`. Anything in this tree 
 
 | Folder | Contents | Status |
 |---|---|---|
-| `01-executive-brief` | BNSF dossier; **UP/NS combined dossier**; VP/Director outcome brief | **2 dossiers built** |
+| `01-executive-brief` | **3 carrier dossiers**: BNSF, UP/NS, CN/CPKC; VP/Director outcome brief | **3 dossiers built** |
 | `02-roi-calculator` | Live Excel three-year business case, two pricing axes | **Built** |
 | `03-technical-dossier` | Physics methodology, validation, architecture | Not started |
-| `04-pilot-proposal` | Scoped 6-month pilot with success criteria | Not started |
+| `04-pilot-proposal` | Scoped 6-month pilot with success criteria | **On hold (user decision)** |
 | `05-commercial-terms` | Licensing structure, tier definitions, terms | Built |
 
 ## 01 — Market intelligence: one fact changes the plan
