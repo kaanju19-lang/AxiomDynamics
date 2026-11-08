@@ -1,4 +1,8 @@
-# AxiomDynamics — External Pilot Cost Structure & YoY Licensing Model
+# AxiomDynamics — Master Licensing & Liability
+
+**Docket position:** D08. Executed under the Comprehensive Master Contract (D07). Conversion mechanics in D05. Rate schedule annexed as A2.
+
+> **Drafting status:** Commercial grade. The pricing structure and the liability split are settled; the language is not yet contract-grade. Requires conversion to enforceable terms by counsel before execution.
 
 **Positioning:** This is not a SaaS product. AxiomDynamics is an engineering-discipline, agentic (non-LLM) predictive maintenance platform sold against multi-million-dollar CapEx/OpEx exposure. Licensing is tied to **operational assets monitored** and **documented outcomes prevented** — not to user seats.
 
@@ -115,15 +119,17 @@ as if it were a yard under-charges the installation work by an order of magnitud
 | Thirteen divisions | 2,000 | 13 | $4.17M | 2.0x |
 | Full division footprint | 5,000 | 13 | $6.67M | 3.1x |
 
-The second row **loses money**, and that is correct. Benefit scales with the assets protected;
-cost scales with the ground covered. Covering a lot of track while protecting few assets is a
-genuinely bad deal, and the model says so rather than hiding it.
+The second row does not return positive value, and the model says so rather than hiding it.
+Benefit scales with the assets protected; cost scales with the ground covered. Covering a large
+territory while protecting few assets is not a good commercial outcome for the Railroad, and we
+will not present it as one.
 
-The commercial consequence is a sales discipline, not a pricing trick: **sell a corridor on the
-axle population that traverses it, not the cars parked in it.** At 200+ trains/day on the
-Southern Transcon the annual axle throughput is enormous — that is what makes corridor economics
-work. Quoting stored inventory instead of traffic volume produces the 0.9x row and should lose
-the deal.
+**This is why a corridor engagement is scoped on the axle population that traverses it, not on
+the cars parked along it.** At 200+ trains/day on a high-density corridor the annual axle
+throughput is very large, and that is what makes corridor deployment economically sound. The
+same territory with a thin traffic base is better served by a single-yard or single-division
+deployment, which prices correctly and proves value first. We will recommend the smaller scope
+when the numbers support it — a deployment that fails its own business case serves neither party.
 
 ---
 
