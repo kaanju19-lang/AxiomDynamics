@@ -24,6 +24,62 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 
+// --- Industry SVG Icons ---
+function svgRailCar(size = 24) {
+  const svg = `<svg viewBox="0 0 48 32" width="${size}" height="${size}" style="display:inline-block">
+    <rect x="2" y="8" width="44" height="16" rx="2" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+    <circle cx="8" cy="28" r="3" fill="#0ea5e9"/>
+    <circle cx="40" cy="28" r="3" fill="#0ea5e9"/>
+    <line x1="6" y1="24" x2="42" y2="24" stroke="#0ea5e9" stroke-width="1" opacity="0.5"/>
+  </svg>`;
+  const div = document.createElement('div');
+  div.innerHTML = svg;
+  return div.firstElementChild;
+}
+
+function svgBearing(size = 20, temp = "normal") {
+  const colors = { normal: "#10b981", warning: "#f59e0b", critical: "#ef4444" };
+  const color = colors[temp] || colors.normal;
+  const svg = `<svg viewBox="0 0 40 40" width="${size}" height="${size}" style="display:inline-block">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="${color}" stroke-width="2"/>
+    <circle cx="20" cy="20" r="4" fill="${color}" opacity="0.6"/>
+    <circle cx="20" cy="6" r="2.5" fill="${color}"/>
+    <circle cx="34" cy="20" r="2.5" fill="${color}"/>
+    <circle cx="20" cy="34" r="2.5" fill="${color}"/>
+    <circle cx="6" cy="20" r="2.5" fill="${color}"/>
+  </svg>`;
+  const div = document.createElement('div');
+  div.innerHTML = svg;
+  return div.firstElementChild;
+}
+
+function svgTrack(size = 16) {
+  const svg = `<svg viewBox="0 0 48 12" width="${size}" height="${size * 0.25}" style="display:inline-block">
+    <line x1="4" y1="4" x2="44" y2="4" stroke="#64748b" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <line x1="4" y1="8" x2="44" y2="8" stroke="#64748b" stroke-width="1.5" stroke-dasharray="2,3"/>
+    <circle cx="10" cy="6" r="0.8" fill="#0ea5e9"/>
+    <circle cx="24" cy="6" r="0.8" fill="#0ea5e9"/>
+    <circle cx="38" cy="6" r="0.8" fill="#0ea5e9"/>
+  </svg>`;
+  const div = document.createElement('div');
+  div.innerHTML = svg;
+  return div.firstElementChild;
+}
+
+function svgThermometer(size = 20, temp = "normal") {
+  const colors = { normal: "#10b981", warning: "#f59e0b", critical: "#ef4444" };
+  const color = colors[temp] || colors.normal;
+  const svg = `<svg viewBox="0 0 24 40" width="${size}" height="${size}" style="display:inline-block">
+    <rect x="8" y="2" width="8" height="22" rx="4" fill="none" stroke="${color}" stroke-width="2"/>
+    <circle cx="12" cy="32" r="6" fill="${color}" opacity="0.7"/>
+    <line x1="12" y1="8" x2="12" y2="20" stroke="${color}" stroke-width="2"/>
+  </svg>`;
+  const div = document.createElement('div');
+  div.innerHTML = svg;
+  return div.firstElementChild;
+}
+
 // ---------------------------------------------------------------------------
 // Generic canvas line chart. series = [{label, points:[[x,y],...], color}]
 // options: { yLabel, xLabel, hLines:[{y,label,color}], vLines:[{x,label,color}] }
@@ -134,17 +190,31 @@ async function loadFleet() {
   fleet.sort((a, b) => TIER_ORDER[b.severity_tier] - TIER_ORDER[a.severity_tier]);
   for (const u of fleet) {
     const tr = el("tr", { "data-unit": u.unit_id });
-    tr.appendChild(el("td", { text: u.unit_id }));
+
+    // Unit + Rail Car icon
+    const unitCell = el("td", {});
+    unitCell.appendChild(svgRailCar(18));
+    unitCell.appendChild(document.createTextNode(" " + u.unit_id));
+    tr.appendChild(unitCell);
+
     tr.appendChild(el("td", { text: u.car }));
     tr.appendChild(el("td", { text: String(u.axle) }));
     tr.appendChild(el("td", { text: `${(u.speed_mps * 2.237).toFixed(0)} mph` }));
-    tr.appendChild(el("td", { text: `${u.peak_temp_f.toFixed(1)} F (ambient ${u.ambient_temp_f.toFixed(0)}F)` }));
+
+    // Temperature with bearing indicator
+    const tempCell = el("td", {});
+    const tempStatus = u.peak_temp_f > (u.ambient_temp_f + 170) ? "critical" :
+                       u.peak_temp_f > (u.ambient_temp_f + 115) ? "warning" : "normal";
+    tempCell.appendChild(svgBearing(18, tempStatus));
+    tempCell.appendChild(document.createTextNode(` ${u.peak_temp_f.toFixed(1)}°F`));
+    tr.appendChild(tempCell);
+
     const badgeCell = el("td", {});
     badgeCell.appendChild(el("span", { class: `badge ${tierClass(u.severity_tier)}`, text: u.severity_tier }));
     if (u.severity_tier !== "INFORMATIONAL") {
       badgeCell.appendChild(el("span", {
         class: "corroborated-tag",
-        text: u.corroborated ? "corroborated" : "single signal",
+        text: u.corroborated ? "✓ corroborated" : "⚠ single signal",
       }));
     }
     tr.appendChild(badgeCell);

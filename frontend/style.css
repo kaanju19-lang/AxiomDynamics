@@ -491,6 +491,24 @@ canvas {
   color: var(--text-muted);
 }
 
+/* --- SVG Icons & Inline Graphics --- */
+svg {
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+td svg {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.kpi-card svg {
+  margin-right: 8px;
+  width: 28px;
+  height: 28px;
+  opacity: 0.8;
+}
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
   main {
@@ -517,3 +535,4 @@ canvas {
     width: 140px;
   }
 }
+
