@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+tests/
+.git/
+.gitignore
+server.log
+axiom.db

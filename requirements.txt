@@ -1,0 +1,4 @@
+# Only dependency. Everything else (HTTP server, JSON, etc.) is Python stdlib,
+# by design -- this app is meant to run on an air-gapped edge box with no
+# pip install step beyond this.
+numpy>=1.26

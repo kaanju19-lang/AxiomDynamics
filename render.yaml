@@ -1,0 +1,16 @@
+# Render "Blueprint" spec. Lets you deploy this whole app by connecting
+# your repo and letting Render read this file, instead of clicking through
+# every field by hand. See README.md "Deploying to Render" for the manual
+# steps if you'd rather not use a Blueprint.
+services:
+  - type: web
+    name: axiomdynamics-demo
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m backend.main"
+    envVars:
+      - key: AXIOM_HOST
+        value: 0.0.0.0
+      - key: PYTHON_VERSION
+        value: 3.11.9

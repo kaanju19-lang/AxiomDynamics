@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AxiomDynamics — Physics-First Predictive Maintenance</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <h1>AxiomDynamics <span class="subtitle">Physics-First Predictive Maintenance — Demo</span></h1>
+  <p class="disclaimer">All data on this page is physics-based simulation (see README), not a live wayside feed.</p>
+</header>
+
+<main>
+  <div id="kpi-strip"></div>
+  <p id="kpi-note" class="kpi-note" style="margin: -10px 0 22px;"></p>
+
+  <section id="fleet-panel">
+    <h2>Fleet</h2>
+    <div class="table-scroll">
+      <table id="fleet-table">
+        <thead>
+          <tr><th>Unit</th><th>Car</th><th>Axle</th><th>Speed</th><th>Peak Temp</th><th>Status</th></tr>
+        </thead>
+        <tbody id="fleet-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="alerts-panel">
+    <h2>Predictive Ghost Warrants</h2>
+    <p class="summary">Each warrant fuses every independent signal for one axle. Escalation to URGENT REVIEW requires at least two independent signals to agree — a single signal, even a severe one, is held at REVIEW.</p>
+    <div id="alerts-list"></div>
+    <p class="guardrail-note">AxiomDynamics never silently translates "URGENT REVIEW" into a stop-train instruction. Existing railroad operating rules, detector logic, and authorized personnel remain sole authority over train movement.</p>
+  </section>
+
+  <section id="detail-panel" hidden>
+    <h2 id="detail-title"></h2>
+
+    <div class="chart-block">
+      <h3>Thermodynamics — rate-of-change (z-score) vs. legacy fixed threshold</h3>
+      <canvas id="chart-thermo" width="860" height="260"></canvas>
+      <p id="thermo-summary" class="summary"></p>
+    </div>
+
+    <div class="chart-block">
+      <h3>Acoustics — FFT spectrum vs. bearing defect frequencies (BPFO/BPFI/BSF/FTF)</h3>
+      <canvas id="chart-fft" width="860" height="260"></canvas>
+      <p id="fft-summary" class="summary"></p>
+    </div>
+
+    <div class="chart-block">
+      <h3>Kinematics — coasting profile (E<sub>k</sub> = &frac12; m v&sup2;)</h3>
+      <canvas id="chart-coast" width="860" height="260"></canvas>
+      <p id="coast-summary" class="summary"></p>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
