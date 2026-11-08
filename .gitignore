@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime state -- the disposition database is generated at startup,
+# never committed. (It was being tracked; a repo containing a reviewer
+# audit table is a data-handling problem, not a convenience.)
+axiom.db
+*.db
+*.db-journal
+
+# Local env
+.env
+.DS_Store
