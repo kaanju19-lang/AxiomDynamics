@@ -8,11 +8,23 @@ Working materials that stay internal belong in `/assets`. Anything in this tree 
 
 | Folder | Contents | Status |
 |---|---|---|
-| `01-executive-brief` | BNSF network operating dossier; VP/Director outcome brief | **Dossier built** |
+| `01-executive-brief` | BNSF dossier; **UP/NS combined dossier**; VP/Director outcome brief | **2 dossiers built** |
 | `02-roi-calculator` | Live Excel three-year business case, two pricing axes | **Built** |
 | `03-technical-dossier` | Physics methodology, validation, architecture | Not started |
 | `04-pilot-proposal` | Scoped 6-month pilot with success criteria | Not started |
 | `05-commercial-terms` | Licensing structure, tier definitions, terms | Built |
+
+## 01 — Market intelligence: one fact changes the plan
+
+The carrier target list was originally UNP, CN, CP and NS as four independent prospects. **Two of them are now one company.**
+
+Union Pacific is acquiring Norfolk Southern for **$85B**. Announced July 2025; STB rejected the first application as incomplete in Jan 2026, accepted the revised one as complete 28 May 2026 but placed the proceeding in abeyance pending supplements; on 22 Sept 2026 the Board denied BNSF, CSX and shippers' motions to dismiss. Expected close **H2 2027**. Combined: 50,000+ route miles, 43 states, ~100 ports — the first US transcontinental railroad.
+
+Two dossiers now exist instead of one, and the commercial framing changed with them:
+
+- **BNSF** is not a neutral prospect — they petitioned the STB to dismiss the merger. They are the opposing litigant in the largest consolidation in a generation, and under pressure to demonstrate they run the safer network. Pitch accordingly.
+- **UP/NS** is one buyer with a capex-restricted pre-closing period. A large multi-year contract is not buyable today; a $370K pilot is. The prize is being the validated platform inside one network at close, when one integration standard across 50,000 miles becomes the largest addressable deployment in North American rail.
+- **The Sunset Route is thinner than the Southern Transcon** — ~28–39 trains/day against 200+, and ~80% double-tracked. Corridor pricing that works for BNSF **does not transfer** to UP at the same price point.
 
 ## 02 — ROI Calculator
 

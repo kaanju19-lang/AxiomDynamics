@@ -53,7 +53,7 @@ This is the single most important structural fact for our pricing model.
 - **HBD installation and inspection is not FRA-regulated.** AAR Circular OT-55-R carries recommended practices. NTSB has recommended FRA establish requirements (R-24-02 through R-24-05)
 - **Acoustic bearing detectors (ABD)** detect rolling-surface defects before overheating, and because of the longer warning window **far fewer units are needed** than HBDs
 
-**The pricing implication is direct.** On a 2,200-mile corridor at 40–64 mile detector spacing, the detector population is roughly **35–55 locations**. That is the real site count for a corridor deployment — not "one corridor, one site." Our calculator's platform-fee axis exists precisely because a corridor and a yard are not the same deployment.
+**The pricing implication is direct.** On a 2,200-mile corridor at 40–64 mile detector spacing, the detector population is roughly **34–55 locations** — $1.49M–$2.43M/year in platform fees at $45K/site. That is the real site count for a corridor deployment — not "one corridor, one site." Our calculator's platform-fee axis exists precisely because a corridor and a yard are not the same deployment.
 
 ## 4. What the model says at BNSF scale
 
@@ -97,17 +97,19 @@ Each of these is a question to ask in the room, not a number to assert. Asking a
 
 Same template, in this order: (1) route miles, divisions, states; (2) the two or three named corridors that carry the volume; (3) traffic density and running hours on those corridors; (4) detector footprint; (5) the specific derailment history that makes bearing failure salient to *that* carrier.
 
-Carriers queued, with the one fact I would lead with for each:
+> **Correction to the original plan.** This section previously listed UNP, CN, CP and NS as four independent prospects. **UNP and NS are one company pending STB approval** — Union Pacific is acquiring Norfolk Southern for $85B, accepted as complete by the STB on 28 May 2026, expected to close H2 2027. See `UP-NS-combined-network-dossier.md`. Pitching them separately would be the single most damaging mistake available to us in this market.
 
-**Union Pacific (UNP)** — the direct western competitor and BNSF's mirror image. Sunset Corridor is the analogue to the Southern Transcon. Their East Palestine-adjacent exposure is the same wheel-bearing failure mode.
+**Build order, revised:**
 
-**Norfolk Southern (NS)** — lead with East Palestine directly. They are the carrier that has already paid $1B+ and already has NTSB recommendations against their response discipline. The conversation is different: this is remediation, not prevention.
+**BNSF — first, and the frame has changed.** BNSF petitioned the STB to dismiss the UP–NS merger. They are now the opposing litigant in the largest rail consolidation in a generation, which means they are under pressure to demonstrate they run the safer network. The pitch is not "save money" — it is "be the railroad that proved bearing failures get caught 18 hours out, while the merger argument is on the front page." Time-limited to the STB proceeding.
 
-**CN and CPKC** — Canadian regulatory environment, so the value proposition shifts from FRA exposure toward Transport Canada compliance and cross-border hazmat routing.
+**UP / NS — one combined dossier, already written.** $85B merger; the Sunset Route is structurally the Southern Transcon's analogue but carries ~28–39 trains/day against BNSF's 200+, so **corridor economics do not transfer at the same price point**. Lead with a single-division deployment instead of a corridor. Large commitments are not buyable pre-close due to capex restrictions; a $370K pilot is.
 
-**CSX** — eastern network, heavy hazmat corridor exposure through the Appalachians and Northeast.
+**CN / CPKC — third.** Canadian regulatory frame. The value proposition shifts from FRA exposure toward Transport Canada compliance and cross-border hazmat routing. Note CPKC's distinctive risk profile: the only single-line railroad connecting Canada, the US and Mexico.
 
-For each, the calculator needs only two changed inputs to produce their number: axles in scope and site count. The physics does not change.
+**CSX — fourth.** Eastern network, heavy hazmat corridor exposure through the Appalachians and Northeast. Also moved to dismiss the UP–NS merger.
+
+For each, the calculator needs only two changed inputs: axles in scope and site count. The physics does not change. **The traffic density does, and that is what decides whether corridor pricing works.**
 
 ---
 
