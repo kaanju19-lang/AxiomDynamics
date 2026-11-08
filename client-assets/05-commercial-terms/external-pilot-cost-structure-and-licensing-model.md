@@ -59,22 +59,36 @@ Once the pilot documents ROI, the railroad scales to a division or the full flee
 ### Tier 1 — Core Operations License
 
 - Up to 500 active freight car axles
-- **$450,000/year**
+- **$300,000/year** at the band rate of $600 per monitored axle
 - Includes: wayside integration, edge server, 24/7 support, monthly model and rule updates
 - Billed per operational asset (axles monitored) — not per user, not per seat
 
 ### Tier 2 — Enterprise Operations License
 
 - 500–2,000 axles (multiple yards or divisions)
-- **$950,000/year**
+- **$550,000/year at 1,000 axles; $1,050,000/year at 2,000 axles** — $500 per axle for the
+  1,500 axles in this band
 - Adds: multi-site dashboard, cross-division analytics, predictive fleet scheduling
 - Includes one dedicated engineering liaison embedded with the customer
 
 ### Tier 3 — Full Rail Network License
 
 - 2,000+ axles (entire network or mega-operator)
-- **$1,800,000/year + 3% of documented prevented-failure savings**
+- **$2,175,000/year at 5,000 axles; $4,050,000/year at 10,000 axles** — $375 per axle above
+  2,000, plus 3% of documented prevented-failure savings
 - Adds: network-wide anomaly correlation, regulatory reporting automation
+
+> **On the pricing structure — read this before quoting numbers.** These are marginal per-axle
+> bands, not flat tier cliffs. The distinction is deliberate: a flat cliff charges more than
+> double for a doubling of axles, so the customer's ROI gets *worse* as they expand — punishing
+> exactly the adoption this commercial model depends on. Earlier drafts used flat tiers
+> ($450K / $950K / $1.8M) and they failed on both counts: the entry tier returned only 1.5x, and
+> scaling from 500 to 1,000 axles actually dropped ROI from 1.9x to 1.8x.
+>
+> These rates remain a **pricing hypothesis**, not a published rate card, and are not benchmarked
+> against what a Class I railroad actually pays per monitored axle. They are set so modelled
+> return improves monotonically with fleet size — 2.0x at 500 axles rising to 4.1x at 10,000.
+> Validate against one real procurement conversation before quoting them.
 
 ---
 
@@ -82,12 +96,13 @@ Once the pilot documents ROI, the railroad scales to a division or the full flee
 
 The defining departure from SaaS: a fixed base license plus a **performance component tied to documented prevented failures**.
 
-**Base license (fixed):** $450K–$1.8M per year depending on scale.
+**Base license (fixed):** $300K–$4.05M per year depending on axle volume, priced marginally by band.
 
 **Performance bonus (variable):**
 
-- When a defect flagged by AxiomDynamics is corroborated by the customer's root-cause analysis as a prevented failure, the railroad pays **3–5% of the prevented-failure cost avoidance** as an additional licensing fee.
-- Example: two detected defects that would have been $6M in derailment cost → an additional $180K–$300K in licensing that year.
+- When a defect flagged by AxiomDynamics is corroborated by the customer's root-cause analysis as a prevented failure, the railroad pays **3% of the prevented-failure cost avoidance** as an additional licensing fee, **capped at 33% of the annual base license**.
+- The cap is essential. Uncapped, 3% of gross prevented cost runs to several times the base license and makes the structure incoherent. With the cap, the component adds roughly $150K–$300K on a typical mid-size deployment — meaningful upside, still bounded.
+- Worked example at 1,000 axles: base $550K, prevented cost $1.39M, performance component $41.8K, total $591.8K.
 
 **Why the structure holds**
 

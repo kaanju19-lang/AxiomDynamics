@@ -28,25 +28,30 @@ Rebuild with `python3 build_roi_calculator.py`, then recalculate before shipping
 
 ### What the model actually says
 
-At the defaults, across three fleet sizes:
+Pricing is **marginal per-axle**, not flat tiers. Each band charges only for the axles inside it, so adding axles never costs more than the value those axles create. At the defaults:
 
-| Axles | Tier | Annual benefit | 3-yr cost | 3-yr net value | ROI | Pilot payback |
-|---|---|---|---|---|---|---|
-| 500 | Tier 1 — Core | $697K | $1.38M | $705K | 1.5x | 5.8 months |
-| 2,000 | Tier 2 — Enterprise | $2.79M | $2.63M | $5.73M | 3.2x | 1.4 months |
-| 5,000 | Tier 3 — Network | $6.97M | $4.79M | $16.1M | 4.4x | 0.6 months |
+| Axles | Primary band | Base license | Annual benefit | 3-yr cost | 3-yr net | ROI | Pilot payback |
+|---|---|---|---|---|---|---|---|
+| 500 | Band 1 — Core | $300K | $697K | $1.05M | $1.04M | 2.0x | 5.8 months |
+| 1,000 | Band 2 — Enterprise | $550K | $1.39M | $1.65M | $2.53M | 2.5x | 2.9 months |
+| 2,000 | Band 2 — Enterprise | $1.05M | $2.79M | $2.85M | $5.51M | 2.9x | 1.4 months |
+| 5,000 | Band 3 — Network | $2.18M | $6.97M | $5.63M | $15.3M | 3.7x | 0.6 months |
+| 10,000 | Band 3 — Network | $4.05M | $13.9M | $10.2M | $31.6M | 4.1x | 0.3 months |
 
-**The finding worth acting on: the economics barely clear at 500 axles.** A 1.5x three-year ROI will not move a Class I procurement committee — it reads as marginal, and the honest reaction to a 1.5x pitch is "come back when it's 3x." The deal works at 2,000 and looks strong at 5,000.
+Rate card: $600/axle for the first 500, $500 for the next 1,500, $375 above 2,000 — editable in one block on the Licensing Cost sheet.
 
-That points at one of two changes before this is shown to a customer, and it is a commercial decision, not a modeling one:
+### Two pricing faults found and fixed
 
-- **Lower the Tier 1 base license** from $450K toward ~$325K, which lifts 500-axle ROI to roughly 2.2x while keeping the tier credible, or
-- **Raise the Tier 1 floor** to ~1,000 axles, so the entry price buys an asset base that justifies it.
+Worth recording, because both were invisible in a clean recalc and both would have been damaging in a customer meeting.
 
-Do not fix this by inflating the benefit side. The prevented-damage figure is already driven by sourced cost data; the lever that is genuinely wrong is the price, not the physics.
+**1. The deal did not clear at Tier 1.** At the original $450K flat price, a 500-axle deployment returned 1.5x over three years. That will not pass a Class I procurement committee. Fixed by lowering the entry price rather than inflating the benefit side — the prevented-damage figures rest on sourced cost data and should not be bent to rescue a ratio.
+
+**2. Flat tier cliffs punished expansion.** After the first price cut, 1,000 axles returned *less* than 500 (1.8x vs 1.9x), because crossing from Tier 1 to Tier 2 more than doubled the price for a doubling of axles. A customer expanding their fleet would see their ROI fall — the opposite of the incentive the commercial model depends on. Fixed by switching to marginal per-axle bands, which was verified monotonic across 500 → 10,000 axles.
+
+If you change the rate card, re-run the monotonicity check. It is the single most likely thing to break.
 
 ## Verification status
 
-Every formula recalculates clean (61 formulas, zero errors), and the summary figures were independently re-derived in Python — not just read back from the file. An error-free workbook can still be wrong; the numbers above were checked against hand calculation.
+Every formula recalculates clean (64 formulas, zero errors), and the summary figures were independently re-derived in Python — not just read back from the file. An error-free workbook can still be wrong; the numbers above were checked against hand calculation, and the pricing was checked for monotonic behaviour across fleet sizes.
 
 The sensitivity that matters most: cell `B16` on sheet 1 (catastrophic escalation probability). The workbook defaults to 0.05% because 2% would imply dozens of billion-dollar derailments a year nationwide, which is physically impossible. Change it deliberately and re-read the result.

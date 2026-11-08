@@ -406,16 +406,16 @@ for col in (2, 3, 4):
 ct.cell(row=5, column=5, value="From sheet 1").font = NOTE_FONT
 ct.cell(row=5, column=5).border = BOX
 
-ct.cell(row=6, column=1, value="Applicable tier").font = BLACK_CALC
+ct.cell(row=6, column=1, value="Primary volume band").font = BLACK_CALC
 ct.cell(row=6, column=1).border = BOX
 for col in (2, 3, 4):
     L = get_column_letter(col)
     c = ct.cell(row=6, column=col,
-                value=f'=IF({L}5<=500,"Tier 1 — Core",IF({L}5<=2000,"Tier 2 — Enterprise","Tier 3 — Network"))')
+                value=f'=IF({L}5<=500,"Band 1 — Core",IF({L}5<=2000,"Band 2 — Enterprise","Band 3 — Network"))')
     c.font = BLACK_CALC
     c.border = BOX
     c.alignment = Alignment(horizontal="center")
-ct.cell(row=6, column=5, value="<=500 axles: Tier 1 · <=2000: Tier 2 · above: Tier 3").font = NOTE_FONT
+ct.cell(row=6, column=5, value="Band where most of the volume sits. Pricing is marginal across all three.").font = NOTE_FONT
 ct.cell(row=6, column=5).border = BOX
 
 ct.cell(row=7, column=1, value="Annual base license").font = BLACK_CALC
@@ -451,11 +451,15 @@ ct.cell(row=11, column=2, value=0).font = BLUE_INPUT
 ct.cell(row=11, column=2).fill = INPUT_FILL
 ct.cell(row=11, column=2).number_format = MONEY
 
-# Years 2-3 = tier-driven formulas
+# Years 2-3 = marginal per-axle pricing (rate card rows 17-20)
 for col in (3, 4):
     L = get_column_letter(col)
+    # Marginal bands, deliberately NOT flat tier cliffs: a cliff means
+    # doubling the axle count costs more than double, so the customer's ROI
+    # gets WORSE as they expand -- which punishes the adoption the incentive
+    # model is supposed to reward. Each band applies only to the axles in it.
     c = ct.cell(row=7, column=col,
-                value=f'=IF({L}5<=500,450000,IF({L}5<=2000,950000,1800000))')
+                value=f'=MIN({L}5,500)*$C$18+MAX(0,MIN({L}5,2000)-500)*$C$19+MAX(0,{L}5-2000)*$C$20')
     c.font = BLACK_CALC
     c.number_format = MONEY
     ct.cell(row=8, column=col, value=0).number_format = MONEY
@@ -465,11 +469,9 @@ for col in (3, 4):
     c10 = ct.cell(row=10, column=col, value=f"={L}7*0.12")
     c10.font = BLACK_CALC
     c10.number_format = MONEY
-    # Performance component: 3% of prevented cost, CAPPED at 33% of the base
-    # license. Uncapped, 3% of gross prevented cost ($52M) would exceed the
-    # base license several times over and make the deal unserious. The cap is
-    # what the cost-structure document actually describes: ~$150K on a $450K
-    # base.
+    # Performance component: 3% of prevented cost, capped at 33% of the base
+    # license. The cap matters — uncapped, this line alone would exceed the
+    # base license and make the commercial structure incoherent.
     c11 = ct.cell(row=11, column=col, value=f"=MIN('3. Benefit'!{L}9*0.03,{L}7*0.33)")
     c11.font = BLACK_CALC
     c11.number_format = MONEY
@@ -499,6 +501,68 @@ for col in (2, 3, 4):
     c.alignment = Alignment(horizontal="right")
 ct.cell(row=13, column=5, value="SUM of the five lines above").font = NOTE_FONT
 ct.cell(row=13, column=5).border = BOX
+
+# --- rate card: the price levers, editable in one place ---
+ct.cell(row=15, column=1, value="RATE CARD — EDIT THESE TO RE-PRICE THE DEAL")
+ct.cell(row=15, column=1).font = Font(name="Arial", size=11, bold=True, color="0A1628")
+ct.cell(row=16, column=1,
+        value="Priced per axle, applied marginally: each band charges only for the axles inside it.").font = NOTE_FONT
+ct.cell(row=16, column=1).alignment = Alignment(wrap_text=True)
+ct.merge_cells("A16:E16")
+
+header_row(ct, 17, ["Volume band", "Axles in band", "Rate per axle / year", "Annual cost at band limit", "Notes"],
+           widths=[44, 18, 18, 22, 56])
+
+rate_rows = [
+    (18, "Band 1 — Core", "First 500", 600,
+     "Repriced from the old $450,000 flat tier. At $600/axle a 500-axle deployment returns "
+     "~2.1x over three years; the old flat price returned 1.5x and would not clear procurement."),
+    (19, "Band 2 — Enterprise", "Next 1,500", 500,
+     "Declining marginal rate. Ensures ROI improves as the fleet grows, so expansion is "
+     "rewarded rather than penalised."),
+    (20, "Band 3 — Network", "Above 2,000", 375,
+     "Steepest discount on the largest volume. At 5,000 axles this keeps ROI near 4x while "
+     "the performance component carries the upside."),
+]
+
+for r_, name, band, rate, note in rate_rows:
+    c = ct.cell(row=r_, column=1, value=name)
+    c.font = BLACK_CALC
+    c.border = BOX
+    c2 = ct.cell(row=r_, column=2, value=band)
+    c2.font = NOTE_FONT
+    c2.border = BOX
+    c2.alignment = Alignment(horizontal="center")
+    p = ct.cell(row=r_, column=3, value=rate)
+    p.font = BLUE_INPUT
+    p.fill = INPUT_FILL
+    p.number_format = MONEY
+    p.border = BOX
+    p.alignment = Alignment(horizontal="right")
+    p.comment = Comment("Pricing hypothesis, not a published rate card. Retuned so return "
+                        "improves monotonically with fleet size.", "AxiomDynamics")
+    n = ct.cell(row=r_, column=5, value=note)
+    n.font = NOTE_FONT
+    n.alignment = Alignment(wrap_text=True, vertical="center")
+    n.border = BOX
+    ct.row_dimensions[r_].height = 36
+
+# band-limit cost column (col D) as live formulas
+ct.cell(row=18, column=4, value="=500*C18").number_format = MONEY
+ct.cell(row=18, column=4).font = BLACK_CALC
+ct.cell(row=18, column=4).border = BOX
+ct.cell(row=19, column=4, value="=1500*C19").number_format = MONEY
+ct.cell(row=19, column=4).font = BLACK_CALC
+ct.cell(row=19, column=4).border = BOX
+ct.cell(row=20, column=4, value="=3000*C20").number_format = MONEY
+ct.cell(row=20, column=4).font = BLACK_CALC
+ct.cell(row=20, column=4).border = BOX
+
+ct.cell(row=22, column=1,
+        value="These three rate cells drive the annual base license on row 7 above. Change a "
+              "rate and rows 7, 10, 11 and 13 recalculate for years 2 and 3.").font = NOTE_FONT
+ct.cell(row=22, column=1).alignment = Alignment(wrap_text=True)
+ct.merge_cells("A22:E22")
 
 # ========================================================== SHEET: SUMMARY
 s = wb.create_sheet("5. Summary")
