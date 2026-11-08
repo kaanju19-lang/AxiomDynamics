@@ -81,6 +81,9 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | **D09** | Data Processing & Security Addendum (DPA) | Not built | The security schedule. Standalone because IT security review runs on a separate clock from procurement. |
 | **D10** | Subprocessor & Third-Party Component Register | Not built | Every third party touching Railroad data. Pairs with B04. |
 | **D11** | Mutual NDA | Not built | Needed *before* D02. Often overlooked and always needed first. |
+| **D12** | Regulatory Status & Safety-Critical Function Statement | Not built | Single annex stating this is not a certified safety appliance, is not a substitute for required inspection, and relieves the Railroad of no regulatory obligation. Identical language across B01, C02, D02, D07, D08. See §III.1. |
+| **D13** | IP Ownership & Escrow Schedule | Not built | Definitive statement of what transfers and when. Escrow insolvency-triggered only. Records the five-year retention decision. |
+| **D14** | Operating Model & Liability Boundary | **Built** | Who installs, operates, supports and staffs. Separates operational liability (largely removed by responsible self-install) from product liability (retained regardless). Sets representational discipline. |
 
 ---
 
