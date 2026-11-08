@@ -8,47 +8,46 @@ Working materials that stay internal belong in `/assets`. Anything in this tree 
 
 | Folder | Contents | Status |
 |---|---|---|
-| `01-executive-brief` | One-page outcome brief for VP/Director level | Not started |
-| `02-roi-calculator` | Live Excel three-year business case | **Built** |
+| `01-executive-brief` | BNSF network operating dossier; VP/Director outcome brief | **Dossier built** |
+| `02-roi-calculator` | Live Excel three-year business case, two pricing axes | **Built** |
 | `03-technical-dossier` | Physics methodology, validation, architecture | Not started |
 | `04-pilot-proposal` | Scoped 6-month pilot with success criteria | Not started |
-| `05-commercial-terms` | Licensing structure, tier definitions, terms | Referenced in `/assets` |
+| `05-commercial-terms` | Licensing structure, tier definitions, terms | Built |
 
 ## 02 — ROI Calculator
 
 `AxiomDynamics-ROI-Calculator.xlsx` — five sheets:
 
-1. **Your Fleet** — axle count, line speed, and cost inputs. Yellow cells are the only places to type.
+1. **Your Fleet** — axle count, line speed, **site count**, and cost inputs. Yellow cells are the only places to type.
 2. **Detection** — legacy vs. AxiomDynamics detection performance, and the track miles of early warning that follow from it.
 3. **Benefit** — annual prevented-failure value, three-year.
-4. **Licensing Cost** — tier auto-selects from axle count; pilot year vs. production years.
+4. **Licensing Cost** — two pricing axes: per-axle license (marginal bands) plus per-site platform fee. Pilot year vs. production years.
 5. **Summary** — the number that matters, plus every formula above it auditable.
 
-Rebuild with `python3 build_roi_calculator.py`, then recalculate before shipping. (`build_roi_calculator.py` is kept beside the workbook on purpose — the model must be reproducible, not a mystery binary.)
+### Two pricing axes, because there are two cost drivers
 
-### What the model actually says
+**Axle volume drives the license.** Value scales with assets monitored, so the license does too — $600/axle for the first 500, $500 for the next 1,500, $375 above 2,000, applied marginally.
 
-Pricing is **marginal per-axle**, not flat tiers. Each band charges only for the axles inside it, so adding axles never costs more than the value those axles create. At the defaults:
+**Site count drives the platform fee** — $45,000 per monitored location beyond the first. Geography does not scale with axle count: each location needs its own edge server, detector integration, install trip, and support coverage. A single yard and a 13-division network with identical axle counts are very different deployments and cost very different amounts to serve.
 
-| Axles | Primary band | Base license | Annual benefit | 3-yr cost | 3-yr net | ROI | Pilot payback |
-|---|---|---|---|---|---|---|---|
-| 500 | Band 1 — Core | $300K | $697K | $1.05M | $1.04M | 2.0x | 5.8 months |
-| 1,000 | Band 2 — Enterprise | $550K | $1.39M | $1.65M | $2.53M | 2.5x | 2.9 months |
-| 2,000 | Band 2 — Enterprise | $1.05M | $2.79M | $2.85M | $5.51M | 2.9x | 1.4 months |
-| 5,000 | Band 3 — Network | $2.18M | $6.97M | $5.63M | $15.3M | 3.7x | 0.6 months |
-| 10,000 | Band 3 — Network | $4.05M | $13.9M | $10.2M | $31.6M | 4.1x | 0.3 months |
+### The finding the site axis exposed
 
-Rate card: $600/axle for the first 500, $500 for the next 1,500, $375 above 2,000 — editable in one block on the Licensing Cost sheet.
+| Axles | Sites | 3-yr cost | ROI | Reading |
+|---|---|---|---|---|
+| 500 | 1 | $927K | 2.3x | single yard — works |
+| 500 | 11 | $2.28M | **0.9x** | corridor, same axles — **loses money** |
+| 2,000 | 13 | $4.17M | 2.0x | 13 divisions |
+| 5,000 | 13 | $6.67M | 3.1x | full BNSF division footprint |
 
-### Two pricing faults found and fixed
+**Benefit scales with assets protected; cost scales with geography covered.** Covering a lot of track while protecting few assets is simply a bad deal for the customer, and the model now says so instead of hiding it.
 
-Worth recording, because both were invisible in a clean recalc and both would have been damaging in a customer meeting.
+The commercial consequence: **a corridor must be sold on the axle population traversing it, not the cars parked in it.** At 200+ trains/day on the Southern Transcon the annual axle throughput is enormous — that is what justifies corridor economics. A pitch quoting stored inventory instead of traffic volume produces the 0.9x result and deserves to lose.
 
-**1. The deal did not clear at Tier 1.** At the original $450K flat price, a 500-axle deployment returned 1.5x over three years. That will not pass a Class I procurement committee. Fixed by lowering the entry price rather than inflating the benefit side — the prevented-damage figures rest on sourced cost data and should not be bent to rescue a ratio.
+### A note on flat tiers (still worth recording)
 
-**2. Flat tier cliffs punished expansion.** After the first price cut, 1,000 axles returned *less* than 500 (1.8x vs 1.9x), because crossing from Tier 1 to Tier 2 more than doubled the price for a doubling of axles. A customer expanding their fleet would see their ROI fall — the opposite of the incentive the commercial model depends on. Fixed by switching to marginal per-axle bands, which was verified monotonic across 500 → 10,000 axles.
+Earlier drafts used flat tiers ($450K / $950K / $1.8M). They failed twice: the entry tier returned only 1.5x, and scaling from 500 to 1,000 axles *dropped* ROI from 1.9x to 1.8x, because crossing a tier boundary more than doubled the price for a doubling of axles. Marginal per-axle bands replaced them and were verified monotonic across 500 → 10,000 axles.
 
-If you change the rate card, re-run the monotonicity check. It is the single most likely thing to break.
+If you change the rate card, re-run the monotonicity check. It is the most likely thing to break.
 
 ## Verification status
 

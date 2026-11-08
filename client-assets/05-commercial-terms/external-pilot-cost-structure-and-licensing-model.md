@@ -90,13 +90,48 @@ Once the pilot documents ROI, the railroad scales to a division or the full flee
 > return improves monotonically with fleet size — 2.0x at 500 axles rising to 4.1x at 10,000.
 > Validate against one real procurement conversation before quoting them.
 
+### 3.1 The second pricing axis — monitored sites
+
+The license above prices **assets**. It says nothing about **geography**, and on a railroad those
+are two different costs. Two deployments with identical axle counts are not the same job if one
+is a single classification yard and the other spans eleven subdivisions. Each location needs its
+own edge server, detector integration, commissioning trip, network path, and support coverage.
+
+- **Platform fee: $45,000 per monitored location per year, beyond the first.**
+- First site included in the base license.
+- A "site" is one wayside detector location or one classification yard with edge compute —
+  i.e. a place where the platform is physically installed and maintained.
+
+**Why this matters more than it looks.** On a 2,200-mile corridor at the industry's 40–64 mile
+detector spacing, a corridor deployment is roughly **35–55 sites** — not one. Pricing a corridor
+as if it were a yard under-charges the installation work by an order of magnitude.
+
+**The result that must not be hidden from the customer:**
+
+| Scope | Axles | Sites | 3-yr cost | ROI |
+|---|---|---:|---:|---:|
+| Single yard | 500 | 1 | $927K | 2.3x |
+| Same axles over a corridor | 500 | 11 | $2.28M | **0.9x** |
+| Thirteen divisions | 2,000 | 13 | $4.17M | 2.0x |
+| Full division footprint | 5,000 | 13 | $6.67M | 3.1x |
+
+The second row **loses money**, and that is correct. Benefit scales with the assets protected;
+cost scales with the ground covered. Covering a lot of track while protecting few assets is a
+genuinely bad deal, and the model says so rather than hiding it.
+
+The commercial consequence is a sales discipline, not a pricing trick: **sell a corridor on the
+axle population that traverses it, not the cars parked in it.** At 200+ trains/day on the
+Southern Transcon the annual axle throughput is enormous — that is what makes corridor economics
+work. Quoting stored inventory instead of traffic volume produces the 0.9x row and should lose
+the deal.
+
 ---
 
 ## 4. Revenue Model — ROI-Tied Licensing
 
 The defining departure from SaaS: a fixed base license plus a **performance component tied to documented prevented failures**.
 
-**Base license (fixed):** $300K–$4.05M per year depending on axle volume, priced marginally by band.
+**Base license (fixed):** $300K–$4.05M per year depending on axle volume, priced marginally by band, plus $45,000 per monitored site beyond the first.
 
 **Performance bonus (variable):**
 
@@ -121,19 +156,21 @@ The defining departure from SaaS: a fixed base license plus a **performance comp
 - Prevented damage: ~$6M–$8M
 - Customer internal ROI: 16x–22x
 
-**Year 2 (Production — Tier 1): $450K base + ~$150K performance bonus** (assuming 2–3 corroborated prevented defects)
+**Year 2 (Production — Tier 1, 500 axles, 1 site): $300K base + up to $99K performance bonus**
 
-- Total customer cost, Year 2: $600K
+- The cap binds here: 3% of $8M–$12M prevented would be $240K–$360K, but the performance
+  component is capped at 33% of base ($99K). The cap is what keeps the structure coherent.
+- Total customer cost, Year 2: **$399K**
 - Prevented damage: $8M–$12M
 - Cumulative prevented damage across 3 years: $14M–$20M
-- Cumulative investment: $970K
-- **Three-year ROI: 14x–20x**
+- Cumulative investment: **$1.168M**
+- **Three-year ROI: 12x–17x**
 
-**Year 3+ (Steady state — Tier 1): $450K base + performance**
+**Year 3+ (Steady state — Tier 1): $300K base + $99K performance**
 
-- Recurring annual licensing: $450K + variable
+- Recurring annual licensing: **$399K**
 - Steady-state prevented damage: $10M–$15M/year
-- Effective payback: under 6 weeks per year
+- Effective payback: under 5 weeks per year
 
 ---
 
@@ -142,14 +179,18 @@ The defining departure from SaaS: a fixed base license plus a **performance comp
 | Year | CapEx (hardware) | OpEx (license + support) | Total Annual | Cumulative |
 |---|---:|---:|---:|---:|
 | 1 | $65,000 | $305,000 | $370,000 | $370,000 |
-| 2 | $0 | $600,000 | $600,000 | $970,000 |
-| 3 | $15,000 (refresh) | $600,000 | $615,000 | $1,585,000 |
-| 4 | $0 | $600,000 | $600,000 | $2,185,000 |
-| 5 | $0 | $600,000 | $600,000 | $2,785,000 |
+| 2 | $0 | $399,000 | $399,000 | $769,000 |
+| 3 | $15,000 (refresh) | $399,000 | $414,000 | $1,183,000 |
+| 4 | $0 | $399,000 | $399,000 | $1,582,000 |
+| 5 | $0 | $399,000 | $399,000 | $1,981,000 |
 
 - **Five-year prevented damage (documented):** $40M–$60M
-- **Five-year total investment:** $2.785M
-- **Five-year ROI: 14x–21x**
+- **Five-year total investment:** $1.981M
+- **Five-year ROI: 20x–30x**
+
+Site count changes this table directly: each additional monitored location adds $45K/year, so a
+thirteen-division deployment adds $540K/year to the OpEx column. Recompute before quoting a
+multi-site customer.
 
 ---
 
@@ -159,7 +200,7 @@ The defining departure from SaaS: a fixed base license plus a **performance comp
 |---|---|---|---|
 | Detection time | ~4.8 hours | 3–4 hours, unpredictable | 18–48 hours before failure |
 | False-positive rate | 2–5% (stops trains) | 8–12% (operator distrust) | <0.1% (human gate) |
-| Cost model | $2M upfront + $200K/yr | Per-user SaaS ($10–50K/seat) | **$450K–$1.8M/yr, ROI-tied** |
+| Cost model | $2M upfront + $200K/yr | Per-user SaaS ($10–50K/seat) | **$300K–$4.05M/yr, ROI-tied, + $45K/site** |
 | Regulatory value | Limited | Limited | **Documented risk reduction** |
 | Deployment time | 18–24 months | 6–12 months | **3–6 months (edge-based)** |
 | Vendor lock-in | 7–10 years | Perpetual (data hostage) | **3-year rolling; customer retains IP** |
@@ -176,7 +217,7 @@ The defining departure from SaaS: a fixed base license plus a **performance comp
 >
 > We do not license seats or users. We license operational assets — your freight car axles. You pay a base license, plus a performance component only when we prevent damage you can independently corroborate. No seat inflation. No cloud data hostage. On-premise deployment: your IT approves once and it runs.
 >
-> Post-pilot, $450K/year covers 500 cars. Scale to 2,000 cars at $950K/year. Every defect we detect and you verify returns 3% of the prevented-failure cost into licensing — so your incentive is to deploy everywhere, and ours is to find every defect before it becomes a derailment.
+> Post-pilot, $300K/year covers 500 axles at one site. Scale to 2,000 axles across thirteen divisions at $1.05M/year plus $540K in site fees. Every defect we detect and you verify returns 3% of the prevented-failure cost into licensing — so your incentive is to deploy everywhere, and ours is to find every defect before it becomes a derailment.
 >
 > **Let's start with the pilot. We'll show you the math.**
 
