@@ -103,7 +103,7 @@ own edge server, detector integration, commissioning trip, network path, and sup
   i.e. a place where the platform is physically installed and maintained.
 
 **Why this matters more than it looks.** On a 2,200-mile corridor at the industry's 40–64 mile
-detector spacing, a corridor deployment is roughly **35–55 sites** — not one. Pricing a corridor
+detector spacing, a corridor deployment is roughly **34–55 sites** — not one. Pricing a corridor
 as if it were a yard under-charges the installation work by an order of magnitude.
 
 **The result that must not be hidden from the customer:**
