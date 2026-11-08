@@ -53,11 +53,11 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 
 | ID | Document | Status | Purpose |
 |---|---|---|---|
-| **B01** | System Blueprint & Architecture | Not built | Component inventory, data flow, deployment topology, failure modes. |
-| **B02** | Flow Map | Not built | Visual: detector → edge → inference → reviewer → disposition → audit log. |
+| **B01** | System Blueprint & Architecture | **Built** | Component inventory, data flow, disposition ledger requirements, failure modes, and the gap list where code differs from production. |
+| **B02** | Flow Map | Not built | Visual: detector → edge → inference → reviewer → disposition → audit log. (Text flow is in B01 §3.) |
 | **B03** | Infographic (one page) | Not built | One-page visual for executives who will not read B01. |
-| **B04** | Technology Stack Disclosure | Not built | Every dependency, language, runtime, library, licence type. **Required for IT security review and for open-source licence compliance.** |
-| **B05** | Data Flow & Residency Statement | Not built | What data leaves the Railroad's network, if any, and where it goes. Must answer the air-gap question definitively. |
+| **B04** | Technology Stack Disclosure | **Built** | Complete dependency register with licence types. One non-stdlib dependency (numpy). Verified against code. |
+| **B05** | Data Flow & Residency Statement | **Built** | Definitively answers the air-gap question: zero outbound, verified against code. |
 
 ### C. Deployment & people
 
@@ -167,10 +167,12 @@ That rule 6 is the one that keeps this docket honest over time.
 
 ## Part V — Build status at a glance
 
-**Built:** A1 (ROI model), D08 (licensing — commercial grade, needs legal conversion).
-**Next highest value:** D11 (NDA — needed before any conversation), B04 (tech stack — unblocks IT security review), D02 (pilot agreement — the document that gets signed).
+**Built:** A1 (ROI model), B01 (blueprint), B04 (tech stack), B05 (data flow), D08 (licensing — commercial grade, needs legal conversion).
+**Next highest value:** D11 (NDA — needed before any conversation), D02 (pilot agreement — the document that gets signed), C01 (deployment SOP).
 **Deferred by decision:** 04-pilot-proposal narrative (superseded by D02 as a legal instrument).
 **Moved to `assets/`:** all carrier dossiers and market intelligence, per classification rule — discussion material stays internal.
+
+**Architectural decisions locked (B01):** fully on-premise edge with zero outbound network; local accounts + signed certification registry; append-only disposition ledger. Both choices carry stated costs, documented in B01 §8 rather than hidden.
 
 ---
 
