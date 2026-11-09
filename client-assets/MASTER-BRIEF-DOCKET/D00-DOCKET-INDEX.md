@@ -71,7 +71,7 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | ID | Document | Status | Purpose |
 |---|---|---|---|
 | **D01** | Preface & Master Deliverables Checklist | Not built | Front matter: what this docket is, what it is not, and the signed-off checklist. **Must be completed at Final Build before anything else is executed.** |
-| **D02** | Master Pilot Agreement | Not built | The entry contract. Scope, term, fees, success criteria, termination, data ownership during pilot. |
+| **D02** | Master Pilot Agreement | **Built** | The entry contract. Scope, term, fees, evaluation criteria, warranties, liability cap, indemnities, termination. **Fees illustrative — confirm against A2 before signature.** |
 | **D03** | Master Services Agreement (MSA) | Not built | The umbrella. Survives individual orders; governs all future statements of work. |
 | **D04** | Statement of Work templates (SOW-1…n) | Not built | Executable per-deployment orders under the MSA. |
 | **D05** | Pilot → YoY Licensing Rollover Agreement | Not built | The conversion mechanics: what happens on day 366, price protection, credit for pilot fees, conversion deadline, and what happens if the Railroad declines to convert. |
@@ -80,18 +80,20 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | **D08** | Master Licensing & Liability | **Built (needs legal pass)** | Licensing structure, tier bands, performance component, and the liability split. Currently written commercially — must be converted to contract-grade language. |
 | **D09** | Data Processing & Security Addendum (DPA) | Not built | The security schedule. Standalone because IT security review runs on a separate clock from procurement. |
 | **D10** | Subprocessor & Third-Party Component Register | Not built | Every third party touching Railroad data. Pairs with B04. |
-| **D11** | Mutual NDA | Not built | Needed *before* D02. Often overlooked and always needed first. |
-| **D12** | Regulatory Status & Safety-Critical Function Statement | Not built | Single annex stating this is not a certified safety appliance, is not a substitute for required inspection, and relieves the Railroad of no regulatory obligation. Identical language across B01, C02, D02, D07, D08. See §III.1. |
+| **D11** | Mutual NDA | **Built** | Needed *before* D02. Often overlooked and always needed first. |
+| **D12** | Regulatory Status & Safety-Critical Function Statement | **Built** | Single annex stating this is not a certified safety appliance, is not a substitute for required inspection, and relieves the Railroad of no regulatory obligation. Identical language across B01, C02, D02, D07, D08. See §III.1. |
 | **D13** | IP Ownership & Escrow Schedule | **Built** | Definitive statement of what transfers and when. Records the five-year retention decision. Escrow releases the **running version only**, insolvency-triggered, operability never ownership. Includes contributor assignment requirement. |
 | **D14** | Operating Model & Liability Boundary | **Built** | Who installs, operates, supports and staffs. Separates operational liability (largely removed by responsible self-install) from product liability (retained regardless). Sets representational discipline. |
 
 ---
 
-## Part III — Loopholes I would close, and why
+## Part III — Loopholes identified, and current status
 
-You asked me to add what's missing. These are the gaps that most often go wrong in rail technology contracts specifically.
+These are the gaps that most often go wrong in rail technology contracts specifically. Status markers show which are now closed by a built document and which remain open work.
 
 ### 1. The safety-critical disclaimer paradox — the biggest one
+
+**Status: CLOSED** — D12 built. The decision-support framing is now fixed in D12 §§1–2, and D12 §9 makes it controlling over every other document.
 
 Our claim is that we prevent derailments. Our inevitable limitation-of-liability clause will say we do not guarantee detection. **Put together, those two statements are a contradiction that a plaintiff's lawyer will find in ten minutes.**
 
@@ -100,6 +102,8 @@ The resolution is not to weaken either. It is to define the product precisely: A
 **Add: D12 — Regulatory Status & Safety-Critical Function Statement.** A single annex that states, unambiguously, that this is not a certified safety appliance, is not a substitute for FRA-required inspection, and does not relieve the Railroad of any regulatory obligation. This protects both parties and is the document that makes the disclaimer credible rather than self-serving.
 
 ### 2. Data ownership vs. model improvement
+
+**Status: CLOSED** — D13 §3 separates ownership explicitly. Default position is no cross-customer learning, which under AD-1 is structurally true rather than merely promised.
 
 The standard clause — "Railroad owns its data" — is insufficient. The Railroad will ask: *if you train on our data, and the model improves, do we own the improvement? Do our competitors benefit?* Left unanswered, this stalls the deal at legal review every time.
 
@@ -145,6 +149,8 @@ Even a domestic-only deployment can raise export-control questions if any compon
 
 ### 11. Missing: escrow
 
+**Status: CLOSED** — D13 §4. Insolvency-triggered, running-version deposit, operability never ownership.
+
 If AxiomDynamics ceases to exist, can the Railroad keep operating? A **source code escrow** agreement (triggered on insolvency or cessation of support) is the standard answer and is often the clause that lets a sole-source vendor be approved at all. Given that this is a company selling to organisations that plan in decades, expect this question.
 
 ### 12. Missing: transition and exit assistance
@@ -170,12 +176,19 @@ That rule 6 is the one that keeps this docket honest over time.
 
 ## Part V — Build status at a glance
 
-**Built:** A1 (ROI model), B01 (blueprint), B04 (tech stack), B05 (data flow), D08 (licensing — commercial grade, needs legal conversion).
-**Next highest value:** D11 (NDA — needed before any conversation), D02 (pilot agreement — the document that gets signed), C01 (deployment SOP).
-**Deferred by decision:** 04-pilot-proposal narrative (superseded by D02 as a legal instrument).
-**Moved to `assets/`:** all carrier dossiers and market intelligence, per classification rule — discussion material stays internal.
+**Built (10):** A1 ROI model · B01 blueprint · B04 tech stack · B05 data flow · D02 pilot agreement · D08 licensing · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model.
 
-**Architectural decisions locked (B01):** fully on-premise edge with zero outbound network; local accounts + signed certification registry; append-only disposition ledger. Both choices carry stated costs, documented in B01 §8 rather than hidden.
+**Open loopholes still requiring a document:** the false-positive cost regime (D06), detector data warranty allocation (D07), cyber incident notification (D09), personnel security (D07), export control (D07), transition assistance (D07), certification liability (D07), and rollover cliff (D05).
+
+**Next by value:** C01 deployment SOP (the self-install model depends on it) · D07 master contract (closes the most remaining loopholes) · C02 certification (the Canadian argument rests on it) · A2 rate card (D02 fees are illustrative until it exists).
+
+**Deferred by decision:** the pilot-proposal narrative — superseded by D02 as a legal instrument.
+
+**Internal, moved to `assets/`:** carrier dossiers, library reconciliation, IP strategy.
+
+**Architectural decisions locked (B01):** fully on-premise edge, zero outbound network; local accounts plus signed certification registry; append-only disposition ledger.
+
+**Commercial decision locked (D13):** AxiomDynamics retains all IP; escrow grants operability only on insolvency.
 
 ---
 
