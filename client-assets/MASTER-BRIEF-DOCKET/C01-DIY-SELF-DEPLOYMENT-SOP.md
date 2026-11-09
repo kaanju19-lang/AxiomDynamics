@@ -13,20 +13,20 @@
 | Component | Requirement | Notes |
 |---|---|---|
 | **Operating System** | Linux (Ubuntu 20.04 LTS or later, RHEL 8+, or equivalent) | Windows and macOS are not supported. |
-| **Python** | Python 3.11.9 or 3.11.x patch version | Exact: `python3 --version` must report `Python 3.11.9` or `3.11.[recent patch]`. Do not use Python 3.10 or earlier, or Python 3.12+. |
+| **Python** | Python 3.11.9 or 3.11.x patch version | Exact: `python3 --version` must report `Python 3.11.9` or a later 3.11.x patch release. Do not use Python 3.10 or earlier, or Python 3.12+. |
 | **pip** | Current, matching the Python version | `pip3 --version` must report `pip` for `python3.11`. |
 | **git** | Recommended for source retrieval | Not required if you obtain the release archive by other means. |
 | **System packages** | `build-essential` (or equivalent), `python3-dev` (or equivalent) | Needed to compile numpy from source if a binary wheel is unavailable. `sudo apt-get install build-essential python3-dev` on Debian/Ubuntu. |
 | **CPU** | Any modern x86_64, ARM64, or ARM (e.g., Raspberry Pi 3+) | The application is single-threaded and memory-efficient. |
 | **RAM** | Minimum 512 MB; 2 GB recommended | Typical runtime footprint is <200 MB. |
-| **Disk** | 100 MB for application and dependencies; 1–50 GB for the SQLite database depending on retention policy | Database growth rate depends on advisory volume and retention settings (see Part C §5). |
+| **Disk** | 100 MB for application and dependencies; 1–50 GB for the SQLite database depending on retention policy | Database growth rate depends on advisory volume and retention settings (see **D09 §5.1**). |
 | **Network** | None required in normal operation; one-time outbound for initial deployment (see §A4) | After initial setup, the application is fully air-gapped. No outbound calls. |
 
 ### A2. Network and connectivity
 
 **Initial deployment:**
-- **If downloading:** the deployment machine needs **temporary outbound HTTPS access** to retrieve the application archive and dependencies from PyPI (specifically, `pypi.org`). If air-gap deployment is mandatory from the start, obtain the archive and dependencies on an internet-connected machine, transfer them via approved media (see Part B §3), and proceed offline from §B3 onward.
-- **If air-gapped from day one:** the installation machine and the target host must be able to exchange files via approved media (USB drive, secure transfer appliance, etc.). See Part B §3 for the air-gap procedure.
+- **If downloading:** the deployment machine needs **temporary outbound HTTPS access** to retrieve the application archive and dependencies from PyPI (specifically, `pypi.org`). If air-gap deployment is mandatory from the start, obtain the archive and dependencies on an internet-connected machine, transfer them via approved media (see Part C §C3), and proceed offline from §B3 onward.
+- **If air-gapped from day one:** the installation machine and the target host must be able to exchange files via approved media (USB drive, secure transfer appliance, etc.). See Part C for the air-gap procedure.
 
 **After installation:**
 - **Zero outbound network.** The Platform does not and will not contact external networks, cloud services, phone-home URLs, or any external host. See B05 in the Master Brief Docket.
@@ -36,7 +36,7 @@
 
 **Option A (Standard, recommended):** Clone or download the release from the AxiomDynamics repository, install dependencies from PyPI in one step, test, run.
 
-**Option B (Air-gapped):** Obtain a sealed archive containing the application, dependencies pre-cached, and setup scripts. Transfer via approved media. Extract, verify integrity (see Part B §3), install from local cache, test, run.
+**Option B (Air-gapped):** Obtain a sealed archive containing the application, dependencies pre-cached, and setup scripts. Transfer via approved media. Extract, verify integrity (see Part C §C3), install from local cache, test, run.
 
 **Option C (Containerized):** Use the supplied Dockerfile to build a container image and deploy via Docker or Podman. Recommended if your infrastructure already uses containers and you have a private registry.
 
@@ -78,12 +78,12 @@ If any command fails (Python not found, version mismatch, permission denied), **
 **Using git:**
 ```bash
 cd /opt/axiom
-git clone https://github.com/kaanju19-lang/AxiomDynamics.git .
+git clone [AxiomDynamics distribution repository URL — supplied with the release package] .
 cd AxiomDynamics
 ```
 
 **Using download (no git):**
-1. Visit [release page or zip link — provide exact URL].
+1. Visit [release artefact location, supplied with the Order and verified against the SHA-256 in the release notes].
 2. Download the release zip to a temporary directory.
 3. Unzip to `/opt/axiom`.
 4. `cd /opt/axiom`.
@@ -263,7 +263,7 @@ mkdir -p /tmp/axiom-build
 cd /tmp/axiom-build
 
 # Clone or download the application (as in B1)
-git clone https://github.com/kaanju19-lang/AxiomDynamics.git
+git clone [AxiomDynamics distribution repository URL — supplied with the release package]
 cd AxiomDynamics
 
 # Create a directory for offline dependencies
@@ -492,7 +492,7 @@ The attestation confirms:
 | `Permission denied: /opt/axiom/axiom.db` | The database file or directory is not writable by the user running the application. | `chmod 644 /opt/axiom/axiom.db` (or `chown axiom:axiom /opt/axiom/axiom.db` if running as the `axiom` user). |
 | `curl: Connection refused` | The application is not running or not listening on the expected address. | Check process: `ps aux \| grep axiom`. Check listener: `netstat -tln \| grep 8420`. Review logs for startup errors. |
 | Tests fail with `AssertionError` or `ZeroDivisionError` | Physics model logic or test data issue. | Run `python3 tests/run_tests.py -v` for verbose output. Check that the detector data being used is well-formed. |
-| Database grows very large very quickly | Retention policy is set too high, or dispositions are not being cleaned up. | Review Part C §5 of the Configuration & Role-Based Assessment (C02) for retention settings. Consider implementing a purge policy. |
+| Database grows very large very quickly | Retention policy is set too high, or dispositions are not being cleaned up. | Review **C02 §5** (certification registry and audit) and **D09 §5.1** (retention) for retention settings. Consider implementing a purge policy. |
 
 ---
 

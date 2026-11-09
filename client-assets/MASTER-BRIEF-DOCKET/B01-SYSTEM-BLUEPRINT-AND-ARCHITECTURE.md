@@ -31,11 +31,11 @@ The platform ingests wayside sensor signals from the Railroad's existing detecto
 | Signal ingest | Accepts wayside detector payloads in a defined schema | Python, file/socket ingest |
 | Physics engine | Thermo, kinematic, acoustic models; deterministic, no learned parameters | Python + numpy |
 | Warrant builder | Converts model output into ranked, cited advisories | Python |
-| Identity & certification | Local accounts; signed cert registry; admin-issued credentials | Python + SQLite |
-| Disposition ledger | Append-only record of reviewer decisions | SQLite, WAL mode |
+| Identity & certification | **Local accounts, admin-issued credentials — operational today.** Signed certification registry: **designed, not built** (§7 item 1) | Python + SQLite |
+| Disposition ledger | Record of reviewer decisions. **Append-only is the design; the current write path overwrites** (§7 item 2) | SQLite, WAL mode |
 | API layer | Read APIs for fleet/alerts/ROI; write API for disposition | Python stdlib HTTP server |
 | Presentation | Single-page dashboard, no external assets | HTML/CSS/JS, served locally |
-| Audit export | Signed, timestamped export for regulatory evidence | Python |
+| Audit export | Timestamped export with content hashes. **Not cryptographically signed** (§7 item 8) | Python |
 
 **Total external dependency count: one** (numpy). Everything else is Python standard library. This is an architectural property, not an accident, and it is the platform's principal security argument — see B04.
 
@@ -111,7 +111,7 @@ Per edge box, designed for: one to six detector feeds, up to ~5,000 monitored ax
 | 1 | Reviewer authentication | Free-text name + cert ID, unverified | AD-2: local accounts + signed cert registry |
 | 2 | Ledger append-only | `INSERT ... ON CONFLICT DO UPDATE` — overwrites | Append-only with supersede semantics |
 | 3 | Timestamps | SQLite `datetime('now')` default | Server-generated with NTP-synced clock |
-| 4 | Storage durability | Render free tier is ephemeral; demo DB lost on spin-down | Persistent volume on Railroad hardware |
+| 4 | Storage durability | The demonstration environment's storage is ephemeral — the demo database is lost on spin-down | Persistent volume on Railroad hardware |
 | 5 | Sensor ingest | Synthetic traces generated from physics equations | Real detector payload schema, defined and versioned |
 | 6 | Time source | Host clock, unsynchronized | NTP to Railroad-approved source |
 | 7 | Update mechanism | None; deploys via git | Offline signed update packages, see D06 |

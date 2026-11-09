@@ -109,13 +109,13 @@ Thereafter, every version change is recorded the same way.
 | Operational incident response | Railroad | — |
 | Defect correction in the software | **AxiomDynamics** | Yes |
 | Security patches | **AxiomDynamics** | Yes |
-| Update packages, signed and documented | **AxiomDynamics** | Yes |
+| Update packages, documented and version-controlled | **AxiomDynamics** | Yes. **Signed packaging is on the D09 §4.4 roadmap (target Q2 2027); today packages are documented and hashed in the release notes but not GPG-signed.** |
 | Licence administration | **AxiomDynamics** | Yes |
 | Premium / optional builds | **AxiomDynamics** | Separately priced |
 
 **The model is software maintenance, not operations support.** That is cleaner for both parties and it must be named that way in D06, because an ambiguous support clause will be read against the supplier.
 
-**The exposure this creates, stated plainly:** if the platform fails at 03:00 and the Railroad's team cannot restore it, the operational consequence is entirely theirs and they will feel it as our failure regardless of what the contract says. **Mitigation is documentation quality and recovery testing, not contractual language.** C01 and E03 are load-bearing prerequisites of this model, not optional extras.
+**The exposure this creates, stated plainly:** if the platform fails at 03:00 and the Railroad's team cannot restore it, the operational consequence is entirely theirs and they will feel it as our failure regardless of what the contract says. **Mitigation is documentation quality and recovery testing, not contractual language.** C01 (the self-deployment SOP, whose backup section requires the Railroad to test recovery) and F01 (site readiness, which establishes that the Railroad has the people and procedures to restore the system before we ever ship it) are load-bearing prerequisites of this model, not optional extras. **Both exist. A documented recovery-drill record is a Phase 2 assurance artifact** — see D00 Part VI. Until it exists, treat "the Railroad can restore this without us" as a design requirement we have written down, not as a tested property.
 
 ## 8. Representational discipline — the most important section
 

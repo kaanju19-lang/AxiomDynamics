@@ -18,11 +18,13 @@ This Agreement defines the automatic conversion (if desired by the Railroad) of 
 
 ### 2.1 Conversion window
 
-The Railroad has **ninety (90) calendar days after the Commissioning Date to elect conversion** to a production licence. Election is made by written notice to Supplier.
+The Railroad has **ninety (90) calendar days after the pilot term expires to elect conversion** to a production licence. Election is made by written notice to Supplier (Form F12).
+
+> **Corrected: after expiry, not after the Commissioning Date.** An earlier draft said "after the Commissioning Date," which would give the Railroad a 90-day window starting at commissioning — i.e. the election deadline would fall *before* the pilot had been running long enough to evaluate anything. The window runs from pilot expiry, and the example below is consistent with that.
 
 **Conversion trigger date:** if the Railroad elects to convert, the conversion becomes effective **on the day after the pilot term expires** (day 366 of the pilot).
 
-**Example:** Pilot begins 2026-06-01, Commissioning Date is 2026-07-01. Pilot term is 12 months, expiry is 2027-07-01. Railroad has until 2027-10-29 to elect conversion. If it elects, conversion takes effect 2027-07-02.
+**Example:** Pilot begins 2026-06-01, Commissioning Date is 2026-07-01. Pilot term is 12 months, expiry is 2027-07-01. Railroad has until **2027-09-29** to elect conversion (90 calendar days after 2027-07-01). If it elects, conversion takes effect 2027-07-02.
 
 ### 2.2 Non-election: what happens if the Railroad declines
 
@@ -38,7 +40,7 @@ If the Railroad does **not** elect to convert within the 90-day window, the pilo
 
 If the Railroad elects to convert within the 90-day window, **fifty percent (50%) of the pilot licence fee is credited against the first production licence fee**, as stated in D02 §3.3.
 
-**Pilot licence fee:** $180,000 (per D02 §3, illustrative; confirm against A2 before signature).
+**Pilot licence fee:** $180,000 (per D02 §3 and **A2 §5.1** — confirmed, no longer illustrative).
 **Credit:** $90,000.
 
 The credit applies only to the licence component of the first production year, not to implementation, training, or support.
@@ -49,14 +51,16 @@ The credit applies only to the licence component of the first production year, n
 
 ### 3.1 Scope and pricing
 
-Upon conversion, the Railroad receives a **twelve (12) month production licence** for the pilot site, covering the same scope as the pilot: one (1) site, [number] monitored axles.
+Upon conversion, the Railroad receives a **twelve (12) month production licence** for the pilot site, covering the same scope as the pilot: one (1) site, at **the axle count stated in D02 §1**.
 
-**Production licence fee (Year 1):** $[TBD per A2, illustrative $180,000].
-**Site platform fee (Year 1):** $[TBD per A2, illustrative $45,000].
+**Production licence fee (Year 1):** $300,000 at 500 axles (A2 §3.1: 500 × $600).
+**Site platform fee (Year 1):** $0 — the first site is included in the base licence (A2 §4).
 **Annual support (included):** per D06.
-**Subtotal:** $[TBD].
+**Subtotal:** $300,000.
 **Less pilot credit (50% of pilot licence):** –$90,000.
-**Net Year 1 production fee:** $[TBD].
+**Net Year 1 production fee:** **$210,000**.
+
+> **Worked example at 500 axles, one site.** Figures scale by the marginal bands in A2 §3.1 — the calculation method does not change. A2 §9 sets out the full three-year arithmetic. **Where a figure here differs from A2, A2 governs.**
 
 ### 3.2 Price protection: Years 2–3
 
@@ -64,10 +68,10 @@ The Railroad's production licence fees are **locked** for the first three (3) ye
 
 | Year | Licence fee | Site fee | Total | Change |
 |---|---|---|---|---|
-| Year 1 (starting conversion) | $[TBD] | $[TBD] | $[TBD] | (Locked) |
-| Year 2 | $[same] | $[same] | $[same] | 0% increase |
-| Year 3 | $[same] | $[same] | $[same] | 0% increase |
-| Year 4+ | $[TBD] | $[TBD] | $[TBD] | Per product roadmap; no more than 5% annual increase |
+| Year 1 (starting conversion) | $300,000 | $0 | **$210,000 net** | after $90,000 pilot credit |
+| Year 2 | $300,000 | $0 | $300,000 | 0% increase |
+| Year 3 | $300,000 | $0 | $300,000 | 0% increase |
+| Year 4+ | $315,000 max | $0 | $315,000 max | max 5% annual increase (A2 §8) |
 
 **Rationale:** price protection allows the Railroad to forecast and budget. After Year 3, fees may increase to reflect inflation, enhanced models, or expanded functionality, but no single year increase exceeds 5%.
 
@@ -98,9 +102,11 @@ If continuation is desired:
 - **Option B (Expansion):** if the Railroad adds sites or axles, pricing for the expansion follows A2 (Rate Card) and is added to the existing Year 3 baseline (which remains protected at 0% increase).
 - **Option C (Enhanced service):** premium support, SLAs, or features are offered as separate add-on contracts.
 
-### 4.3 No renegotiation = termination
+### 4.3 No agreement = continuation on standard terms
 
-If the parties do not agree on Year 4 terms by **thirty (30) days before the Year 3 anniversary**, the licence **terminates automatically at the Year 3 anniversary**. The Railroad receives 90 days of transition assistance per D07 §15.6.
+**Silence does not terminate the licence.** If the parties have not agreed different Year 4 terms by the Year 3 anniversary, the licence **continues automatically at the Year 3 rate increased by no more than 5%** (A2 §8), and either party may then terminate on the notice period in §9.1.
+
+> **Corrected: this clause used to read that the licence "terminates automatically at the Year 3 anniversary."** That was wrong in three ways at once. It contradicted A2 §8, which provides for a Year 4 increase capped at 5% — you cannot have a Year 4 price unless there is a Year 4. It contradicted §9.1, which gives a 180-day post-Year-1 termination notice. And commercially it made a customer's refusal to negotiate **cheaper than agreeing**, since it handed them an exit at no transition cost. **Auto-termination on silence is never the right default: it turns administrative drift into a service outage.**
 
 ---
 
@@ -112,7 +118,9 @@ If, during the pilot or Year 1–3 production, the Railroad's axle count at the 
 
 **Increase in axle count:** the Railroad notifies Supplier of the new count. Pricing is adjusted pro-rata for the remainder of the year, effective the first day of the following month.
 
-**Example:** Year 1 starts with 500 axles at $600/axle = $300,000. In month 6, the count increases to 600 axles. For the remaining 7 months of Year 1, the marginal 100 axles are billed at $600/axle × 7/12 ≈ $35,000. The bill for the remainder of Year 1 is ($600 × 600 × 7/12) = $210,000.
+**Example — the incremental arithmetic, not a re-charge of the whole base.** Year 1 starts with 500 axles at Band 1 ($600) = $300,000, already invoiced. In month 6 the count rises to 600. The **additional 100 axles are Band 2** — the marginal band, $500 per axle (A2 §3.1), not $600. For the remaining 7 months: 100 × $500 × 7/12 = **$29,167**. The full-year price at 600 axles is 500 × $600 + 100 × $500 = $350,000, of which $300,000 has been billed; the pro-rata increment of $29,167 is added to the final invoice.
+
+> **Corrected twice.** The earlier draft charged the 100 new axles at **$600** — the Band 1 rate — when axles 501–600 sit in Band 2 at $500, so it over-billed the customer by $5,833 on this example and would have over-billed every expansion. It then computed "($600 × 600 × 7/12) = $210,000," which re-charges the entire axle base for the remaining months on top of the $300,000 already invoiced. **An expansion clause that double-charges is the one that gets found** — by an AP clerk with a spreadsheet, in the first quarter it applies.
 
 **Decrease in axle count:** pricing is not retroactively reduced; the Railroad continues to pay for the licence period. The decrease takes effect for the next renewal term.
 
@@ -229,4 +237,4 @@ Signature: __________________  Date: __________________
 
 ---
 
-*This rollover agreement is a working document. Fees are illustrative and must be confirmed against A2 (Rate Card) before execution.*
+*This rollover agreement is a working document. Fee schedules are fixed by A2, which governs where any figure here differs.*

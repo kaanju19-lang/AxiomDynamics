@@ -14,15 +14,17 @@ That distinction is the whole of this document. Escrow transfers *operability*, 
 
 ## 2. Ownership schedule
 
-**Decision recorded 2026-11-08.** AxiomDynamics retains 100% of all IP for the first five years. No sale, assignment or transfer of IP rights to any party in that window.
+**AxiomDynamics retains 100% of all IP in the Platform.** Nothing in this agreement, any Order, or any conversion from pilot to production transfers ownership.
 
-| Stage | Window | IP ownership | Transfer to customer |
+| Stage | Window | IP ownership | What the Railroad receives |
 |---|---|---|---|
 | I — Prove | Y1–Y5 | 100% AxiomDynamics | Licence only |
-| II — Brand | Y5–Y8 | 100% AxiomDynamics | White-label brand licence |
-| III — Review | Y8 | 100% AxiomDynamics | Joint strategic review |
-| IV — Open | Y8+ | Majority retained, or equity stake | Possible joint structure |
-| V — Auction | Trigger-based | Sold in full | Sole buy-out |
+| II — Brand | Y5–Y8 | 100% AxiomDynamics | White-label brand licence, if both parties elect it |
+| III — Review | Y8 | 100% AxiomDynamics | Joint strategic review of the relationship |
+
+**What this schedule guarantees the Railroad: nothing after Stage III strips its licence.** The licence granted survives any later change in ownership of AxiomDynamics (§6), and escrow (§4) remains available throughout. **What happens to the company's own equity or IP beyond Year 8 is a matter for AxiomDynamics and its owners, and is not a term of this agreement.**
+
+> **Why Stages IV and V were removed from this document.** An earlier version of this table carried two further rows describing a future sale of the company and a "sole buy-out." Those are real internal possibilities and they belong in the company's strategy file — **not in a customer's IP schedule.** A customer reading "sold in full" next to a licence they depend on will reasonably conclude the licence is at risk, and they will be right to ask. The protection they actually need is in §6 (assignment cannot worsen their position) and §4 (escrow), and it is stated there without inviting the question.
 
 ## 3. What each party owns
 
@@ -89,7 +91,9 @@ Worth stating plainly, because it is true and because a buyer's counsel may rais
 
 Three things mitigate it: the non-commercialisation and non-sublicence terms above, the confidentiality obligation surviving release, and the fact that the released version is a snapshot that does not include future development.
 
-**What genuinely protects the IP is not escrow terms — it is the evidence base.** Rebuilding the code takes eighteen months; reconstructing years of corroborated outcomes is impossible. That is the same conclusion reached in the IP strategy analysis, and it is the reason the disposition ledger is treated as the core asset rather than a compliance artifact.
+**What actually protects the IP is not escrow terms — it is the evidence base.** A determined organisation could re-implement comparable software; it cannot reconstruct years of corroborated outcomes, because those came from real assets, real failures and real reviewer decisions on a specific network. **That is why the disposition ledger is the core asset and not a compliance artefact.**
+
+> **An earlier draft put a figure on this — "rebuilding the code takes eighteen months" — and it has been removed.** We have not measured it, we could not defend it, and a customer's counsel would reasonably ask how we know. **A number we cannot evidence is worth less than no number at all**, particularly in a document whose argument is that our value rests on evidence.
 
 ## 6. Change of control and assignment
 
@@ -141,7 +145,7 @@ The physics models, constants and thresholds constitute trade secrets within the
 
 | Document | Interaction |
 |---|---|
-| D02 Pilot | Incorporates §2, §6, §9 by reference |
+| D02 Pilot | **D13 is incorporated in full by D02 §18** (which is the operative clause); this schedule elaborates, it does not limit what D02 incorporates |
 | D03 MSA | §6 assignment governs all orders |
 | D05 Rollover | Stage II white-label in §2 must be offered as a priced option |
 | D07 Master Contract | Confidentiality, reverse engineering, third-party warranty |

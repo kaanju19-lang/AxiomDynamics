@@ -2,7 +2,7 @@
 
 **Docket position:** D02. The entry contract. Executed under D03 (MSA) where one is in place, otherwise standing alone with D07 incorporated by reference.
 
-> **Drafting status:** Commercial grade. Requires counsel review before execution. Fees in this document are illustrative for a single-yard pilot and must be replaced with a completed A2 Rate Card before signature.
+> **Drafting status:** Commercial grade. Requires counsel review before execution. **Fees in §3 are confirmed against A2 (Rate Card) §5.1 and are no longer illustrative.** The axle count and site name in §1 must be completed before signature.
 
 ---
 
@@ -38,6 +38,20 @@ A licence to operate the platform at the pilot site for the pilot term, together
 **3.3 Pilot fee credit:** on conversion to a production licence under D05 within ninety days of pilot expiry, **fifty percent (50%) of the pilot licence fee ($90,000) is credited** against the first production term. No other component is creditable.
 
 **3.4 Taxes:** exclusive of all taxes; the Railroad bears sales, use, VAT and withholding.
+
+**3.5 Travel and expenses — not included.** The fees in §3 cover **remote advisory support only**. On-site attendance is not included and is not required for commissioning, which the Railroad performs itself (D14 §3).
+
+Where the Railroad requests our attendance on site:
+
+1. **Pre-approval required.** No travel is booked or billed without the Railroad's written approval on **Form F04**, stating the purpose, itinerary, estimated cost and an approved cap.
+2. **Billed at actual cost, no markup.** Economy airfare, standard hotel, meals at the applicable US GSA per diem, and ground transport. Receipts required; claimed on **Form F07** within 14 days of return.
+3. **Cap.** A2 §5.3 sets a default cap of **$6,000 per trip**. A higher cap requires express written approval on Form F04. **Actual cost above an approved cap is borne by Supplier and is not invoiced.**
+4. **Reporting.** Attendance is documented on **Form F11** (Site Visit Report) within 5 Business Days of return, before any expense claim is submitted.
+5. **Scope of attendance.** On-site presence is for observation, advisory support, and witnessing the Configuration Attestation. **Supplier does not perform installation on site** (D14 §3) and does not provide operating, dispatching, inspection or regulatory advice (D06 §1.4).
+
+**3.6 Business development travel is never billable.** Travel undertaken before an Order exists, for relationship building or capability briefing, is at Supplier's own cost and is not invoiced under any circumstances.
+
+**3.7 Expansion beyond the pilot site.** The pilot is limited to the site in §1 (see §6). Any additional site requires a **separate Order under D04**, priced from A2, with its own travel provision. **No expansion site is added to this Agreement by variation**; it is added by a new Order.
 
 ## 4. Supplier obligations
 
@@ -159,13 +173,22 @@ Good-faith negotiation between authorised representatives for thirty days, follo
 
 ## 17. General
 
-Entire agreement (with the documents incorporated by §18); supersedes prior discussions; amendments only in writing; no waiver by delay; severability; no third-party beneficiaries; notices in writing to the addresses below; neither Party may assign without written consent save under D13 §6.
+Entire agreement (with the documents incorporated by §18); supersedes prior discussions; amendments only in writing; no waiver by delay; severability; no third-party beneficiaries; neither Party may assign without written consent save under D13 §6.
+
+**Notices.** Formal notices are given on **Form F12** and are effective by the method stated there. Addresses:
+
+| Party | Notices to |
+|---|---|
+| **AxiomDynamics** | AxiomDynamics LLC · [registered office address] · Attention: [name], [title] · [email] |
+| **Railroad** | __________________ · Attention: __________________ · __________________ |
 
 ## 18. Incorporated documents
 
-This Agreement incorporates by reference: **D11** (NDA), **D12** (Regulatory Status), **D13** (IP & Escrow), **D14** (Operating Model), **B01** (Blueprint), **B04** (Tech Stack), **B05** (Data Flow), **D06** (Support & SLA), **C01** (Deployment SOP), **C02** (Certification).
+This Agreement incorporates by reference: **A2** (Rate Card), **D07** (Comprehensive Master Contract), **D09** (Data Processing & Security Addendum), **D10** (Component Register), **D03** (MSA where one is in force), **D11** (NDA), **D12** (Regulatory Status), **D13** (IP & Escrow), **D14** (Operating Model), **B01** (Blueprint), **B04** (Tech Stack), **B05** (Data Flow), **D06** (Support & SLA), **C01** (Deployment SOP), **C02** (Certification).
 
-Where a conflict exists, the order of precedence in D00 Part IV applies.
+The following forms are used in the administration of this Agreement: **F01** (Site Readiness), **F02** (Configuration Attestation — establishes the Commissioning Date), **F03** (Change Order), **F04** (Travel Pre-Approval), **F05** (Payment Terms), **F06** (Deliverable Acceptance), **F07** (Travel & Expense Claim), **F08** (Reviewer Certification), **F09** (Disposition Record), **F11** (Site Visit Report), **F12** (Formal Notice), **F13** (Data Export & Transition). Forms are administrative instruments; where a form conflicts with this Agreement, this Agreement governs.
+
+**Where a fee in §3 differs from A2, A2 governs.** Where a conflict otherwise exists, the order of precedence in D00 Part IV applies.
 
 ---
 
@@ -185,4 +208,4 @@ Signature: __________________  Date: __________________
 
 ---
 
-*Form of agreement. Not legal advice. Every provision must be reviewed by counsel in the governing jurisdiction before execution. Fees are illustrative and must be confirmed against A2 before signature.*
+*Form of agreement. Not legal advice. Every provision must be reviewed by counsel in the governing jurisdiction before execution. **Fees in §3 are priced from A2 §5.1 and reconcile exactly** — 40/30/30 of $370,000 is $148,000 / $111,000 / $111,000. Where this document and A2 differ, A2 governs. The site name and axle count in §1 must be completed before signature.*

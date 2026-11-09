@@ -27,7 +27,32 @@ Every active licence (D02 Pilot, D08 Production) includes technical support at n
 
 ### 1.3 Support contact
 
-Support is available via email and ticketed system. **Email:** support@axiom-dynamics.com (monitored during business hours). **Ticket system:** [URL]. **Emergency escalation:** [phone + out-of-hours contact]. See §2.2 for severity definitions and escalation thresholds.
+Support is available via email and ticketed system. **Email:** support@axiom-dynamics.com (monitored during business hours). **Ticket system:** support portal at the address supplied with the Order. **Escalation:** the duty contact listed in the Order Schedule. See §2.2 for severity definitions and escalation thresholds.
+
+### 1.4 Support boundary — what support personnel will not do
+
+**Supplier support personnel do not provide operating, dispatching, inspection, or regulatory advice. Requests for such advice will be declined and documented.**
+
+This is stated in the support contract itself so that the first declination is not a surprise. The boundary in §1.2 is not a limitation of convenience; it is what keeps Supplier in the decision-support role defined in D12 and D14, and keeps the Railroad in the operating-decision role its own authorities require.
+
+**The standard response, used consistently:**
+
+> "The Platform shows this assessment and how it was computed. Whether to act on it is your operating decision under your rules. I can tell you what the Platform computed; I cannot tell you whether to move the train."
+
+**Specifically declined, without exception:**
+
+1. Any recommendation about a specific train, consist, crew, or movement.
+2. Any opinion on whether an advisory should be treated as a false alarm.
+3. Interpretation of the Railroad's own inspection results, including any suggestion that the Platform substitutes for a required inspection (D12 §3).
+4. Advice on the Railroad's regulatory obligations.
+5. Signing, approving, or co-signing any Railroad record.
+6. Substantive advice given verbally with no written record.
+
+**Channel discipline.** Substantive support is given in writing, in the ticket system. Telephone contact is for triage and relationship, not advice. A written ticket proves what was said *and* what was not said; a telephone call proves neither.
+
+**Record keeping.** Every ticket touching an advisory closes with the standard response in this section recorded verbatim where it was used. That pattern of consistent declination is the most persuasive evidence of the operating boundary in any later examination of a decision.
+
+**Staffing rule.** No support engineer may be the sole responder for more than one carrier at a time — see §7.4. 
 
 ---
 
@@ -52,7 +77,11 @@ Either party may request a severity re-classification. If the Railroad believes 
 
 ### 2.4 Outside business hours
 
-Support response times apply during **U.S. Eastern Time, Monday–Friday, 08:00–18:00 ET**, excluding federal holidays. Issues reported outside these hours are queued and responded to on the next business day. **Critical issues reported outside business hours will be acknowledged on the next business day, and on-call escalation is available at no additional charge if the issue remains critical and unresolved after the first response.**
+Support response times apply during **U.S. Eastern Time, Monday–Friday, 08:00–18:00 ET**, excluding federal holidays. Issues reported outside these hours are queued and responded to on the next business day.
+
+**Critical issues reported outside business hours:** acknowledged **within four business hours of the next business day opening**, **and** an on-call engineer is available at no additional charge, at the Railroad's request, once the first response has been given and the issue remains Critical. **On-call response is a professional courtesy, not a 24/7 service commitment** — there is no contractual response time outside business hours, and D06 §12.3 applies.
+
+> **Reconciled:** an earlier draft had §2.4 saying "next business day" while §7.2 said the on-call engineer responds "within 4 hours," which read as a 24/7 promise we do not make and did not price. The position above is what we actually do and what the customer should expect. **If a customer requires genuine 24/7 coverage, that is a premium support contract (D06 §11.2), priced separately** — and it should carry the operating-boundary exclusions in §1.4 restated inside it.
 
 ---
 
@@ -136,7 +165,9 @@ Measured over a **calendar quarter** (Q1=Jan–Mar, Q2=Apr–Jun, Q3=Jul–Sep, 
 | 2.0–5.0% | 25% of platform fee |
 | > 5.0% | 50% of platform fee; Supplier must issue a fix or accept termination for cause |
 
-**Example:** A site generates 10,000 advisories in Q1. The Railroad records 75 rejections (0.75% false-positive rate). The platform fee for that site in Q1 is $45,000 (per A2). The credit is 5% × $45,000 = $2,250. The Railroad's next invoice is reduced by $2,250.
+**Example — a 2,000-axle deployment, 13 sites, second year of production.** The quarterly platform fee is ($1,050,000 licence + 12 × $45,000 site fees) ÷ 4 = $1,590,000 ÷ 4 = **$397,500**. The site generates 10,000 advisories in Q1 and the Railroad records 75 rejections — a 0.75% false-positive rate. The credit is 5% × $397,500 = **$19,875**, applied to the next invoice.
+
+> **Why the base is the whole platform fee, not one site's $45,000.** An earlier draft computed the credit against $45,000 and called it "the platform fee for that site." That is wrong twice: **the first site carries no site fee at all** (A2 §4 — it is included in the licence), so at a single-site pilot the base would have been $0 and the remedy worth nothing. The false-positive rate is measured across all advisories the *Railroad* sees, from the deployment it pays for; the credit base is therefore the fee for that deployment, not the marginal site charge.
 
 ### 4.4 Credit application
 
@@ -151,7 +182,7 @@ Credits do **not** apply to:
 - Pilot agreements or evaluation licences.
 - Sites where the Platform has been in operation for less than **sixty (60) days** (ramp-up period; data quality and tuning are still in progress).
 - False positives caused by detector data quality (the Railroad's responsibility per D07 §6).
-- False positives caused by configuration changes the Railroad made without notifying Supplier (D07 §5.8).
+- False positives caused by configuration changes the Railroad made without notifying Supplier (D07 §5, obligation 8).
 
 **The service credit schedule is the Railroad's sole remedy for false positives.** It does not constitute a guarantee of detection accuracy, does not permit the Railroad to withhold payment of the full fee, and does not create a right to terminate the licence.
 
@@ -187,7 +218,11 @@ The Platform's models are fixed at deployment but may be refined based on observ
 2. Written notification to the Railroad at least **fourteen (14) days** before deployment.
 3. The Railroad's right to defer the change for one quarter if operational circumstances warrant.
 
-Model changes that increase detection sensitivity (more advisories) are always opt-in (the Railroad agrees before deployment). Changes that reduce false positives are deployed automatically but can be rolled back on the Railroad's request within 30 days.
+**One express exception to the notice rule in item 2, and only one.** A change that *only* narrows false positives — it can suppress an advisory that would otherwise have been raised, but cannot create one or raise its severity — may be applied **without the 14-day notice**, because leaving it undeployed means the Railroad keeps absorbing noise we already know how to remove. The Railroad may still defer it, and may roll it back within 30 days on request.
+
+**Model changes that increase detection sensitivity (more advisories, or higher severity) are always opt-in** — the Railroad agrees before deployment, without exception.
+
+> **Why the exception is drawn this narrowly.** The earlier draft said sensitivity-increasing changes were opt-in and false-positive-reducing changes were automatic, sitting directly beneath a rule requiring 14 days' notice for *any* change. Both cannot be true, and a reviewer would have resolved it against us. **The dividing line is now principled rather than convenient: a change that can suppress an advisory must not be able to arrive silently, and a change that can create one must not be able to arrive at all without consent.** A false-positive reduction can suppress, which is why it still carries the rollback right — and why a reviewer who is told "this cannot affect what you see" should be told the precise sense in which that is true.
 
 ---
 
@@ -219,15 +254,21 @@ If the parties disagree on severity, they classify the issue at the higher sugge
 
 ### 7.1 Support team
 
-Supplier maintains a support team of at least **[2–3]** full-time staff dedicated to customer support (including AxiomDynamics' own internal use). Team members receive training on the Platform, the railroad domain, and troubleshooting procedures.
+Supplier maintains a support team of at least **two full-time staff** dedicated to customer support (in addition to engineering staff who handle escalations). Team members receive training on the Platform, the railroad domain, and troubleshooting procedures.
 
 ### 7.2 On-call coverage
 
-For **Critical** issues reported outside business hours (see §2.4), an on-call engineer is available to respond within **4 hours**. On-call is staffed by a rotation of senior engineers; contact details are provided separately under confidentiality.
+For **Critical** issues, an on-call engineer is available **on request, after the first business-hours response, at no additional charge** (see §2.4). On-call is a rotation of senior engineers; contact details are provided separately under confidentiality.
+
+**This is a courtesy escalation path, not a 24/7 service commitment.** No response time is guaranteed outside business hours, and §12.3 applies. A customer requiring genuine out-of-hours coverage is offered a premium support contract under §11.2.
 
 ### 7.3 Key person dependency
 
 Supplier will not allow more than one person to be the sole expert on any critical function (e.g., security patch development, database schema management). Cross-training and documentation are maintained to ensure continuity.
+
+### 7.4 Staffing rule
+
+**No support engineer may be the sole responder for more than one carrier at a time.** The realistic failure mode is not malice — it is a tired engineer answering a 17:55 call with an off-hand opinion, and an off-hand opinion about a train is the single most expensive sentence this company could utter (§1.4).
 
 ---
 
@@ -290,7 +331,9 @@ Supplier is not responsible for:
 
 ### 11.2 Support capacity limits
 
-Supplier maintains support for up to **[X]** concurrent licensees. If demand exceeds capacity, Supplier will hire additional staff within **two (2) quarters** or offer commercial support tiers (premium support contracts) to manage load. Until additional capacity is added, support response times may be extended by up to **50%** but will not exceed **twice** the stated SLA window.
+Supplier maintains support capacity for up to **ten (10) concurrent deployments** on the two-person team. **That number is a commitment, not an estimate** — it is the load at which the response times in §2 are achievable.
+
+If demand exceeds it, Supplier will hire additional staff **before** accepting an eleventh deployment. **Response times in §2 are not extended by growth.** An earlier draft of this clause permitted response times to stretch by up to 50% — or to twice the stated window — while capacity was being added. That is a clause that makes the SLA optional at exactly the moment the customer most needs it, and it has been removed. If we cannot staff the commitment we have made, we should decline the deal rather than dilute the promise.
 
 ---
 
@@ -306,7 +349,11 @@ If Supplier fails to meet a stated response time in §2, the Railroad may claim 
 | 1–5 days | 5% of annual platform fee |
 | > 5 days | 10% of annual platform fee |
 
-Credits accumulate quarterly and are applied to the next invoice. **Total credits in any 12-month period cannot exceed 15% of the annual platform fee.**
+Credits accumulate quarterly and are applied to the next invoice.
+
+**Cap:** credits for *availability and response-time* breaches cannot exceed **15% of the annual platform fee** in any 12-month period.
+
+> **The cap does not apply to false-positive credits under §4.3, and that carve-out must be stated or the §4.3 remedy is void.** §4.3 allows a 50% credit of a quarter's platform fee for a false-positive rate above 5%. A 15% annual cap silently reduces that headline remedy to a fraction of itself — the customer would be told "50% credit" and paid 15%, which is worse than offering nothing. **The two credit regimes measure different failures and must not share one ceiling:** §4.3 is about advisories being wrong, §12 is about the service being unavailable. They are separately capped: the §4.3 table's own percentages are the ceiling for that regime, and 15% annually is the ceiling for this one.
 
 ### 12.2 Limits on service credits
 

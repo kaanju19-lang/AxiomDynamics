@@ -90,7 +90,7 @@ If the Railroad requests Supplier assistance with diagnosis:
 | **Encryption in transit** | API is HTTP-only within the local network. **If the Railroad requires HTTPS, they implement a reverse proxy (nginx, Apache) in front of the Platform.** The Platform itself does not terminate TLS. | Railroad responsibility |
 | **Authentication** | The Platform currently uses local user accounts with passwords. **AD-2 (B01) recommends signed certification registry with issued credentials.** This is a gap; see §4.4. | Partial — authentication is local, not cryptographically registered |
 | **Authorization** | Role-based access (Operator, Reviewer, Administrator) per C02. Enforced by the Platform. | Implemented per role model |
-| **Audit logging** | All disposition writes, user login/logout, configuration changes, and patch applications are logged to an append-only table. Logs cannot be modified or deleted (only exportable by an Admin). | Implemented (AD-3) |
+| **Audit logging** | All disposition writes, user login/logout, configuration changes, and patch applications are logged. Logs are not editable or deletable by any Platform user and are exportable by an Admin. **Insert-only (append-only) enforcement at the table level is not yet built — see §4.4.** | **Partial — logging exists; append-only ledger not yet implemented** |
 | **Data validation** | Input validation on disposition fields (reviewer name, cert ID, disposition text). Malformed data is rejected. | Implemented; schema incomplete (see B01 §7 gap register) |
 | **Backup** | The Railroad performs nightly backups of the SQLite database (daily full, hourly WAL). Supplier does not hold backups. | Railroad responsibility |
 | **Time synchronization** | The Platform relies on the host's system time. The Railroad must configure NTP for accurate timestamps in the disposition ledger. | Railroad responsibility |
@@ -101,8 +101,10 @@ If the Railroad requests Supplier assistance with diagnosis:
 - **No unauthorized access:** Supplier personnel access the Platform only with explicit Railroad authorization and per §3.4.
 - **Vulnerability management:** Supplier scans dependencies for known vulnerabilities before each release and notifies the Railroad of security patches per D06 §3.2.
 - **Secure development:** Code review before merge; no committing secrets (API keys, credentials) to the repository.
-- **SBOM:** Supplier provides a Software Bill of Materials (SBOM) with each release (B04 §7 gap is being closed).
-- **Supply chain:** Supplier verifies the integrity of dependencies (SHA-256 hashes) and documents the source of each component.
+- **SBOM:** Supplier is **building** SBOM generation and will provide a Software Bill of Materials with each release **once implemented (target Q1 2027)**. **Not provided today** — see §4.4 and D10 Part 5.
+- **Supply chain:** Supplier documents the source of each component in **D10**. **Hash verification of dependency downloads is not yet implemented** (target Q1 2027) — see §4.4. Where the Railroad uses the sealed-archive method (C01 Part B), a SHA-256 manifest of the transferred set is provided for the Railroad's own verification.
+
+> **Why this section was corrected.** It previously stated as present commitments that an SBOM is provided with each release and that dependency integrity is verified by SHA-256. **Both were untrue, and both were listed as gaps six lines further down in §4.4.** A security schedule that lists a control as committed in §4.3 and unimplemented in §4.4 is worse than one that admits the gap once: it tells the reviewer what they want to hear and then contradicts itself, which is exactly the pattern that destroys a vendor's credibility in a CISO review.
 
 ### 4.4 Known gaps and remediation roadmap
 
@@ -111,6 +113,7 @@ The following controls are **not yet implemented** but are on the remediation ro
 | Gap | Impact | Remediation | Target |
 |---|---|---|---|
 | **Authentication is local, not cryptographically registered** | A malicious insider with database access could potentially forge a disposition record. | Implement signed certification registry (AD-2 per B01 §7) | Q2 2027 |
+| **Disposition ledger overwrites rather than appends** | A disposition for the same advisory can be silently replaced. **The ledger is a record, not a tamper-evident audit trail.** | Rebuild the write path as insert-only; add a superseded-by reference for corrections (AD-3) | Q2 2027 |
 | **No SBOM artifact in releases** | The Railroad cannot independently verify the dependency chain. | Generate SBOM (SPDX or CycloneDX) per release | Q1 2027 |
 | **No hash verification of dependency downloads** | A compromised PyPI could serve malware as a dependency. | Require SHA-256 pinning of all dependencies in requirements.txt | Q1 2027 |
 | **No signed release artifacts** | A malicious actor could replace a release archive with a trojan. | Sign releases with GPG; provide public key | Q2 2027 |
@@ -194,9 +197,13 @@ If the incident is reportable under applicable law (e.g., data breach notificati
 
 ### 7.2 Third-party components (SBOM)
 
-Supplier provides a Software Bill of Materials (SBOM) with each release, listing all third-party libraries (name, version, license, source URL) per B04. Any change to the SBOM (new dependency, version bump, addition or removal) is disclosed in the release notes.
+**Supplier does not yet produce a Software Bill of Materials, and will not represent that it does.**
 
-The Railroad may audit the SBOM and request clarification on any component.
+When SBOM generation is implemented (target Q1 2027 — §4.4), Supplier will provide an SBOM with each release, listing all third-party libraries (name, version, licence, source URL) per B04, and any change to it (new dependency, version bump, addition or removal) will be disclosed in the release notes.
+
+**Today the dependency inventory is maintained manually in D10**, which lists every third-party component and is kept current by hand. D10 is the artefact the Railroad can rely on now; the SBOM is the artefact it will be able to rely on once generated. Until then the Railroad may audit D10 and request clarification on any component, and Supplier will answer from the source tree.
+
+> **Why this is written as a negative.** This section previously said the Supplier "provides an SBOM with each release." It does not, §4.4 of this same document says it does not, and the difference between those two statements is the difference between a security schedule and a marketing document. **A control that is promised in one section and denied in another will be tested by the first auditor who reads both.**
 
 ---
 
@@ -236,13 +243,15 @@ Once per year, the Railroad may audit Supplier's compliance with this DPA. Audit
 - Supplier's security policy and training records.
 - Incident response procedures and logs.
 - Subprocessor list (currently none).
-- SBOM and dependency management for the past 12 months.
+- Dependency management for the past 12 months, via **D10** and the release notes. **SBOM auditing becomes available when §7.2's gap closes (target Q1 2027)**; until then the audit is conducted against D10 and the source tree.
 
 Audit is conducted by the Railroad or a third party bound by confidentiality. Supplier provides documentation and, if requested, interviews with security personnel.
 
 ### 10.2 SBOM verification
 
-The Railroad may independently verify the SBOM against the actual dependencies installed in the Platform. If discrepancies are found, Supplier investigates and remediates within thirty days.
+**Effective when an SBOM exists (target Q1 2027).** The Railroad may then independently verify the SBOM against the actual dependencies installed in the Platform. If discrepancies are found, Supplier investigates and remediates within thirty days.
+
+**Until then, the equivalent right is this:** the Railroad may compare D10 against the dependency set actually installed at its site, using `pip freeze` or equivalent on its own host, and raise any discrepancy. Supplier responds within thirty days. **The right exists now; only its artefact changes.** An audit right that begins in 2027 is not an audit right, so it would have been wrong to leave this section with no effect at all.
 
 ---
 

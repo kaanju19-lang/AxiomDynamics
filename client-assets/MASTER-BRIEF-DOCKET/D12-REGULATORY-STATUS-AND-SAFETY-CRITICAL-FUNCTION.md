@@ -78,7 +78,7 @@ AxiomDynamics does not decide. It does not recommend an operating action. It doe
 
 The disposition ledger records what was presented to a reviewer and what that reviewer decided. Its limits, stated in full in D14 §5, are summarised here because they bear on regulatory use:
 
-- It evidences the **content** of an advisory and a recorded decision, and that neither has been altered since recording.
+- It evidences the **content** of an advisory and a recorded decision, and — **once the ledger is append-only (AD-3, target Q2 2027)** — that neither has been altered since recording. **Today the write path overwrites a record for the same advisory**, so the useful claim is only the hash of the content as it stands, not a tamper-evident history. See D14 §5.
 - It does **not** establish chronology independently of the Railroad's system clock.
 - It does **not** establish that the reviewer's identity was verified, until the certification registry is operational.
 - It does **not** evidence the accuracy of the underlying physics.
@@ -105,7 +105,9 @@ The following statements are **prohibited** in any material, communication, or p
 
 Where any other document in this docket describes the platform's function or regulatory status, and that description conflicts with this document, **this document controls** and the other document is to be corrected.
 
-Specifically, the following must use language consistent with §§1–3 and §5: B01 §1, B03, C02, D02, D07, D08, D14.
+Specifically, the following built documents must use language consistent with §§1–3 and §5: **B01 §1, B05, C02, D02, D06, D07, D08, D14**, and the F-series forms that describe function (F09 Part 6, F11 Part 4).
+
+The following are **named here as future documents** and are not yet built: **B02** (flow map), **B03** (one-page infographic). When they are written, §§1–3 and §5 of this document govern their language before they are released — a marketing one-pager is the single most likely place for a disclaimed capability to reappear.
 
 ---
 

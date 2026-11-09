@@ -12,7 +12,7 @@
 
 | Component | Version | Licence | Notes |
 |---|---|---|---|
-| Python | 3.11.9 (pinned in `render.yaml`) | PSF License 2.0 | Permissive, no copyleft obligation |
+| Python | 3.11.9 (pinned) | PSF License 2.0 | Permissive, no copyleft obligation |
 | numpy | ≥1.26 | BSD-3-Clause | The only third-party runtime dependency |
 | SQLite | Bundled with CPython (`sqlite3` module) | Public domain | No separate install, no licence obligation |
 | OS base image | `python:3.11-slim` (Debian) | Debian Free Software Guidelines | Container base only |

@@ -66,7 +66,6 @@ Nothing in this Agreement restricts either Party from using the unaided memory o
 
 Governed by the laws of __________________, without regard to conflict-of-laws principles. Disputes resolved by __________________.
 
-*Drafting note: for a US counterparty, a neutral commercial venue in the State of __________________ is usual. Avoid the counterparty's home state where the balance of negotiating power permits.*
 
 ## 12. General
 

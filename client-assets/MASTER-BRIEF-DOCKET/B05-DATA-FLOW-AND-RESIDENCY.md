@@ -51,11 +51,11 @@ Under support (D06), the Railroad may **choose** to export logs or data and send
 
 All data is resident on Railroad premises, on Railroad-owned or Railroad-leased hardware, within Railroad-controlled physical and network security. There is no processing outside the jurisdiction(s) in which the box sits.
 
-**Cross-border note for CPKC:** a single deployment sits in one country. A tri-country CPKC deployment is three or more independent boxes, each resident in its own jurisdiction, with no data crossing between them. Any cross-border aggregation would be a separate, disclosed feature requiring its own schedule — it is not present in this architecture.
+**Cross-border note — for a carrier operating in more than one country:** a single deployment sits in one country. A tri-country CPKC deployment is three or more independent boxes, each resident in its own jurisdiction, with no data crossing between them. Any cross-border aggregation would be a separate, disclosed feature requiring its own schedule — it is not present in this architecture.
 
 ## 5. Data ownership
 
-Per D07 §(TBD) and D00 §III.2:
+Per **D07 §11** (which incorporates **D13 §3**) and **D09 §2**:
 
 - **Railroad owns** all sensor data, derived condition data, warrants, dispositions, and exports.
 - **AxiomDynamics owns** the models, source code, rules, and weights — including improvements derived from Railroad data.
@@ -81,7 +81,7 @@ Per D07 §(TBD) and D00 §III.2:
 | TLS on the serving port | **Railroad-standard dependent** (B01 §7 item 10) |
 | Signed update packages | **Required, not yet built** (D06) |
 
-This table is deliberately uncomfortable. **Six controls are architectural and present; four are commitments we have not yet delivered.** Presenting the first six as if they covered the last four is exactly the misrepresentation this docket exists to prevent.
+This table is deliberately uncomfortable. **Four controls are architectural and present; three are commitments we have not yet built; one depends on the Railroad.** Presenting the four as if they covered the other four is exactly the misrepresentation this docket exists to prevent.
 
 ---
 

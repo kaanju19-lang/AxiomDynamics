@@ -80,7 +80,9 @@ Certified personnel are authorized to record dispositions in the AxiomDynamics p
 - Successful completion of the Reviewer certification assessment (§3.2).
 - **Must not have a disciplinary record for falsifying inspection records or evidence in the past 24 months.**
 
-**D02 requirement:** every Advisor reviewed by a Certified Reviewer includes a SHA-256 fingerprint of the advisory, timestamp, and the Reviewer's digital signature or handwritten signature, together with the timestamp of the disposition. This creates an audit trail that cannot be altered after the fact.
+**D02 requirement:** every advisory reviewed by a Certified Reviewer is recorded with a SHA-256 fingerprint of the advisory, the timestamp, and the Reviewer's signature (digital where issued, otherwise handwritten), together with the timestamp of the disposition.
+
+> **What this record does and does not prove today.** It proves the record's *content* has not changed since it was written — a hash does that. It does **not** yet create an audit trail that "cannot be altered after the fact": the current write path overwrites a record when one exists for the same advisory (B01 §7 item 2; D09 §4.4), so the ledger is a **record, not a tamper-evident trail**. The append-only rebuild (AD-3, target Q2 2027) is what makes the sentence above true. **Until then, do not represent this record as tamper-evident to a regulator, an investigator, or opposing counsel** — the hash will be produced, and the overwrite will be found.
 
 ### 2.3 Administrator
 

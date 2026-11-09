@@ -88,7 +88,7 @@ Each order is a separate contract incorporating this Agreement. **No order varie
 
 **7.2 Data ownership.** Per D13 §3. The Railroad may export its data in usable format at any time and on termination.
 
-**7.3 Security programme.** Supplier maintains a documented secure development practice, reviews dependencies for known vulnerabilities, and produces an SBOM with each release (B04 §7, D06).
+**7.3 Security programme.** Supplier maintains a documented secure development practice and reviews dependencies for known vulnerabilities. **Supplier will produce an SBOM with each release once generation is implemented (target Q1 2027); it is not produced today.** The current component inventory is published in **D10** and may be independently verified by the Railroad against the installed packages (D09 §10.2). **The obligations in this clause are limited to what is actually performed**, and D09 §4.4 discloses the remaining gaps. A contractual obligation to deliver an artefact that does not exist is a breach waiting for a date.
 
 **7.4 Vulnerability notification.** Supplier notifies the Railroad in writing of any vulnerability it identifies that materially affects the Platform, within **five (5) business days** of confirmation, together with severity and remediation plan. Critical vulnerabilities are notified within **forty-eight (48) hours**.
 
@@ -102,7 +102,9 @@ Each order is a separate contract incorporating this Agreement. **No order varie
 
 ## 8. Liability
 
-**8.1 Cap.** Subject to §8.3, each party's total aggregate liability arising under or in connection with this Agreement, whether in contract, tort (including negligence), breach of statutory duty or otherwise, shall not exceed **the greater of (a) the fees paid or payable by the Railroad in the twelve months preceding the event giving rise to the claim, or (b) [amount]**.
+**8.1 Cap.** Subject to §8.3, each party's total aggregate liability arising under or in connection with this Agreement, whether in contract, tort (including negligence), breach of statutory duty or otherwise, shall not exceed **the fees paid or payable by the Railroad in the twelve months preceding the event giving rise to the claim**.
+
+> **On the cap, and why there is no floor figure.** An earlier draft capped liability at "the greater of twelve months' fees **or [amount]**," with the amount left blank — and D03 §10 cross-referred to it as an operative term. **A liability clause with an unfilled limb is worse than no clause: it is unenforceable in the place it matters and it invites the other side to propose their own number.** The cap is now a single, complete, calculated figure — twelve months' fees — which at the pilot is $370,000 and at a 2,000-axle production licence is $1,050,000. It requires no blank to be filled and no negotiation to be settled.
 
 **8.2 Excluded loss.** Neither party is liable for loss of profit, revenue, business, contracts, anticipated savings, goodwill, or any indirect or consequential loss, however arising, even if advised of the possibility.
 
@@ -130,19 +132,35 @@ The parties acknowledge that §8.1 allocates contractual risk between commercial
 
 ## 10. Insurance
 
-Supplier maintains, with insurers of good standing, during the term and for twelve months after:
+Supplier maintains, with insurers of good standing, during the term **and for twenty-four (24) months after**:
 
 | Cover | Minimum |
 |---|---|
-| Commercial general liability | $[2,000,000] per occurrence |
-| **Technology errors & omissions / professional indemnity** | **$[5,000,000]** aggregate |
-| Cyber liability | $[2,000,000] |
+| Commercial general liability | $[1,000,000] per occurrence / $[2,000,000] aggregate |
+| **Technology errors & omissions / professional indemnity** | **$[2,000,000]** per claim |
+| Cyber liability | $[1,000,000] per claim |
 | Workers' compensation | Statutory |
-| Umbrella / excess | $[5,000,000] |
+| Employer's liability | $[1,000,000] |
+| Umbrella / excess | As available (see note) |
 
 Certificates furnished on request and on renewal. Insolvency of an insurer does not relieve the obligation to maintain cover.
 
 *Technology E&O is the essential line and is not optional. It is the cover that responds to the product-liability exposure in §8.4 that the contract cannot exclude. A Class I vendor-qualification process will request the certificate.*
+
+### 10.1 The insurance limit is set to what can actually be bought
+
+**This is stated openly rather than papered over, because a contract that promises cover the Supplier cannot purchase is worse than no promise at all — it is discovered at exactly the moment it is relied upon.**
+
+A pre-revenue supplier cannot obtain $5,000,000 of Technology E&O at a premium the business can carry. Underwriters price professional liability on revenue, contract value, and loss history. At the Effective Date the purchasable limit is **$2,000,000 per claim**, and that is the limit stated above.
+
+**The commitment is therefore twofold:**
+
+1. Maintain Technology E&O of not less than **$2,000,000 per claim** from the Effective Date.
+2. **Increase the limit as the business grows**: on the first renewal following either (a) annual recurring revenue exceeding $1,000,000, or (b) execution of a production licence under D08, Supplier will obtain the highest limit then commercially available up to $5,000,000, and will provide the certificate to the Railroad within thirty days.
+
+**The Railroad may verify this** by requesting the certificate at any renewal (§7.8 audit rights extend to insurance compliance). *Provided the certificate matches this clause.* The bracket notation in the table above is completed before execution, not after — an unbracketed figure that matches no certificate is the failure mode this clause exists to prevent.
+
+**Amended:** D03 §9 states the same limits. Where this clause and D03 §9 differ, this clause governs.
 
 ## 11. Intellectual property
 
@@ -158,7 +176,7 @@ Governed by **D13** in full: ownership, escrow, assignment, contributor assignme
 
 **12.4 No performance warranty.** Supplier does not warrant that the Platform will identify any particular defect or proportion of defects, prevent any incident, or achieve any indicated outcome. **All performance figures are indicative estimates based on stated assumptions, not commitments.** See D12 §8.
 
-**12.5 Regulatory acknowledgement.** The Railroad acknowledges it has read D12 and understands the Platform is not a certified safety appliance, does not satisfy any WBDD requirement, and does not relieve the Railroad of any obligation.
+**12.5 Regulatory acknowledgement.** The Railroad acknowledges it has read D12 and understands the Platform is not a certified safety appliance, does not satisfy any WDBD requirement, and does not relieve the Railroad of any obligation.
 
 ## 13. Export control and sanctions
 
@@ -174,9 +192,9 @@ Governed by **D13** in full: ownership, escrow, assignment, contributor assignme
 
 **14.1 Negotiation.** Authorised representatives negotiate in good faith for thirty (30) days from written notice of dispute.
 
-**14.2 Mediation.** If unresolved, mediation under [rules] before a single mediator, for a further thirty (30) days.
+**14.2 Mediation.** If unresolved, mediation under [the mediation rules of the chosen provider] before a single mediator, for a further thirty (30) days.
 
-**14.3 Proceedings.** If unresolved, [courts/arbitration] of ______________ have exclusive jurisdiction. **Either party may seek injunctive relief at any time** to protect confidentiality or IP.
+**14.3 Proceedings.** If unresolved, [the courts / arbitration seat] stated in the Order signature block________ have exclusive jurisdiction. **Either party may seek injunctive relief at any time** to protect confidentiality or IP.
 
 **14.4 Continuing performance.** Both parties continue to perform during a dispute, and the Railroad continues to pay undisputed amounts.
 
@@ -188,7 +206,9 @@ Governed by **D13** in full: ownership, escrow, assignment, contributor assignme
 
 **15.3 Termination for insolvency.** Immediately on insolvency, administration, or cessation of business of the other.
 
-**15.4 Termination for convenience** of individual orders only, per the order terms. **This Agreement does not terminate for convenience while an order is in force.**
+**15.4 Termination for convenience.** Either party may terminate **this Agreement** on **ninety (90) days'** written notice; termination of this Agreement terminates all orders placed under it, subject to §15.5 and §15.6. An individual order may also be terminated for convenience on the notice period stated in that order.
+
+> **Corrected.** An earlier draft of this clause said the Agreement "does not terminate for convenience while an order is in force," which contradicted D03 §12.1 (90 days' convenience termination terminating all orders). The two instruments cannot both be right. **The position is now consistent:** either party may exit the whole relationship on 90 days' notice, and individual orders carry their own convenience terms — including D05 §9.1, which permits the Railroad to terminate a production licence for convenience on 60 days' notice in Year 1 at no penalty. A customer who cannot exit is a customer who will not enter.
 
 **15.5 Effect.** Licences in the terminated order cease; the Railroad ceases use; the Railroad exports its data in a documented, usable format; fees accrued remain payable.
 
@@ -218,15 +238,17 @@ Governed by **D13** in full: ownership, escrow, assignment, contributor assignme
 
 **17.5 Severability.** Unenforceable provisions are severed; the remainder survives.
 
-**17.6 No partnership or agency.** Independent contractors (D14 §14).
+**17.6 No partnership or agency.** Independent contractors (D14 §2–§3).
 
 **17.7 Assignment.** Per D13 §6.
 
 **17.8 Third parties.** No third-party rights, save as expressly stated.
 
-**17.9 Notices.** In writing to the addresses below.
+**17.9 Notices.** Formal notices are given on **Form F12**, which governs the method and the moment of effectiveness. Addresses as stated in the Order, or where no Order states them, as stated in **D03 §17**.
 
-**17.10 Publicity.** Neither party names the other publicly without written consent, save that Supplier may identify the Railroad as a customer once the first production licence is in force and the Railroad has approved the form of reference. **Pilot participation alone does not create reference rights** — see the Stage II reference rights in the IP strategy schedule of D13 §2.
+> **Why this points at D03 rather than repeating an address block.** Two instruments that each carry an address block will eventually carry two different ones, and a notice sent to the wrong one is ineffective for reasons nobody intended. **One address block, one document.** D03 §17 is where the executed addresses live.
+
+**17.10 Publicity.** Neither party names the other publicly without written consent, save that Supplier may identify the Railroad as a customer once the first production licence is in force and the Railroad has approved the form of reference. **Pilot participation alone does not create reference rights** — reference rights arise only at the Stage II brand-licence stage in the ownership schedule at **D13 §2**.
 
 **17.11 Force majeure.** Neither party is liable for failure caused by events beyond reasonable control, excluding payment obligations. Prolonged force majeure over sixty days permits termination of the affected order.
 
