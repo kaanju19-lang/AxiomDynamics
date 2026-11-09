@@ -105,9 +105,11 @@ The following statements are **prohibited** in any material, communication, or p
 
 Where any other document in this docket describes the platform's function or regulatory status, and that description conflicts with this document, **this document controls** and the other document is to be corrected.
 
-Specifically, the following built documents must use language consistent with §§1–3 and §5: **B01 §1, B05, C02, D02, D06, D07, D08, D14**, and the F-series forms that describe function (F09 Part 6, F11 Part 4).
+Specifically, the following documents must use language consistent with §§1–3 and §5: **B01 §1, B02, B03, B05, C02, D02, D06, D07, D08, D14**, and the F-series forms that describe function (F09 Part 6, F11 Part 4).
 
-The following are **named here as future documents** and are not yet built: **B02** (flow map), **B03** (one-page infographic). When they are written, §§1–3 and §5 of this document govern their language before they are released — a marketing one-pager is the single most likely place for a disclaimed capability to reappear.
+**B02 (flow map) and B03 (one-page brief) are built and are the two documents most exposed to this rule.** §§1–3 and §5 govern their language absolutely, and both were reviewed against this section before release. **B03 is a single-page visual — the form in which a disclaimed capability most easily reappears, because a diagram asserts by implication what a sentence would have to state outright.** Its central graphic is a break in the drawn line at exactly the point where the Platform stops and a person decides. That break is the §5 requirement drawn rather than described, and any future revision that closes it is a breach of this document.
+
+**A single slide, a single arrow, or a single caption that crosses that line** — implying the Platform decides, recommends, detects, or acts — defeats the protection this document exists to provide, and no footnote repairs it.
 
 ---
 

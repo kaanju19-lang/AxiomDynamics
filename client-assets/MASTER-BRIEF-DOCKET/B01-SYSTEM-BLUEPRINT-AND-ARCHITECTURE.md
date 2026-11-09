@@ -119,7 +119,7 @@ Per edge box, designed for: one to six detector feeds, up to ~5,000 monitored ax
 | 9 | Repo hygiene | `axiom.db` and `__pycache__` were committed | Corrected; `.gitignore` added |
 | 10 | TLS on the box | Plain HTTP | TLS or network isolation; Railroad's internal standard |
 
-Items 1, 2 and 5 are **blocking** — the certification and detection claims cannot be made until they close. Items 3, 4, 6, 7 and 8 are required before a production licence, not before a demo. Items 9 and 10 are corrected or Railway-specific.
+Items 1, 2 and 5 are **blocking** — the certification and detection claims cannot be made until they close. Items 3, 4, 6, 7 and 8 are required before a production licence, not before a demo. Item 9 is corrected. Item 10 is specific to the demonstration host and does not arise where the Platform runs on the Railroad's isolated network.
 
 ## 8. Costs of the architectural choices
 

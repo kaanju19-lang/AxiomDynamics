@@ -54,8 +54,8 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | ID | Document | Status | Purpose |
 |---|---|---|---|
 | **B01** | System Blueprint & Architecture | **Built** | Component inventory, data flow, disposition ledger requirements, failure modes, and the gap list where code differs from production. |
-| **B02** | Flow Map | Not built | Visual: detector → edge → inference → reviewer → disposition → audit log. (Text flow is in B01 §3.) |
-| **B03** | Infographic (one page) | Not built | One-page visual for executives who will not read B01. |
+| **B02** | Flow Map | Built (.md) | Visual: detector → edge → inference → reviewer → disposition → audit log. Solid = shipped; dotted = designed, not built. (Text flow is in B01 §3.) |
+| **B03** | Infographic (one page) | Built (.html) | One-page visual for executives who will not read B01. Encodes the platform/human boundary as a break in the drawn line. |
 | **B04** | Technology Stack Disclosure | **Built** | Complete dependency register with licence types. One non-stdlib dependency (numpy). Verified against code. |
 | **B05** | Data Flow & Residency Statement | **Built** | Definitively answers the air-gap question: zero outbound, verified against code. |
 
@@ -220,15 +220,15 @@ That rule 9 is the one that keeps this docket honest over time. Rule 6 is the on
 
 ## Part V — Build status at a glance
 
-**Built — 35 Markdown documents plus one Excel model (36 artifacts):** A1 ROI calculator (`.xlsx`) · **A2 rate card** · B01 blueprint · B04 tech stack · B05 data flow · C01 deployment SOP · C02 certification & assessment · **D01 preface & checklist** · D02 pilot agreement · **D03 MSA** · **D04 SOW templates** · D05 rollover mechanics · D06 support & SLA · D07 master contract · D08 licensing · D09 DPA · **D10 component register** · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model · **F00–F13 forms (14)** · this index.
+**Built — 36 Markdown documents plus one Excel model and one HTML one-pager (38 artifacts):** A1 ROI calculator (`.xlsx`) · **A2 rate card** · B01 blueprint · **B02 flow map** · **B03 one-page brief** · B04 tech stack · B05 data flow · C01 deployment SOP · C02 certification & assessment · **D01 preface & checklist** · D02 pilot agreement · **D03 MSA** · **D04 SOW templates** · D05 rollover mechanics · D06 support & SLA · D07 master contract · D08 licensing · D09 DPA · **D10 component register** · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model · **F00–F13 forms (14)** · this index.
 
-**Not yet built — 2:** B02 flow map · B03 executive infographic.
+**Not yet built — 0.** Every document identified in Part II now exists.
 
 **All twelve identified contractual loopholes are closed.** That is a statement about the *documents*: every gap listed in Part III now has a clause that closes it. **It is not a statement that the build matches them** — four controls remain unbuilt, and they are listed in Part VI. A docket that claimed both would be claiming something the code does not support, which is the exact failure this index exists to prevent.
 
 **The agreement layer is complete.** A customer can be taken from first conversation to executed order, through pilot, through conversion, through support, through termination, using only documents in this docket. Nothing in that chain requires an improvised document.
 
-**Next by value:** B02 flow map · B03 executive infographic. Both are explanatory rather than contractual, and both are what a Chief Engineer actually wants in the first meeting — the docket is currently stronger on terms than on explanation.
+**Next by value:** nothing in the docket. The remaining work is not documentary — it is the four unbuilt controls in Part VI, the Phase 0 pre-signature items (LLC, EIN, insurance, bank, USPTO), and counsel review of the agreement layer. **A docket with no gaps in its index is a docket that has stopped being honest with itself; the gaps that remain are in the code and in the company formation, not in these documents.**
 
 **Deferred by decision:** E-series assurance documents (evidence registry, air-gap media chain of custody, DR/RTO/RPO, continuous compliance, records retention, RACI) — gaps identified in library reconciliation but not needed for a BNSF pilot; candidates for Phase 2.
 

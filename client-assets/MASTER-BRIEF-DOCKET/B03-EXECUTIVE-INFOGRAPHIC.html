@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AxiomDynamics — One-Page Engineering Brief</title>
+<style>
+  :root{
+    color-scheme: light;
+    --paper:#E7E9E2;
+    --paper-2:#DFE2D9;
+    --ink:#17222B;
+    --ink-soft:#4A555E;
+    --plate:#2A363F;
+    --green:#1F6042;
+    --amber:#C9852A;
+    --oxide:#A33A2A;
+    --steel:#9AA29C;
+    --hair:rgba(23,34,43,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    max-width:1180px;
+    margin:0 auto;
+    padding:40px 44px 56px;
+  }
+
+  /* ---- masthead ---- */
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:24px;
+    border-top:3px solid var(--ink);
+    padding-top:10px;
+    margin-bottom:44px;
+    flex-wrap:wrap;
+  }
+  .wordmark{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:.02em;
+    margin:0;
+  }
+  .masthead .descriptor{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0;
+    letter-spacing:.01em;
+  }
+  /* ---- headline ---- */
+  h1{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-weight:700;
+    font-size:clamp(30px, 4.2vw, 50px);
+    line-height:1.06;
+    letter-spacing:-.005em;
+    margin:0 0 14px;
+    max-width:23ch;
+  }
+  .standfirst{
+    font-size:17px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:62ch;
+    margin:0 0 30px;
+  }
+
+  /* ---- the track ---- */
+  .track{
+    position:relative;
+    margin:0 0 8px;
+    padding-top:6px;
+  }
+  .track svg{display:block;width:100%;height:auto}
+  .rail-base{stroke:var(--steel);stroke-width:2}
+  .tick{stroke:var(--plate);stroke-width:2}
+  .tick-compute{stroke:var(--green);stroke-width:3}
+  .tick-human{stroke:var(--plate);stroke-width:3}
+  .gap-cap{stroke:var(--oxide);stroke-width:6;stroke-linecap:butt}
+
+  .draw{
+    stroke-dasharray:1;
+    stroke-dashoffset:1;
+    animation:draw 1.15s cubic-bezier(.4,0,.2,1) .12s forwards;
+  }
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @media (prefers-reduced-motion: reduce){
+    .draw{animation:none;stroke-dashoffset:0}
+  }
+
+  .stations{
+    position:relative;
+    height:150px;
+    margin-top:14px;
+  }
+  .station{
+    position:absolute;
+    top:0;
+    width:12%;
+    transform:translateX(-50%);
+    text-align:center;
+  }
+  .station-wide{width:20%}
+  .station-end{
+    left:auto;
+    right:0;
+    width:15%;
+    transform:none;
+    text-align:right;
+  }
+  .station .plate{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--plate);
+    margin:0 0 5px;
+  }
+  .station .note{
+    font-size:12.5px;
+    line-height:1.40;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .station.compute .plate{color:var(--green)}
+  .station.is-human .note{color:var(--ink)}
+
+
+  .boundary-label{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    justify-content:center;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--oxide);
+    margin:2px 0 0;
+    letter-spacing:.01em;
+  }
+  .boundary-rule{
+    flex:0 0 auto;
+    width:52px;
+    height:2px;
+    background:var(--oxide);
+  }
+  .boundary-sub{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:7px 0 0;
+  }
+
+  /* ---- three-column band ---- */
+  .band{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:0;
+    border-top:1px solid var(--hair);
+    margin-top:40px;
+  }
+  .band > div{
+    padding:22px 26px 22px 0;
+    border-right:1px solid var(--hair);
+  }
+  .band > div:last-child{border-right:0;padding-right:0}
+  .band > div:not(:first-child){padding-left:26px}
+  .band h2{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--plate);
+    margin:0 0 9px;
+  }
+  .band p{margin:0;font-size:14.5px;line-height:1.52;color:var(--ink-soft)}
+  .band strong{color:var(--ink);font-weight:600}
+
+  /* ---- exclusions ---- */
+  .exclusions{
+    margin-top:44px;
+    border-top:1px solid var(--hair);
+    padding-top:22px;
+  }
+  .exclusions h2{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--plate);
+    margin:0 0 14px;
+  }
+  .exclusions ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px 30px;
+  }
+  .exclusions li{
+    font-size:14px;
+    line-height:1.45;
+    color:var(--ink-soft);
+    padding-left:20px;
+    position:relative;
+  }
+  .exclusions li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:.52em;
+    width:11px;
+    height:2px;
+    background:var(--oxide);
+  }
+
+  /* ---- honesty footer ---- */
+  .status{
+    margin-top:44px;
+    border-top:3px solid var(--ink);
+    padding-top:18px;
+    display:grid;
+    grid-template-columns:1.5fr 2fr;
+    gap:34px;
+  }
+  .status h2{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;
+    font-weight:700;
+    line-height:1.3;
+    margin:0;
+    color:var(--ink);
+    max-width:22ch;
+  }
+  .status dl{
+    margin:0;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:7px 16px;
+    font-size:13.5px;
+    line-height:1.45;
+  }
+  .status dt{
+    font-weight:600;
+    color:var(--oxide);
+    white-space:nowrap;
+  }
+  .status dd{margin:0;color:var(--ink-soft)}
+
+  .colophon{
+    margin-top:34px;
+    padding-top:12px;
+    border-top:1px solid var(--hair);
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:88ch;
+  }
+  .colophon p{margin:0}
+  .colophon p + p{margin-top:6px}
+
+  /* ---- responsive ---- */
+  @media (max-width:900px){
+    .sheet{padding:26px 20px 44px}
+    .masthead{margin-bottom:26px;gap:6px;flex-direction:column}
+    .masthead .descriptor{font-size:12px}
+    h1{font-size:clamp(24px, 6.4vw, 34px);max-width:24ch;margin-bottom:10px;line-height:1.1}
+    .standfirst{font-size:15px;line-height:1.5;margin-bottom:22px}
+    .track{padding-top:16px}
+    .stations{display:none}
+    .track{margin-bottom:26px}
+    .mobile-flow{
+      display:block;
+      margin-top:20px;
+    }
+    .band{grid-template-columns:1fr;margin-top:24px}
+    .band > div{border-right:0;border-bottom:1px solid var(--hair);padding:18px 0}
+    .band > div:not(:first-child){padding-left:0}
+    .band > div:last-child{border-bottom:0}
+    .exclusions ul{grid-template-columns:1fr}
+    .status{grid-template-columns:1fr;gap:16px}
+  }
+  @media (min-width:901px){
+    .mobile-flow{display:none}
+  }
+  .mobile-flow{
+    list-style:none;margin:0;padding:0;
+    border-top:1px solid var(--hair);
+  }
+  .mobile-flow li{
+    display:grid;
+    grid-template-columns:96px 1fr;
+    gap:14px;
+    padding:11px 0;
+    border-bottom:1px solid var(--hair);
+    font-size:14px;
+    line-height:1.45;
+  }
+  .mobile-flow .k{
+    font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    font-size:12.5px;
+    color:var(--plate);
+  }
+  .mobile-flow .k.decide{color:var(--oxide)}
+  .mobile-flow .v{color:var(--ink-soft)}
+  .mobile-flow .v strong{color:var(--ink);font-weight:600}
+
+  :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+</style>
+</head>
+<body>
+<main class="sheet">
+
+  <header class="masthead">
+    <p class="wordmark">AxiomDynamics</p>
+    <p class="descriptor">Physics-derived condition assessment for freight rail</p>
+  </header>
+
+  <h1>A train passes a detector. Something is computed. A person decides.</h1>
+
+  <p class="standfirst">
+    The system reads your wayside detector data, computes a physics-derived condition estimate for each asset, and ranks what it finds. It shows its arithmetic. Then it stops, and hands the assessment to a certified Railroad employee who decides what, if anything, to do. That handover is the design, not a limitation of it.
+  </p>
+
+  <!-- ================= TRACK ================= -->
+  <section class="track" aria-label="Flow: detector to disposition">
+    <svg viewBox="0 0 1200 96" role="img" aria-labelledby="trackTitle trackDesc">
+      <title id="trackTitle">Data flow from wayside detector to disposition record</title>
+      <desc id="trackDesc">Four computation stages on the left, then a break in the line marking where the platform stops, then two stages owned by the Railroad including the human decision.</desc>
+
+      <line class="rail-base draw" pathLength="1" x1="40" y1="56" x2="678" y2="56"/>
+      <line class="rail-base draw" pathLength="1" x1="742" y1="56" x2="1160" y2="56"/>
+
+      <line class="gap-cap" x1="686" y1="40" x2="678" y2="72"/>
+      <line class="gap-cap" x1="734" y1="40" x2="742" y2="72"/>
+
+      <g class="compute">
+        <line class="tick-compute" x1="150" y1="40" x2="150" y2="72"/>
+        <line class="tick-compute" x1="300" y1="40" x2="300" y2="72"/>
+        <line class="tick-compute" x1="450" y1="40" x2="450" y2="72"/>
+        <line class="tick-compute" x1="600" y1="40" x2="600" y2="72"/>
+      </g>
+
+      <g class="human">
+        <line class="tick-human" x1="852" y1="40" x2="852" y2="72"/>
+        <line class="tick-human" x1="1128" y1="40" x2="1128" y2="72"/>
+      </g>
+
+      <circle cx="150" cy="56" r="4" fill="#1F6042"/>
+      <circle cx="300" cy="56" r="4" fill="#1F6042"/>
+      <circle cx="450" cy="56" r="4" fill="#1F6042"/>
+      <circle cx="600" cy="56" r="4" fill="#1F6042"/>
+      <circle cx="852" cy="56" r="4" fill="#2A363F"/>
+      <circle cx="1128" cy="56" r="4" fill="#2A363F"/>
+    </svg>
+
+    <div class="stations">
+      <div class="station compute" style="left:12.5%">
+        <p class="plate">Detector</p>
+        <p class="note">HBD, WILD, ABD payloads. Yours.</p>
+      </div>
+      <div class="station compute" style="left:25%">
+        <p class="plate">Ingest</p>
+        <p class="note">Bad readings rejected, never scored.</p>
+      </div>
+      <div class="station compute" style="left:37.5%">
+        <p class="plate">Physics</p>
+        <p class="note">Fixed equations. No learned parameters.</p>
+      </div>
+      <div class="station compute" style="left:50%">
+        <p class="plate">Advisory</p>
+        <p class="note">Ranked by severity, computation shown.</p>
+      </div>
+      <div class="station station-wide is-human" style="left:71%">
+        <p class="plate">Decides</p>
+        <p class="note"><strong>A certified Railroad employee.</strong> Accepts, rejects or defers, with a reason.</p>
+      </div>
+      <div class="station station-end is-human">
+        <p class="plate">Export</p>
+        <p class="note">Into your own reporting and regulatory process.</p>
+      </div>
+    </div>
+
+    <p class="boundary-label"><span class="boundary-rule"></span>Nothing crosses this line<span class="boundary-rule"></span></p>
+    <p class="boundary-sub">Not to us, not to a licence server, not to telemetry. The Railroad owns the box and the data on it.</p>
+
+    <ul class="mobile-flow">
+      <li><span class="k">Detector</span><span class="v">Your HBD, WILD or ABD payload. Your hardware, your data.</span></li>
+      <li><span class="k">Ingest</span><span class="v">On your premises. Malformed readings are rejected and logged, never scored.</span></li>
+      <li><span class="k">Physics</span><span class="v">Thermal, kinematic and acoustic models. Fixed equations, no learned parameters.</span></li>
+      <li><span class="k">Advisory</span><span class="v">Ranked by estimated severity, with the computation shown.</span></li>
+      <li><span class="k decide">Decides</span><span class="v"><strong>A certified Railroad reviewer</strong> &mdash; the platform stops here.</span></li>
+      <li><span class="k">Record</span><span class="v">Accepted, rejected or deferred, with a stated reason.</span></li>
+      <li><span class="k">Export</span><span class="v">Into your own reporting and regulatory process.</span></li>
+    </ul>
+  </section>
+
+  <!-- ================= BAND ================= -->
+  <section class="band">
+    <div>
+      <h2>What enters</h2>
+      <p>Wayside detector payloads, in a schema you approve and we version. <strong>A bad reading produces no advisory and a log entry</strong> &mdash; not a weak advisory. A system that emits a faint signal for a broken sensor teaches reviewers to ignore faint signals.</p>
+    </div>
+    <div>
+      <h2>What is computed</h2>
+      <p>Given the same input, the same output, today and in five years. <strong>Nothing trains on your fleet.</strong> Every advisory carries the readings, the model outputs and the threshold basis that produced it, so a reviewer can recompute it rather than ratify it.</p>
+    </div>
+    <div>
+      <h2>What is recorded</h2>
+      <p>Exactly one disposition per advisory, with a reason and a reviewer. <strong>Coverage must be 100%.</strong> Four thousand advisories and three thousand dispositions is not improved review &mdash; it is nine hundred unexamined judgements, and the report will say so.</p>
+    </div>
+  </section>
+
+  <!-- ================= EXCLUSIONS ================= -->
+  <section class="exclusions">
+    <h2>What this is not</h2>
+    <ul>
+      <li>Not a certified safety appliance. No FRA, Transport Canada or AAR approval.</li>
+      <li>Not a wayside defective bearing detector, and not a substitute for one.</li>
+      <li>Not a substitute for any inspection, test or maintenance action required by rule.</li>
+      <li>Not a train control, signal or protection system. It touches no interlocking.</li>
+      <li>Not an autonomous system. It issues no order and actuates nothing.</li>
+      <li>Not an alarm system of record. Regulatory alarms are your own detectors'.</li>
+    </ul>
+  </section>
+
+  <!-- ================= STATUS ================= -->
+  <section class="status">
+    <h2>Three controls are designed and not yet built. They are listed here, not in an appendix.</h2>
+    <dl>
+      <dt>Append-only ledger</dt>
+      <dd>Today the write path can overwrite a record for the same advisory. The ledger is a record, not yet a tamper-evident trail. Rebuild target Q2 2027.</dd>
+      <dt>Registered identity</dt>
+      <dd>Reviewer identity is a local account, not a cryptographically issued credential. A hash proves integrity, not authorship. Target Q2 2027.</dd>
+      <dt>Signed export</dt>
+      <dd>Content hashes are produced; a signed bundle with partition boundary and record count is not. Target Q2 2027.</dd>
+    </dl>
+  </section>
+
+  <footer class="colophon">
+    <p>Every performance figure in this document is a specification or a modelled result, not a measured field outcome. The pilot measures what actually happens on your data; nothing here predicts it.</p>
+    <p>Descriptive annex. Creates no warranty. Superseded in any conflict by B01 &sect;3, D02 &sect;7.2 and D12. &nbsp;·&nbsp; AxiomDynamics LLC, Texas.</p>
+  </footer>
+
+</main>
+</body>
+</html>
