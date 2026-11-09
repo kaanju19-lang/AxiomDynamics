@@ -63,8 +63,8 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 
 | ID | Document | Status | Purpose |
 |---|---|---|---|
-| **C01** | DIY Self-Deployment SOP | Not built | Granular, numbered, prerequisite-to-verification steps. Assumes a competent Linux admin, no prior rail-domain knowledge. |
-| **C02** | Certification & Role-Based Assessment | Not built | Role definitions (operator, reviewer, admin, safety officer), competency matrix, assessment method, certification validity and revocation. |
+| **C01** | DIY Self-Deployment SOP | **Built** | Granular, numbered, prerequisite-to-verification steps. Assumes a competent Linux admin, no prior rail-domain knowledge. |
+| **C02** | Certification & Role-Based Assessment | **Built** | Role definitions (operator, reviewer, admin, safety officer), competency matrix, assessment method, certification validity and revocation. |
 
 ### D. Legal — the contract stack
 
@@ -76,7 +76,7 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | **D04** | Statement of Work templates (SOW-1…n) | Not built | Executable per-deployment orders under the MSA. |
 | **D05** | Pilot → YoY Licensing Rollover Agreement | Not built | The conversion mechanics: what happens on day 366, price protection, credit for pilot fees, conversion deadline, and what happens if the Railroad declines to convert. |
 | **D06** | Technical Support, SLA & Update Governance | Not built | Response times, severity tiers, patching cadence, EOL policy, and **who pays for what when a patch is required for a defect we introduced.** |
-| **D07** | Comprehensive Master Contract | Not built | Federal guidelines, data security, indemnities, limitation of liability, insurance, export control, audit rights, dispute resolution. |
+| **D07** | Comprehensive Master Contract | **Built** | Federal guidelines, data security, indemnities, limitation of liability, insurance, export control, audit rights, dispute resolution. |
 | **D08** | Master Licensing & Liability | **Built (needs legal pass)** | Licensing structure, tier bands, performance component, and the liability split. Currently written commercially — must be converted to contract-grade language. |
 | **D09** | Data Processing & Security Addendum (DPA) | Not built | The security schedule. Standalone because IT security review runs on a separate clock from procurement. |
 | **D10** | Subprocessor & Third-Party Component Register | Not built | Every third party touching Railroad data. Pairs with B04. |
@@ -176,11 +176,11 @@ That rule 6 is the one that keeps this docket honest over time.
 
 ## Part V — Build status at a glance
 
-**Built (10):** A1 ROI model · B01 blueprint · B04 tech stack · B05 data flow · D02 pilot agreement · D08 licensing · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model.
+**Built (13):** A1 ROI model · B01 blueprint · B04 tech stack · B05 data flow · C01 deployment SOP · C02 certification & assessment · D02 pilot agreement · D07 master contract · D08 licensing · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model.
 
-**Open loopholes still requiring a document:** the false-positive cost regime (D06), detector data warranty allocation (D07), cyber incident notification (D09), personnel security (D07), export control (D07), transition assistance (D07), certification liability (D07), and rollover cliff (D05).
+**Open loopholes still requiring a document:** the false-positive cost regime (D06) and rollover cliff (D05).
 
-**Next by value:** C01 deployment SOP (the self-install model depends on it) · D07 master contract (closes the most remaining loopholes) · C02 certification (the Canadian argument rests on it) · A2 rate card (D02 fees are illustrative until it exists).
+**Next by value:** D06 support & SLA (defines patch response, false-positive credits, EOL policy) · D05 rollover mechanics (conversion deadline, price protection, credit calculation) · A2 rate card (D02 fees are illustrative until it exists) · D03 MSA (umbrella for future deployments).
 
 **Deferred by decision:** the pilot-proposal narrative — superseded by D02 as a legal instrument.
 
