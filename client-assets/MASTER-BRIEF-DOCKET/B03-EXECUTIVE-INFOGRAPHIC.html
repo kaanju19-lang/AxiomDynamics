@@ -378,7 +378,7 @@
       </div>
       <div class="station compute" style="left:25%">
         <p class="plate">Ingest</p>
-        <p class="note">Bad readings rejected, never scored.</p>
+        <p class="note">Bad readings rejected, never scored. <em>Not built.</em></p>
       </div>
       <div class="station compute" style="left:37.5%">
         <p class="plate">Physics</p>
@@ -403,7 +403,7 @@
 
     <ul class="mobile-flow">
       <li><span class="k">Detector</span><span class="v">Your HBD, WILD or ABD payload. Your hardware, your data.</span></li>
-      <li><span class="k">Ingest</span><span class="v">On your premises. Malformed readings are rejected and logged, never scored.</span></li>
+      <li><span class="k">Ingest</span><span class="v">On your premises. Malformed readings are rejected and logged, never scored. <strong>Not built yet</strong> &mdash; the pilot defines the schema first.</span></li>
       <li><span class="k">Physics</span><span class="v">Thermal, kinematic and acoustic models. Fixed equations, no learned parameters.</span></li>
       <li><span class="k">Advisory</span><span class="v">Ranked by estimated severity, with the computation shown.</span></li>
       <li><span class="k decide">Decides</span><span class="v"><strong>A certified Railroad reviewer</strong> &mdash; the platform stops here.</span></li>
@@ -416,7 +416,7 @@
   <section class="band">
     <div>
       <h2>What enters</h2>
-      <p>Wayside detector payloads, in a schema you approve and we version. <strong>A bad reading produces no advisory and a log entry</strong> &mdash; not a weak advisory. A system that emits a faint signal for a broken sensor teaches reviewers to ignore faint signals.</p>
+      <p>Wayside detector payloads, in a schema you approve and we version. <strong>A bad reading produces no advisory and a log entry</strong> &mdash; not a weak advisory. A system that emits a faint signal for a broken sensor teaches reviewers to ignore faint signals. <strong>This is the design, not the build: there is no detector endpoint in the code today.</strong> The pilot defines the schema; the validation chain is built against it.</p>
     </div>
     <div>
       <h2>What is computed</h2>
@@ -443,8 +443,10 @@
 
   <!-- ================= STATUS ================= -->
   <section class="status">
-    <h2>Three controls are designed and not yet built. They are listed here, not in an appendix.</h2>
+    <h2>Four gaps are designed and not yet built. They are listed here, not in an appendix.</h2>
     <dl>
+      <dt>Detector ingest</dt>
+      <dd>No endpoint accepts a Railroad payload today; the demonstration generates its own signals. Schema agreed in the pilot, validation chain built against it.</dd>
       <dt>Append-only ledger</dt>
       <dd>Today the write path can overwrite a record for the same advisory. The ledger is a record, not yet a tamper-evident trail. Rebuild target Q2 2027.</dd>
       <dt>Registered identity</dt>

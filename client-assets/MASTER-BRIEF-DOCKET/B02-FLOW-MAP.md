@@ -7,6 +7,8 @@
 > **Read this with B01 §3.** B01 §3 is the authoritative text description of the flow. If this diagram and B01 §3 ever disagree, **B01 governs** and this document is corrected. A diagram is easier to read and easier to get wrong.
 
 > **What is solid and what is dotted.** Every box and arrow drawn with a solid line exists in the code today. Every dotted element is labelled as a production requirement not yet built, and each maps to the gap list in **B01 §7**. This distinction is the point of the document: a flow map that draws the intended system as though it were the shipped one is the most common way a vendor misleads a customer without ever writing a false sentence.
+>
+> **One section departs from the convention and says so.** §2, the ingest path, is drawn entirely dotted, because there is no inbound detector route in the code at all. Rather than omit the entry point — which would leave the map starting mid-system — it is shown as designed and labelled unbuilt. That is a deliberate exception, not an oversight, and it is flagged again in the section itself.
 
 ---
 
@@ -55,9 +57,11 @@ flowchart TB
 
 ## 2. What enters — the ingest path
 
+> **This entire section is a requirement, not a build.** There is no inbound detector route in the code today: the demonstration build generates signals from physics equations on synthetic traces (**B01 §7 item 5**). Every element in the diagram below is **drawn dotted** for that reason, and it is the only section of this document where that is true. It is included because the validation behaviour is the design the Railroad is being asked to rely on, and a flow map that omitted the entry point would be less useful than one that shows it unbuilt.
+
 ```mermaid
 flowchart LR
-    A["Detector payload"] --> B{"Payload parses<br/>against schema?"}
+    A["Detector payload<br/><i>not yet accepted</i>"] --> B{"Payload parses<br/>against schema?"}
     B -->|no| C["Rejected and logged<br/><b>no advisory emitted</b>"]
     B -->|yes| D{"Timestamp<br/>present?"}
     D -->|no| C
@@ -66,14 +70,18 @@ flowchart LR
     E -->|yes| G["Accepted for scoring"]
     G --> H["Physics engine"]
 
-    style C fill:#fdeaea,stroke:#a33
-    style F fill:#fff4d6,stroke:#b8860b
-    style G fill:#eaf4ea,stroke:#2d6a2d
+    style A stroke-dasharray: 6 4,fill:#fff
+    style B stroke-dasharray: 6 4,fill:#fff
+    style D stroke-dasharray: 6 4,fill:#fff
+    style E stroke-dasharray: 6 4,fill:#fff
+    style C fill:#fdeaea,stroke:#a33,stroke-dasharray: 6 4
+    style F fill:#fff4d6,stroke:#b8860b,stroke-dasharray: 6 4
+    style G fill:#eaf4ea,stroke:#2d6a2d,stroke-dasharray: 6 4
 ```
 
-**Malformed input fails closed.** It does not produce a low-confidence advisory; it produces no advisory and a log entry. The distinction matters: a system that emits a weak signal for a bad reading teaches reviewers to ignore weak signals.
+**The design intent: malformed input fails closed.** It does not produce a low-confidence advisory; it produces no advisory and a log entry. The distinction matters: a system that emits a weak signal for a bad reading teaches reviewers to ignore weak signals. **That sentence describes what we have decided to build. It is not a description of what runs today** — today nothing is ingested, so nothing is rejected and nothing is scored from a Railroad source.
 
-> **Current state:** the ingest schema in the demonstration build is generated from physics equations on synthetic traces (**B01 §7 item 5**). The real detector payload schema must be defined, versioned and agreed with the Railroad before production. **Until it is, every number in a demonstration is a demonstration of the method, not of your data.**
+> **Current state, stated plainly.** The demonstration build generates its signals from physics equations on synthetic traces (**B01 §7 item 5**). There is no detector payload endpoint, no schema validation, no timestamp check and no plausibility filter in the shipped code. The real detector payload schema must be defined, versioned and agreed with the Railroad before production, and the validation chain above must then be built and tested against it. **Until both have happened, every number in a demonstration is a demonstration of the method, not of your data** — and no customer's IT reviewer should be told otherwise.
 
 ---
 
@@ -244,6 +252,8 @@ flowchart TB
 It is not a claim that the platform detects bearing failures. **It computes a physics-derived condition estimate and presents it to a qualified person** (D12 §1). It is not a claim that any particular proportion of defects will be found (D02 §7.2, D12 §8). It is not a safety appliance, a WDBD, an alarm system of record, or a substitute for any required inspection (D12 §§2–3).
 
 And it is not a picture of the finished product. **Ten items in B01 §7 stand between this diagram and the one we would draw for a production deployment.** Three of them — append-only ledger, registered identity, signed export — are the ones that make the record defensible. We draw them dotted here because drawing them solid would be the single most effective way to mislead a customer while writing nothing false.
+
+**And one of them is larger than the other nine. The ingest path (§2) is not built at all** — the demonstration generates its own signals rather than accepting a Railroad's. A reviewer reading this map top to bottom should understand that the right-hand two-thirds is closer to production than the left-hand third is. **The ledger needs rebuilding; the front door does not yet exist.**
 
 ---
 

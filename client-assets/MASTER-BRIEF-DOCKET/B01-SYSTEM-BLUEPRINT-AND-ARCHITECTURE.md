@@ -112,7 +112,7 @@ Per edge box, designed for: one to six detector feeds, up to ~5,000 monitored ax
 | 2 | Ledger append-only | `INSERT ... ON CONFLICT DO UPDATE` — overwrites | Append-only with supersede semantics |
 | 3 | Timestamps | SQLite `datetime('now')` default | Server-generated with NTP-synced clock |
 | 4 | Storage durability | The demonstration environment's storage is ephemeral — the demo database is lost on spin-down | Persistent volume on Railroad hardware |
-| 5 | Sensor ingest | Synthetic traces generated from physics equations | Real detector payload schema, defined and versioned |
+| 5 | Sensor ingest | **No inbound route exists.** Signals are generated from physics equations on synthetic traces; there is no endpoint, schema validation, timestamp check or plausibility filter in shipped code | Real detector payload schema, defined and versioned, **and the validation chain built and tested against it** |
 | 6 | Time source | Host clock, unsynchronized | NTP to Railroad-approved source |
 | 7 | Update mechanism | None; deploys via git | Offline signed update packages, see D06 |
 | 8 | Audit export | Not implemented | Signed export bundle per §4.5 |
