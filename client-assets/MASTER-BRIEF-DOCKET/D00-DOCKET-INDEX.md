@@ -74,11 +74,11 @@ COMPREHENSIVE MASTER CONTRACT  (D07)
 | **D02** | Master Pilot Agreement | **Built** | The entry contract. Scope, term, fees, evaluation criteria, warranties, liability cap, indemnities, termination. **Fees illustrative — confirm against A2 before signature.** |
 | **D03** | Master Services Agreement (MSA) | Not built | The umbrella. Survives individual orders; governs all future statements of work. |
 | **D04** | Statement of Work templates (SOW-1…n) | Not built | Executable per-deployment orders under the MSA. |
-| **D05** | Pilot → YoY Licensing Rollover Agreement | Not built | The conversion mechanics: what happens on day 366, price protection, credit for pilot fees, conversion deadline, and what happens if the Railroad declines to convert. |
-| **D06** | Technical Support, SLA & Update Governance | Not built | Response times, severity tiers, patching cadence, EOL policy, and **who pays for what when a patch is required for a defect we introduced.** |
+| **D05** | Pilot → YoY Licensing Rollover Agreement | **Built** | The conversion mechanics: what happens on day 366, price protection, credit for pilot fees, conversion deadline, and what happens if the Railroad declines to convert. |
+| **D06** | Technical Support, SLA & Update Governance | **Built** | Response times, severity tiers, patching cadence, EOL policy, and the false-positive cost regime (quarterly service credits). |
 | **D07** | Comprehensive Master Contract | **Built** | Federal guidelines, data security, indemnities, limitation of liability, insurance, export control, audit rights, dispute resolution. |
 | **D08** | Master Licensing & Liability | **Built (needs legal pass)** | Licensing structure, tier bands, performance component, and the liability split. Currently written commercially — must be converted to contract-grade language. |
-| **D09** | Data Processing & Security Addendum (DPA) | Not built | The security schedule. Standalone because IT security review runs on a separate clock from procurement. |
+| **D09** | Data Processing & Security Addendum (DPA) | **Built** | The security schedule: data residency, security controls, incident notification (72h), retention, subprocessor register, audit rights. |
 | **D10** | Subprocessor & Third-Party Component Register | Not built | Every third party touching Railroad data. Pairs with B04. |
 | **D11** | Mutual NDA | **Built** | Needed *before* D02. Often overlooked and always needed first. |
 | **D12** | Regulatory Status & Safety-Critical Function Statement | **Built** | Single annex stating this is not a certified safety appliance, is not a substitute for required inspection, and relieves the Railroad of no regulatory obligation. Identical language across B01, C02, D02, D07, D08. See §III.1. |
@@ -111,11 +111,15 @@ The standard clause — "Railroad owns its data" — is insufficient. The Railro
 
 ### 3. The "who pays for the false positive" gap
 
+**Status: CLOSED** — D06 §4 defines a quarterly service credit schedule tied to measured false-positive rate, capped at the platform fee, excluding detector-data causes and consequential damages.
+
 A false stop on a Class I main line costs train-hours, crew-hours, and network knock-on. Our marketing claims <0.1% false positives. **Nothing in the current documents says who bears the cost when we are wrong.** A railroad's counsel will ask this in the first meeting. If we have no answer, they will assume we bear it.
 
 **Add to D06/D08:** a defined false-positive cost regime — for example, a service credit schedule tied to verified false-positive volume, capped, and explicitly excluding consequential damages. This converts an unbounded risk into a bounded, priced one.
 
 ### 4. Detector data rights and the integration dependency
+
+**Status: CLOSED** — D07 §6 allocates the warranty in three parts: Railroad warrants its detector hardware; Supplier warrants its processing; neither warrants the other's domain. The Configuration Attestation plus detector maintenance records plus processing logs determine which domain a failure falls in.
 
 We integrate with the Railroad's existing wayside detectors. Who warrants that the detector data is accurate? Who is liable if the HBD feeding us is miscalibrated and we therefore miss a defect?
 
@@ -123,27 +127,39 @@ We integrate with the Railroad's existing wayside detectors. Who warrants that t
 
 ### 5. Rollover cliff — the commercial trap in D05
 
+**Status: CLOSED** — D05 built. 90-day conversion election window; 50% pilot licence credit ($90K); three-year price lock (Years 1–3 at 0% increase, Year 4+ capped at 5%/yr); defined exit if declined; Year 1 termination for convenience at 60 days with no penalty.
+
 If the pilot converts on day 366 at full production price with no credit for pilot fees, the Railroad's internal ROI calculation changes shape at conversion and the deal dies at the CFO's desk, not the lawyer's. **D05 must specify: pilot fee credit, price protection for the first production term, a conversion window, and a defined outcome if they decline** — including whether they keep any data or reports produced during the pilot.
 
 ### 6. Certification liability — an unnoticed exposure
+
+**Status: CLOSED** — D07 §16. Certification evidences completion of the curriculum and creates no liability for a Certified Reviewer's act or omission; the Railroad is solely responsible for its personnel.
 
 C02 certifies the Railroad's personnel. **If we certify someone and they then make a consequential error, are we liable for the certification?** This is a real and commonly-missed exposure in any product that trains its customer's staff. D07 must state that certification evidences competency against our curriculum, not a guarantee of individual performance, and that the Railroad retains employment and supervision responsibility.
 
 ### 7. The air-gap representation problem
 
+**Status: CLOSED** — B05 verified against code: zero outbound calls. D09 §3.2 and D07 §7.1 both state it contractually. All four gaps named in B05 §7 (pinning, hash verification, SBOM, signed artifacts) are disclosed in D09 §4.4 rather than papered over.
+
 We tell customers "on-premise, air-gap capable." If the product requires *any* outbound network call — licence check, telemetry, update ping — that representation is false, and it is the kind of false that surfaces during a security audit in month three.
 
 **B05 must be written by someone looking at the actual code, not the marketing.** Then D07 must match B05 exactly. If we need a licence server, say so and design the offline activation path; do not claim air-gap and then require a phone-home.
 
-### 8. Missing: cyber incident notification
+### 8. Cyber incident notification
+
+**Status: CLOSED** — D09 §6. 72-hour Supplier-to-Railroad notification, 24-hour Railroad-to-Supplier for discovered vulnerabilities, defined reportable incident, 30-day root-cause analysis, and joint review. D07 §7.5 carries the same window in the master contract.
 
 Rail is now explicitly in scope for transportation-sector cyber risk. D09 must include a **breach notification window** (typically 72 hours), the notification channel, and what constitutes a reportable incident. Absent this, the Railroad's CISO will block the deployment regardless of what procurement agreed.
 
-### 9. Missing: personnel security and background checks
+### 9. Personnel security and background checks
+
+**Status: CLOSED** — D07 §7.7. Supplier personnel with access to Platform IP are subject to background verification; Supplier personnel require no access to Railroad systems at all, which is the structural answer. Railroad-specific screening on any on-site visit is accommodated.
 
 Railroad IT will ask whether our engineers have background checks, and whether they will accept the Railroad's. Especially relevant given federal hazmat and security-sensitive rail requirements.
 
-### 10. Missing: export control and sanctions
+### 10. Export control and sanctions
+
+**Status: CLOSED** — D07 §13. Mutual compliance, denied-party confirmation, no encryption beyond OS and standard libraries, no re-export without authorisation.
 
 Even a domestic-only deployment can raise export-control questions if any component or engineer is foreign-sourced. Cheap to address in D07, expensive to discover later.
 
@@ -153,7 +169,9 @@ Even a domestic-only deployment can raise export-control questions if any compon
 
 If AxiomDynamics ceases to exist, can the Railroad keep operating? A **source code escrow** agreement (triggered on insolvency or cessation of support) is the standard answer and is often the clause that lets a sole-source vendor be approved at all. Given that this is a company selling to organisations that plan in decades, expect this question.
 
-### 12. Missing: transition and exit assistance
+### 12. Transition and exit assistance
+
+**Status: CLOSED** — D07 §15.6. On termination for any reason except Railroad's uncured breach, 90 days at no charge: data export, transition assistance, final configuration statement. D09 §5 on retention and deletion.
 
 What does the Railroad get on termination — data export format, a defined assistance period, and a prohibition on our retaining copies. Must be specified, not implied.
 
@@ -176,11 +194,13 @@ That rule 6 is the one that keeps this docket honest over time.
 
 ## Part V — Build status at a glance
 
-**Built (13):** A1 ROI model · B01 blueprint · B04 tech stack · B05 data flow · C01 deployment SOP · C02 certification & assessment · D02 pilot agreement · D07 master contract · D08 licensing · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model.
+**Built (16):** A1 ROI model · B01 blueprint · B04 tech stack · B05 data flow · C01 deployment SOP · C02 certification & assessment · D02 pilot agreement · D05 rollover mechanics · D06 support & SLA · D07 master contract · D08 licensing · D09 DPA · D11 NDA · D12 regulatory status · D13 IP & escrow · D14 operating model.
 
-**Open loopholes still requiring a document:** the false-positive cost regime (D06) and rollover cliff (D05).
+**All twelve identified loopholes now closed.** No known remaining open loopholes.
 
-**Next by value:** D06 support & SLA (defines patch response, false-positive credits, EOL policy) · D05 rollover mechanics (conversion deadline, price protection, credit calculation) · A2 rate card (D02 fees are illustrative until it exists) · D03 MSA (umbrella for future deployments).
+**Next by value:** A2 rate card (illustrative pricing in D02 and D05 must be replaced with final schedule) · D03 MSA (umbrella for future orders) · D04 SOW templates (executable deployment orders) · D01 preface checklist (sign-off before final build).
+
+**Deferred by decision:** D10 subprocessor register (currently D09 §7.1 notes no subprocessors; D10 to be created if future strategy includes third-party processing); E-series assurance documents (evidence registry, air-gap media chain of custody, DR/RTO/RPO, continuous compliance, records retention, RACI) are gaps identified in library reconciliation but not needed for BNSF pilot — candidates for Phase 2 when deploying to carriers with higher security posture or when regulatory pressure increases.
 
 **Deferred by decision:** the pilot-proposal narrative — superseded by D02 as a legal instrument.
 
