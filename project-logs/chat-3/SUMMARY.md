@@ -190,3 +190,69 @@ settled.
 4. D07 §14.5 governing law and venue remains open, unchanged by this pass.
 5. Signed, off-box ledger export — the natural successor to this phase, and the
    half of AD-3 that "tamper-evident" still does not cover.
+
+## Phase 3 — the A2/D08 model decision, priced (committed `b23d0c7`)
+
+Chosen ahead of the signed ledger export, and the reason is worth recording:
+the ledger phase fixed a document claiming more than the code did, and these two
+findings are the same defect class — except they sit in the money documents a
+customer's procurement team will run, and D14 §8 names the gap between the sales
+description and the contract as the product's largest liability. A missing
+signature on a ledger is a production requirement. A rate card that contradicts
+its own ROI model cannot be sent out at all.
+
+**What was built.** No code changed in the product. `assets/a2-d08-model-decision-2026-11-09.md`
+plus `a2-d08-model-decision.py` (65 reproducible checks) price both answers so the
+owner's decision is a comparison rather than more research.
+
+**Three findings the arithmetic pass did not have.**
+
+1. **The 2.0x/4.1x anchors are recoverable.** The pass record tested two cost
+   bases and concluded no parameter set reproduces both. On a third — pilot plus
+   three full years at list, no conversion credit — one value of the catastrophic
+   probability fits both, because the ratio the anchors demand
+   (cost(10k)/cost(500) = 9.756) is a property of the *pricing*, not the benefit
+   model. So this is a disclosure defect, not a fabrication. The level of p is
+   not unique — a four-year benefit horizon gives 0.0412% and also fits — which is
+   why the finding stays open.
+2. **D08 contradicts itself.** §4 prices a prevented failure at ~$993,000; §5 at
+   $8.6M–$11.4M. Holds per axle as well as per defect. And §4's figure is within
+   0.7% of A1's $999,750 — the document already contains an A1-consistent
+   valuation four pages before abandoning it.
+3. **`roi.py` is further from A1 than the README says.** Two disagreements, not
+   one: 2% vs 0.05%, and a $9.25M contained cost vs A1's $500,000. Per-missed-
+   defect values are $29,065,000 vs $999,750 — 29×, of which probability accounts
+   for 20.5×.
+
+**What the independent audit caught, and this is the part worth keeping.** I wrote
+the paper and then wrote its checker, which is exactly the arrangement where a
+shared assumption passes unnoticed. A separate agent with no stake in it found
+four errors:
+
+- **The dashboard figure was not roi.py's output.** I had computed $14,339,850 by
+  re-running A1's formula at 2% and labelled it as the dashboard. `roi.py` takes
+  warrants, not axles — "at 500 axles" was never computable. Corrected to a
+  per-defect comparison, which is the right like-for-like and a *larger* gap.
+- "D08 repeats it verbatim" — it does not; two sentences are reworded. Corrected.
+- "That is where the numbers came from" — overstated derivation from consistency.
+  Corrected, with the horizon ambiguity shown rather than buried.
+- "no site-fee line" in the stale workbook — wrong, the row exists and is inert at
+  one site. Corrected, and the real disagreement (a $285,000 pilot built from
+  hardware + training against A2's $370,000 with no hardware at all) stated.
+
+Lesson for the next phase: when I produce both an analysis and the script that
+checks it, a second reader is not optional. The checker validated my mistake
+because I wrote it to.
+
+## Next
+
+1. Decide Finding 1 and Finding 2 — options priced in the decision paper §6,
+   recommendation in §7. **This is the only blocking item that needs the owner.**
+2. Worth pricing before locking Option A: adding the cost components A1 omits
+   (service disruption, lading loss, regulatory penalty) to B14 at 0.05%, which
+   may raise the benefit figure honestly.
+3. Then regenerate the A1 workbook from the corrected builder and re-run both
+   check scripts and the unit suite.
+4. D07 §14.5 governing law and venue remains open, unchanged.
+5. Signed, off-box ledger export — the next *build*, now unblocked by priority
+   but not by dependency; it does not touch any of the above.
