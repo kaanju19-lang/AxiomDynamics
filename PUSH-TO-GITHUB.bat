@@ -12,6 +12,9 @@ echo.
 echo Top commit before push:
 git log --oneline -1
 echo.
+echo Commits waiting to go up:
+git log --oneline origin/main..HEAD
+echo.
 
 git push origin main
 set RESULT=%ERRORLEVEL%
@@ -20,8 +23,11 @@ echo.
 if %RESULT%==0 (
   echo ============================================
   echo  PUSHED OK
-  echo  Check: https://github.com/kaanju19-lang/AxiomDynamics/commits/main
-  echo  Top commit should be f58b07c
+  echo.
+  echo  Top commit now on GitHub:
+  git log --oneline -1
+  echo.
+  echo  Verify: https://github.com/kaanju19-lang/AxiomDynamics/commits/main
   echo ============================================
 ) else (
   echo ============================================
