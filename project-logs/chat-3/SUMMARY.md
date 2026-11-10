@@ -117,9 +117,76 @@ count, and replaces the hardcoded unpushed-hash list with an instruction to chec
 **Push required.** Run `PUSH-TO-GITHUB.bat` in the repo root, then confirm with
 `git log --oneline origin/main..HEAD` rather than trusting any hash written here.
 
+## Phase 2 — append-only disposition ledger (AD-3), committed `209efe6`
+
+Chosen as the next build because it was the one open code control that needed no
+commercial decision from the owner, and because the docket's most legally
+significant record was overstating what the code did.
+
+**The defect, confirmed before touching it.** `backend/store.py` used
+`advisory_id` as PRIMARY KEY with `INSERT ... ON CONFLICT DO UPDATE`. A second
+disposition on the same advisory overwrote the first — its reviewer, its note
+and its `recorded_at` all gone. F09 described an append-only record; the code
+produced one row that could be rewritten. Six documents disclosed the gap.
+
+**What was built.**
+
+- Insert-only writes. A correction is a new row carrying `supersedes_id`; the
+  corrected row keeps its own content and timestamp.
+- `BEFORE UPDATE` / `BEFORE DELETE` triggers that `RAISE(ABORT)`, so the
+  guarantee is in the schema rather than in application convention.
+- SHA-256 chain: `prev_hash` (predecessor's hash, 64 zeros at the start) and
+  `record_hash` over canonical content plus `prev_hash`. `verify_chain()`
+  recomputes and names the first failing row.
+- `BEGIN IMMEDIATE` on writes, so two concurrent appends cannot both read the
+  same `prev_hash` and fork the chain.
+- Migration inside `init_db()` from the v1 table, preserving the surviving
+  decision and its original timestamp without fabricating lost history.
+
+**What it does not do, and the docket now says so in these words.** The chain is
+tamper-*evident*, not tamper-*proof*. Whoever holds the database file can drop
+the triggers, rewrite rows and recompute every hash. Signed, off-box export
+stays open in D09 §4.4; the gap narrowed, it did not vanish. Recording that
+distinction was the point — the failure mode this project keeps having is a
+document claiming more than the code delivers.
+
+**Verification.**
+
+- 17 new adversarial tests in `tests/test_store.py`, each attempting to destroy
+  an earlier decision: an `UPDATE`, a `DELETE`, a second disposition, a tampered
+  row, a removed row, trigger survival across re-init, and two migration shapes.
+- `tests/run_tests.py` was loading only `test_physics.py`, so the new module
+  would never have run in CI. Rewritten to discover every `test_*.py`. Suite is
+  now 38, all passing.
+- End-to-end against a live server: two dispositions on one advisory produce
+  two records, the second names the first as superseded, `/api/warrant/{id}/disposition`
+  returns both with `chain_ok: true`, `/api/ledger/verify` returns
+  `{ok: true, rows: 2}`, the alert carries "supersedes 1 earlier record", and
+  empty reviewer input is rejected with 400.
+- No headless browser in this environment, so the UI change was verified by
+  `node --check` plus inspecting the served DOM construction rather than by
+  screenshot. **The history panel has not been seen rendered.** Worth a look on
+  first run.
+
+**Docket corrected in the same commit** — the rule is that a gap closes only
+when the code changes and the disclosing documents change with it: B01 §4.1,
+§4.5, §4.6, §7 items 2 and 8 and the component table; D09 §4.4 and the
+audit-logging row; F09 Parts 6 and 7 and its footer; F00; B02; C02; D12; D14 §5;
+D00 Parts V and VI; and the root README.
+
+**Two defects found in the root README while correcting it,** neither related to
+the ledger: it opened "three named physical models" then listed seven; it had
+two items numbered `7.`; and it described the 2% catastrophic-escalation
+placeholder as current when `roi.py` uses 2% but the A1 workbook uses 0.05%.
+All three fixed, and the 40× divergence now points at
+`assets/a2-d08-arithmetic-pass-2026-11-09.md` instead of being restated as if
+settled.
+
 ## Next
 
 1. Decide Finding 1 — strike or restate the 2.0x/4.1x anchors.
 2. Decide Finding 2 — which model governs, A1 or D08 §5–§6.
 3. Then regenerate the A1 workbook and re-run the check script.
 4. D07 §14.5 governing law and venue remains open, unchanged by this pass.
+5. Signed, off-box ledger export — the natural successor to this phase, and the
+   half of AD-3 that "tamper-evident" still does not cover.
