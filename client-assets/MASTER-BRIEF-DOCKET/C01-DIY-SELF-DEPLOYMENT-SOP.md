@@ -430,6 +430,50 @@ sqlite3 /path/to/axiom.db ".tables"
 # Expected output: (table list or message that no tables exist yet)
 ```
 
+### E2a. Establish the ledger export key and take a first signed export
+
+Do this **once**, at commissioning, before any disposition is recorded, and again only when rotating the key under D09 §4.5. The export key is what lets the Railroad prove, later and without trusting the platform host, that the ledger it holds is the ledger that was written.
+
+```bash
+cd /opt/axiom/AxiomDynamics
+# 1. Generate the signing key. It is written mode 0600, and it must never be
+#    copied onto the platform host's backups or into the source tree.
+python3 -m backend.ledger_export keygen --key-file /root/axiom-export.key
+
+# 2. RECORD THE KEY_ID IT PRINTS in the custody log (D09 §4.5.2). Anyone
+#    holding a bundle can compare its key_id to this figure.
+
+# 3. Take a baseline export immediately.
+python3 -m backend.ledger_export export \
+    --key-file /root/axiom-export.key \
+    --out /var/lib/axiom-export/ledger-$(date +%Y%m%d).json
+
+# 4. Verify it on a DIFFERENT machine that has neither the database nor this
+#    checkout -- the whole point is that verification does not need them.
+python3 tools/verify_ledger_export.py \
+    --key-file /path/to/copied/key \
+    --bundle ledger-20261109.json
+# Expected final line: "OK — every check passed."
+```
+
+**Every subsequent export passes the previous one, and this is not optional:**
+
+```bash
+python3 -m backend.ledger_export export \
+    --key-file /root/axiom-export.key \
+    --out /var/lib/axiom-export/ledger-$(date +%Y%m%d).json \
+    --previous-export-hash <the previous bundle's digest>
+
+# and verify with the prior bundle supplied, which is what detects a ledger
+# that has SHRUNK since the last export:
+python3 tools/verify_ledger_export.py --key-file /path/to/key \
+    --bundle ledger-20261110.json --previous-bundle ledger-20261109.json
+```
+
+**Two operational rules, both of which are controls rather than housekeeping.** Keep every bundle you are given — do not overwrite last month's with this month's, because the sequence is what detects a ledger truncated or rewritten between exports, and a single bundle cannot testify about its own past (D09 §4.5.4). And copy the key off the host into sealed storage at commissioning; a key that exists only on the platform host is lost with the disk, and every bundle it signed becomes unverifiable.
+
+**No HTTP route performs this.** Export is deliberately an operator command on the box, because the server has no authentication yet (B01 §4.5a). Do not expose one until AD-2 exists.
+
 ### E3. Log file inspection
 
 ```bash

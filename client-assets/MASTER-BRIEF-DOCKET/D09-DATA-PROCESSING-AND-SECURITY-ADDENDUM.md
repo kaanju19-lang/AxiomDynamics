@@ -90,7 +90,7 @@ If the Railroad requests Supplier assistance with diagnosis:
 | **Encryption in transit** | API is HTTP-only within the local network. **If the Railroad requires HTTPS, they implement a reverse proxy (nginx, Apache) in front of the Platform.** The Platform itself does not terminate TLS. | Railroad responsibility |
 | **Authentication** | The Platform currently uses local user accounts with passwords. **AD-2 (B01) recommends signed certification registry with issued credentials.** This is a gap; see §4.4. | Partial — authentication is local, not cryptographically registered |
 | **Authorization** | Role-based access (Operator, Reviewer, Administrator) per C02. Enforced by the Platform. | Implemented per role model |
-| **Audit logging** | All disposition writes, user login/logout, configuration changes, and patch applications are logged. Logs are not editable or deletable by any Platform user and are exportable by an Admin. The disposition ledger is insert-only, guarded by `BEFORE UPDATE`/`BEFORE DELETE` triggers and chained by SHA-256; the chain is verifiable on demand and a break is reported with the failing record. **Not yet signed or replicated off-box — see §4.4.** | **Partial — append-only and hash-chained built 2026-11-09; signed export and off-box replication outstanding** |
+| **Audit logging** | All disposition writes, user login/logout, configuration changes, and patch applications are logged. Logs are not editable or deletable by any Platform user and are exportable by an Admin. The disposition ledger is insert-only, guarded by `BEFORE UPDATE`/`BEFORE DELETE` triggers and chained by SHA-256; the chain is verifiable on demand and a break is reported with the failing record. The ledger can be exported as a **signed bundle** that a recipient verifies without the Platform's software or the database, which detects altered, added, removed or reordered records and a ledger that has shrunk since a previously received bundle. **The signature is symmetric and cannot name the signer or prove when it was made; a wipe before the first bundle in a series is not detectable; the ledger is not replicated off-box automatically — see §4.4 and §4.5.** | **Partial — append-only, hash-chained and signed export built 2026-11-09; signer identity and automatic replication outstanding** |
 | **Data validation** | Input validation on disposition fields (reviewer name, cert ID, disposition text). Malformed data is rejected. | Implemented; schema incomplete (see B01 §7 gap register) |
 | **Backup** | The Railroad performs nightly backups of the SQLite database (daily full, hourly WAL). Supplier does not hold backups. | Railroad responsibility |
 | **Time synchronization** | The Platform relies on the host's system time. The Railroad must configure NTP for accurate timestamps in the disposition ledger. | Railroad responsibility |
@@ -113,12 +113,31 @@ The following controls are **not yet implemented** but are on the remediation ro
 | Gap | Impact | Remediation | Target |
 |---|---|---|---|
 | **Authentication is local, not cryptographically registered** | A malicious insider with database access could potentially forge a disposition record. | Implement signed certification registry (AD-2 per B01 §7) | Q2 2027 |
-| **No signed, off-box export of the disposition ledger** | The ledger cannot be silently altered through the application or by ordinary database access (insert-only, guard triggers, SHA-256 chain — built 2026-11-09), but it is not cryptographically **signed** and is not replicated off-box. A party with write access to the database file could drop the triggers, rewrite rows and recompute the chain. A lost disk loses the ledger. | Sign the export bundle and replicate it to a second host; see B01 §4.5, §7 items 6 and 8 | Q2 2027 |
+| **The ledger export signature cannot name the signer** | **Partly closed 2026-11-09.** The export bundle is now signed (HMAC-SHA256) and independently verifiable by a recipient who holds only the bundle, the key and a standard library — no Platform code. It detects altered, added, reordered and removed records, a ledger that has shrunk since a bundle you already hold, and rows deleted from the front of the ledger. But HMAC is symmetric: any holder of the key can both sign and verify, so the signature proves the bundle is authentic, not **who** produced it. It also cannot prove **when**; no external timestamping exists on an air-gapped box. And it cannot detect a ledger wiped before the *first* bundle you ever receive — only a bundle you already hold constrains that. All three are bounded by the custody procedure below, and closed properly only by binding the key to an issued certification record (AD-2). | Bind the signing key to a certified identity under AD-2; move to an asymmetric signature with a published public key when a vetted library is available | Q2 2027 |
+| **No automatic off-box replication of the ledger** | A signed bundle can be handed to a second party, but nothing ships it on a schedule, and a lost disk still loses the ledger regardless of how well past exports were signed. A party with write access to the database file can drop the triggers, rewrite rows and recompute the chain between exports; only a recipient who **keeps each bundle as it arrives** can detect that, which is why the custody procedure is a control and not an administrative detail. | Scheduled signed export to a second host with receipt acknowledgement; see B01 §4.5a and §7 items 11–12 | Q2 2027 |
 | **No SBOM artifact in releases** | The Railroad cannot independently verify the dependency chain. | Generate SBOM (SPDX or CycloneDX) per release | Q1 2027 |
 | **No hash verification of dependency downloads** | A compromised PyPI could serve malware as a dependency. | Require SHA-256 pinning of all dependencies in requirements.txt | Q1 2027 |
 | **No signed release artifacts** | A malicious actor could replace a release archive with a trojan. | Sign releases with GPG; provide public key | Q2 2027 |
 
 **These gaps are disclosed proactively.** The Railroad should assess whether they are acceptable for its risk tolerance. If not, the Railroad may delay production deployment until the remediation is complete (escrow of current version per D13 remains available).
+
+### 4.5 Ledger export key custody and export procedure
+
+Three gaps in §4.4 are controlled by procedure rather than by cryptography, and a procedure that is not written down is not a control. This is the procedure.
+
+**4.5.1 The key.** The export signing key is 32 raw bytes from the operating system's CSPRNG, generated on the platform host with `python3 -m backend.ledger_export keygen --key-file <path>`. It is written mode `0600`, is excluded from version control by `.gitignore`, and is held in two copies: one in the Railroad's sealed physical storage, one with AxiomDynamics in escrow. It is **never** transmitted by email, chat, ticket or any other channel that leaves a copy. A key file that has been committed to a repository, pasted into a message, or stored beside a bundle it signed is treated as compromised and rotated.
+
+**4.5.2 The key_id.** Every key has a `key_id`, the first 16 hex characters of its SHA-256, printed at generation and published. It is safe to share and lets a recipient distinguish "wrong key" from "forged bundle" — a distinction that saves an investigation.
+
+**4.5.3 Rotation.** Rotating the key makes every bundle signed under the previous key unverifiable against the new one, so rotation is recorded in a custody log with the `key_id` it retired, the date, the reason, and the `key_id` of its successor. The old key is retained, not destroyed, for as long as any bundle it signed is retained. Key compromise is a reportable incident (§6.2), not an administrative correction.
+
+**4.5.4 The export schedule.** A signed, full export is produced **monthly** and an incremental export (`--after-id`, with `--previous-export-hash` naming the last bundle) **weekly**. The Railroad retains each bundle as received, in order, without overwriting one with a later one — this is the single control that detects a ledger truncated or rewritten between exports, and discarding old bundles forfeits it. A week with no new dispositions produces a valid **zero-record** bundle; that is expected and must be kept, because a gap in the sequence is indistinguishable from a removed bundle. Quarterly, the Railroad verifies one retained bundle with `tools/verify_ledger_export.py` on a machine with no connection to the platform host, and records the result.
+
+> **Why the sequence matters more than any single bundle.** A single bundle proves its own content is intact. It cannot prove the ledger was not wiped before it was made — an attacker who deletes every row produces an empty ledger, the exporter truthfully signs an empty bundle, and it verifies clean. What catches that is this bundle failing to extend the last one you hold. **A series kept from commissioning is the evidence; one bundle is a snapshot that cannot testify about its own past.**
+
+**4.5.5 What the receipt establishes.** Receipt of a verified bundle establishes that the ledger content at export time matched what was signed, that it extended every bundle previously received, and that the ledger has not shrunk since. It does not establish authorship, the time of signing, or that the ledger was intact before the first bundle in the series — those remain the AD-2 dependency in §4.4 and the custody discipline above — and it must not be represented as more.
+
+**4.5.6 If a bundle fails verification.** Stop, preserve the bundle unmodified, verify against the correct `key_id` first, and only if it still fails treat it under §6 as a reportable integrity incident. Do not re-export over it.
 
 ---
 
@@ -143,6 +162,8 @@ The Railroad may delete Railroad Data at any time by:
 
 Since Supplier holds no Railroad Data in normal operation, no Supplier-side deletion is required. If support sessions have copied diagnostic data to Supplier systems (which is prohibited per §3.4), Supplier deletes it within **five (5) business days** of the session ending.
 
+**Retained export bundles are not Railroad Data in play here.** Replacement media or the platform host itself may leave service; the §4.5 bundles the Railroad has retained do not need to be deleted on replacement and should not be, because they are the reference against which future exports are checked.
+
 ---
 
 ## 6. Security incident notification
@@ -161,6 +182,7 @@ If Supplier becomes aware of a security incident affecting the Platform, Supplie
 Under §6.1, the following are reportable:
 - Unauthorized access to the Platform or Railroad Data (including attempted access that succeeded partially).
 - Loss or theft of a device containing Platform data or credentials.
+- **Compromise, suspected compromise or loss of an export signing key, or a bundle that fails verification with the correct `key_id` (§4.5).** Either event means the integrity evidence for the disposition ledger can no longer be relied on until the cause is established.
 - Malicious code introduced into the Platform or dependency chain.
 - Vulnerability disclosed by a third party (e.g., a security researcher) that affects the Platform in production.
 - Breach of Supplier's own systems that could expose Railroad Data (even if no Railroad Data was actually accessed).
@@ -207,9 +229,9 @@ When SBOM generation is implemented (target Q1 2027 — §4.4), Supplier will pr
 
 ### 7.3 Release artefacts and signing
 
-**Supplier does not currently sign release artefacts, and does not represent that it does.**
+**Supplier does not currently sign release artefacts, and does not represent that it does.** The ledger export is signed (§4.5); releases are not, and the two are not interchangeable.
 
-Every artefact the Railroad receives today is unsigned. Its integrity rests on the transfer channel and on the Railroad's own verification, not on a cryptographic signature from Supplier:
+Every **software** artefact the Railroad receives today is unsigned — this section is about releases, not data. (The disposition-ledger export *is* signed, since 2026-11-09; see §4.5. It is a data bundle produced on the Railroad's own host, not a release from Supplier, and the two signing stories are deliberately separate.) A software artefact's integrity rests on the transfer channel and on the Railroad's own verification, not on a cryptographic signature from Supplier:
 
 - **Repository checkout.** Where the Railroad clones the source repository, git's own object hashing provides integrity for the tree it receives, against the branch it received it from. That is a check on corruption and on the transported content. **It is not a signature** — it does not prove which key produced a release, and it does not survive a compromised repository host.
 - **Sealed-archive transfer (C01 Part B).** Supplier provides a **SHA-256 manifest** of the transferred set, which the Railroad verifies against the files it receives. This detects corruption and in-transit substitution **when the manifest itself is trusted** — and today it arrives over the same channel as the archive, which is the weakness. A manifest delivered alongside the thing it describes protects against accident, not against an adversary who can alter both.

@@ -234,7 +234,7 @@ That rule 9 is the one that keeps this docket honest over time. Rule 6 is the on
 
 **Internal, moved to `assets/`:** carrier dossiers, library reconciliation, IP strategy.
 
-**Architectural decisions locked (B01):** fully on-premise edge, zero outbound network — **both built**. Append-only disposition ledger (AD-3) — **built 2026-11-09**: insert-only write path, supersede-not-overwrite corrections, database-level `UPDATE`/`DELETE` guards, SHA-256 chain. Signed certification registry (AD-2) — **design decided, not yet built; see Part VI.**
+**Architectural decisions locked (B01):** fully on-premise edge, zero outbound network — **both built**. Append-only disposition ledger (AD-3) — **built 2026-11-09**: insert-only write path, supersede-not-overwrite corrections, database-level `UPDATE`/`DELETE` guards, SHA-256 chain, and a signed export bundle with an independent verifier. Signed certification registry (AD-2) — **design decided, not yet built; see Part VI.** The export's *signature* exists without AD-2; its *attribution* does not, which is the distinction §4.5a of B01 exists to keep visible.
 
 > That distinction is the whole point of this index. A locked decision is a decision. It is not a delivered control, and the two must never be written in one sentence without the difference stated.
 
@@ -249,7 +249,7 @@ These are disclosed rather than hidden, and they are tracked here so the docket 
 | Gap | Where disclosed | Consequence while open |
 |---|---|---|
 | **No detector ingest path at all** — no endpoint accepts a Railroad payload; signals are generated from physics equations on synthetic traces | B01 §7 gap #5 · **B02 §2** · **B03 status block** | **The largest gap in this table.** Every demonstration number is a demonstration of the method, not of the Railroad's data. The validation chain (schema, timestamp, plausibility) is designed and not built. |
-| **No signed, off-box export of the disposition ledger** — the ledger itself is append-only and hash-chained, but it is not signed and not replicated | B01 §4.5 · B01 §7 item 8 · D09 §4.4 · **F09 Part 7** | Tamper-evident against application and ordinary database access; **not** tamper-proof against someone with write access to the database file, and a lost disk loses the ledger. Do not represent it as signed or replicated. |
+| **The ledger export signature cannot name the signer, and replication is manual** — since 2026-11-09 the ledger exports as a signed bundle that a recipient verifies without the Platform, which detects altered/added/removed/reordered records and a ledger that has shrunk since a held bundle; but the HMAC-SHA256 signature is symmetric, cannot prove when the bundle was made, cannot detect a wipe before the first bundle in a series, and nothing ships a bundle on a schedule | B01 §4.5 · **B01 §4.5a** · B01 §7 items 11–12 · D09 §4.4 · **D09 §4.5** · **F09 Part 7** | Authentic and independently verifiable, but **not** attributable to a person or an instant, and a lost disk still loses the ledger. Do not call an export a signed certificate of authorship. |
 | Certification registry is **local accounts**, no cryptographic verification | B01 §7 gap #1 · D09 §4.4 · **F08 Part 1** | Manual control via F08 is the substitute. A reviewer can self-assert a cert ID. |
 | No SBOM artefact in releases | D09 §4.4 · **D09 §7.2** | Customer cannot independently verify the dependency chain. Target Q1 2027. |
 | No hash pinning of dependencies | D09 §4.4 | A compromised package index could serve malware. Target Q1 2027. |
@@ -260,6 +260,10 @@ These are disclosed rather than hidden, and they are tracked here so the docket 
 **The rule for this table:** a gap moves from here to closed only when the code changes, and the entries in B01, D09, F08 and F09 are amended in the same commit. Documenting a fix that was not made is the exact failure this docket was built to prevent.
 
 **Closed:** the disposition ledger append-only gap (AD-3). Closed 2026-11-09 in the commit that rebuilt `backend/store.py`, added 17 adversarial tests in `tests/test_store.py`, and amended B01 §4 and §7 item 2, D09 §4.4 and the audit-logging row, F09 Parts 6–7 and its footer, and this table. The gap did not disappear — it narrowed. What was open was "a disposition can be silently replaced"; that is now impossible. What remains is "the ledger cannot be proven untampered by a party holding the database file", and that is the row above.
+
+**Also closed, same day:** the *unsigned* half of the row above. `backend/ledger_export.py` now writes a signed bundle and `tools/verify_ledger_export.py` verifies it without importing Platform code, so a party holding only the bundle and the key can confirm no record was altered or removed. The row was rewritten rather than deleted, because the signature introduced limits of its own — it is symmetric, it cannot date itself, and a wipe before the first bundle in a series is invisible to later ones — and a gap table that silently loses a row teaches the next reader to trust it less.
+
+> **One correction worth recording, because this table exists to prevent it.** The first version of the export passed a total wipe: delete every row, export honestly, and a recipient holding the previous bundle was told every check passed. The checks were each individually correct and the set proved nothing, because none compared the bundle against one the recipient already had. Fixed by recording the ledger's own head in each bundle and failing when a later one reports a shorter ledger. That the gap was caught before this table claimed the control closed is the only reason the table is still worth reading.
 
 ---
 

@@ -29,8 +29,9 @@ What this does and does not prove — state it plainly rather than implying more
 - It **does** make an accidental overwrite impossible rather than merely
   discouraged, which is what the old upsert allowed.
 - It does **not** replicate off-box. A destroyed disk still destroys the
-  ledger. Off-box replication and signed audit export remain separate gaps
-  (D09 §4.4).
+  ledger. Signed export is now built (`backend/ledger_export.py`); automatic
+  replication is not, and a bundle only helps if somebody keeps it
+  (`backend/ledger_export.py` module docstring, B01 §4.5a, D09 §4.4).
 
 Deliberately the stdlib `sqlite3` module — no new dependency, no server
 process, one file that survives a restart.

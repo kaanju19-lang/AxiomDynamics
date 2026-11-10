@@ -68,6 +68,14 @@ State this plainly. The Customer is entitled to know the boundary before they as
 | Total size | |
 | SHA-256 manifest provided | ☐ Yes — attached ☐ No |
 | Manifest verified by Customer | ☐ Yes ☐ No |
+| **Signed ledger bundle provided** (D09 §4.5) | ☐ Yes ☐ No |
+| Bundle `key_id` | |
+| Bundle record count / id range | |
+| **Bundle verified by Customer** with `tools/verify_ledger_export.py` | ☐ Yes ☐ No |
+| Verified on a machine not connected to the Platform host | ☐ Yes ☐ No |
+| Prior bundle supplied as `--previous-bundle` (detects a ledger that shrank) | ☐ Yes ☐ No |
+
+> **The ledger row above is the one that matters in a dispute.** The bundle is verified by the Customer's own staff, on the Customer's own machine, using a tool that imports nothing from AxiomDynamics — so the result does not depend on trusting the vendor. Record the `key_id`: if it ever differs from the key the Customer holds, the export was signed by someone else and the difference must be explained before this form is signed. **Verify against a bundle the Customer already holds wherever one exists** — that comparison is what detects a ledger from which records have been removed, and a first export after a wipe cannot detect it on its own. What the signature does **not** establish — authorship, and the time of signing — is set out in D09 §4.5.5 and must not be inferred from a pass.
 
 **4.2 Usability test:** the Customer confirms it has opened at least two export files and the content is readable and complete.
 

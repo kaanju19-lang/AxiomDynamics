@@ -172,11 +172,15 @@ backend/
   physics.py    the three physics modules (thermo / kinematics / acoustics)
   simulate.py   synthetic fleet + sensor trace generator
   main.py       stdlib HTTP server, routes, static file serving
+  ledger_export.py  signed, verifiable export of the disposition ledger
+tools/
+  verify_ledger_export.py   standalone bundle verifier; imports nothing from backend/
 frontend/
   index.html, style.css, app.js   dashboard UI, vanilla JS canvas charts
 tests/
   test_physics.py   correctness tests for every formula
   test_store.py     append-only and hash-chain tests for the ledger
+  test_export.py    tamper, truncation, re-sign and re-key tests for the export
   run_tests.py      stdlib-only test runner; discovers test_*.py
 ```
 
@@ -188,9 +192,12 @@ python3 tests/run_tests.py     # no pytest needed; discovers every test_*.py
 pytest tests/
 ```
 
-38 tests currently: 21 for the physics formulas, 17 for the disposition
-ledger. The ledger tests are adversarial by design — each one tries to destroy
-an earlier decision and asserts that the attempt fails or is detected.
+80 tests currently: 21 for the physics formulas, 17 for the disposition
+ledger, 42 for the signed export. The ledger and export tests are adversarial
+by design — each one tries to destroy an earlier decision or forge a bundle, and
+asserts that the attempt fails or is detected. Three of the export tests assert
+a *failure to detect*, because the design has stated limits and a test that
+records a limit is worth more than a comment that mentions it.
 
 ## API routes
 
@@ -290,9 +297,12 @@ Good next steps, roughly in order of how much new ground they cover:
   wayside detector or onboard sensor). **This is the largest known gap** —
   there is no inbound ingest route at all, so every demo number
   demonstrates the method rather than a customer's data.
-- Sign the disposition export and replicate it off-box, so the ledger can
-  be proven intact without trusting the host that holds it (D09 §4.4).
+- Replicate the signed ledger export off-box on a schedule. The export itself
+  is built (`backend/ledger_export.py`, verified independently by
+  `tools/verify_ledger_export.py`); what is missing is a second host that
+  receives bundles automatically and acknowledges them (D09 §4.4–4.5).
 - Add authentication if this ever leaves a single trusted machine — and
   the signed certification registry (AD-2) behind it, which is what turns
-  a recorded reviewer name into a verified identity.
+  a recorded reviewer name into a verified identity, and what would let the
+  export's HMAC key be bound to a named signer instead of a custody procedure.
 

@@ -120,11 +120,13 @@ ________________________________________________________________
 | Record hash (SHA-256) | |
 | Hash of preceding record | |
 
-> **Two disclosures on this block, stated plainly rather than implied.**
+> **Three disclosures on this block, stated plainly rather than implied.**
 >
-> **1. The append-only claim is implemented as of 2026-11-09.** Each disposition is written as a new row; a correction records a `supersedes_id` pointing at the row it corrects, and the earlier row keeps its own content and timestamp. `UPDATE` and `DELETE` against the ledger are refused by the database itself, and every row carries a SHA-256 over its content and its predecessor's hash. What that proves is bounded: it proves the record cannot be altered through the application or by ordinary database access, and that an alteration made by bypassing those guards is detectable. It does **not** prove the record was replicated off-box or cryptographically signed — both remain open (D09 §4.4).
+> **1. The append-only claim is implemented as of 2026-11-09.** Each disposition is written as a new row; a correction records a `supersedes_id` pointing at the row it corrects, and the earlier row keeps its own content and timestamp. `UPDATE` and `DELETE` against the ledger are refused by the database itself, and every row carries a SHA-256 over its content and its predecessor's hash. What that proves is bounded: it proves the record cannot be altered through the application or by ordinary database access, and that an alteration made by bypassing those guards is detectable.
 >
 > **2. A hash is not a signature.** The SHA-256 field demonstrates that the record has not changed since it was written. It does **not** prove who wrote it, because the Platform's authentication is local accounts rather than cryptographically registered credentials (AD-2 not yet built). A hash proves integrity, not identity. Anyone relying on this record in a legal proceeding should understand the difference.
+>
+> **3. The ledger can be exported as a verifiable bundle, and that is not the same as a signed certificate.** Since 2026-11-09 the ledger exports as a signed bundle that a third party can verify without the Platform's software or access to the database. It detects altered, added, removed and reordered records, and a ledger that has shrunk since a bundle already held. The signature is HMAC-SHA256 — symmetric — so it proves the bundle is authentic but cannot name the signer or prove when it was made, and a ledger wiped before the first bundle in a series cannot be detected from later ones. Off-box replication is still manual. Those limits are open in D09 §4.4–4.5 and are expected to close with AD-2. **Do not describe an export as a certificate of authorship.**
 
 ---
 
@@ -162,4 +164,4 @@ ________________________________________________________________
 
 ---
 
-*Form F09. Uncontrolled when printed. Append-only — enforced by the database and hash-chained; signed export pending. See Part 7.*
+*Form F09. Uncontrolled when printed. Append-only — enforced by the database and hash-chained; the ledger exports as a signed bundle that a third party verifies without the Platform. The signature cannot yet name the signer. See Part 7.*

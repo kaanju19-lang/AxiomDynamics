@@ -15,3 +15,12 @@ axiom.db
 # Local env
 .env
 .DS_Store
+
+# Ledger export signing keys (AD-3). A committed signing key makes every bundle
+# it ever signed forgeable by anyone who can read the repo -- precisely the
+# property the signature exists to rule out. Keys live off the platform host,
+# under the custody procedure in D09 §4.4.
+*.key
+signer.key
+ledger-export*.json
+ledger-export*.json.sha256
