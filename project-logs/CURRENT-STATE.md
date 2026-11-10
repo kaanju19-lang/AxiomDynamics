@@ -1,8 +1,8 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-10 (chat-3 closed — arithmetic pass, build history
-document, append-only ledger, A2/D08 decision paper, signed ledger export,
-transcript). Next session: read `chat-4/CARRY-FORWARD.md`.
+**Last updated:** 2026-11-10 (chat-4 in progress — ledger replication series
+built and twice audited; B01 §7 item 12, D09 §4.4–4.5.4 and C01 §E2 updated).
+Next session: read `chat-4/CARRY-FORWARD.md`, then this file.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -88,13 +88,36 @@ The validation chain — schema, timestamp, plausibility — is designed and not
    below) and will regenerate on demand once findings 1 and 2 are decided.
 4. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
    dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
-5. **Ledger signer attribution and automatic replication** — the signed export
-   itself landed 2026-11-10 (see below), which closed the "nothing leaves the
-   box to be verified" gap. What remains: the HMAC signature is symmetric, so
-   it cannot name the signer; it cannot prove when it was made; a ledger wiped
-   before the first bundle in a series is invisible to later ones; and nothing
-   replicates off-box on a schedule. D09 §4.4–4.5, B01 §4.5a and §7 items
+5. **Ledger signer attribution and off-box carriage** — the signed export landed
+   2026-11-10, and the **series build landed the same day** (see below), so the
+   Platform now produces the D09 §4.5.4 cadence itself. What remains: the HMAC
+   signature is symmetric, so it cannot name the signer; it cannot prove when it
+   was made; a ledger wiped before the first bundle in a series is invisible to
+   later ones; and **nothing carries the produced series off the box** — that is
+   deliberate, because D09 §3.2 promises no outbound network, so carriage is the
+   Railroad's physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items
    11–12. Closing attribution is an **AD-2 dependency**, not more export code.
+
+## Ledger replication series — built 2026-11-10 (chat-4)
+
+`backend/ledger_replication.py` executes the cadence D09 §4.5.4 already
+specified: monthly full, weekly incremental, every bundle chained to the
+previous by `previous_export_hash`, zero-record weeks kept, nothing overwritten.
+`inspect` opens every bundle, recomputes its digest, verifies it against the
+predecessor, and reports a missing period. 32 tests; full suite **112**.
+
+**It deliberately does not transmit.** D09 §3.2 promises the Platform has no
+outbound network, so the series accumulates in `--series-dir` on the box and
+carrying it to backup media is the Railroad's step under §3.3. The owner chose
+this over a network push on 2026-11-10; the reasoning is in
+`assets/ledger-replication-build-2026-11-10.md`.
+
+**Two audits found nine material defects before this was called built** — the
+count is in the assets file rather than here, but the shape is worth carrying:
+the release verifier rejected every full export, `inspect` could not see
+tampering or gaps, the period walker hung on a 53-week ISO year, concurrent runs
+duplicated bundles, and one test passed only because the check it guarded was
+absent. A green suite of 108 preceded all of it.
 
 ## Signed ledger export — built 2026-11-10 (AD-3 part two), commit `d9c83d4`
 

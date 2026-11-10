@@ -228,8 +228,16 @@ def verify(bundle, key, previous=None):
                   "at id %r, the previous one ended at id %r. Records have been "
                   "removed." % (this_head, prev_head))
 
+        # A *bounded* slice must start beyond the previous bundle's end, or it
+        # re-covers records this recipient already holds. A full export is
+        # unbounded (`from_id` null) and re-covers the whole ledger on purpose —
+        # it is the monthly re-statement of a series, so applying this check to
+        # it would reject every legitimate full export of a healthy series.
+        # This must match `backend/ledger_export.py` exactly: the two verifiers
+        # disagreeing is worse than either being wrong, because a recipient
+        # running this one would see a failure the exporter says should not occur.
         prev_last = pm.get("last_id")
-        if prev_last is not None:
+        if prev_last is not None and m.get("from_id") is not None:
             check("no_regression",
                   m.get("first_id") is None or m.get("first_id") > prev_last,
                   "this bundle re-covers records already exported (previous ended at "

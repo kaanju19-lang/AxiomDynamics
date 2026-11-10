@@ -3,7 +3,7 @@
  *
  * Every figure, date, commit hash and document reference in the output was read
  * from the repository, not recalled. Sources, in order of authority:
- *   - git log (50 commits, efb87ed..53ad93a)
+ *   - git log (commit count read at build time, efb87ed..HEAD)
  *   - client-assets/MASTER-BRIEF-DOCKET/D00 Part VI (the gap register)
  *   - project-logs/{CURRENT-STATE.md, chat-1,chat-2,chat-3}
  *   - assets/* (internal analysis: Q6, IP strategy, library reconciliation,
@@ -16,12 +16,41 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 const {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
   Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle,
   PageBreak, Header, Footer, PageNumber, LevelFormat, TableOfContents,
   convertInchesToTwip,
 } = require("docx");
+
+// ---------------------------------------------------------------- live figures
+// The commit count and the test count are read at build time. Writing them as
+// literals is how every stale figure in this project happened: the number is
+// correct when the sentence is drafted and wrong the moment the sentence is
+// committed, because editing the file adds a commit.
+function gitCount() {
+  try {
+    return execSync("git rev-list --count HEAD", {
+      cwd: path.join(__dirname, ".."), encoding: "utf8",
+    }).trim();
+  } catch (e) {
+    return "an unknown number of";
+  }
+}
+function testCount() {
+  try {
+    const out = execSync("python3 -I tests/run_tests.py", {
+      cwd: path.join(__dirname, ".."), encoding: "utf8",
+    });
+    const m = out.match(/(\d+) passed, (\d+) failed/);
+    return m ? `${m[1]} passed, ${m[2]} failed` : "unknown";
+  } catch (e) {
+    return "not run at build time";
+  }
+}
+const COMMITS = gitCount();
+const TESTS = testCount();
 
 // ---------------------------------------------------------------- palette
 const NAVY = "0A1628";
@@ -242,7 +271,7 @@ doc.push(table(
   [
     ["Document", "Build History & Working Summary"],
     ["Prepared", "2026-11-09 at the opening of chat-3; revised 2026-11-10 after the ledger and export phases"],
-    ["Scope", "Repository as it stands at commit 53ad93a — 50 commits; Stages 0–7 covering chat-1, chat-2 and chat-3"],
+    ["Scope", `Repository as it stands at HEAD — ${COMMITS} commits; Stages 0–8 covering chat-1 through chat-4`],
     ["Purpose", "Standing reference before the next build phase; replaces the memory of a conversation that no longer exists"],
     ["Classification", "Internal. Contains commercial strategy and a candid record of failures. Not for customer distribution."],
     ["Companion", "project-logs/CURRENT-STATE.md (state), assets/ (analysis), client-assets/MASTER-BRIEF-DOCKET/ (deliverables)"],
@@ -274,7 +303,7 @@ doc.push(table(
   ["Part", "Covers"],
   [
     ["I", "What the product is, why physics rather than ML, and the six models"],
-    ["II", "Stages 0–7: the build from first commit to the signed ledger export, and every correction"],
+    ["II", "Stages 0–8: the build from first commit to the replicated ledger series, and every correction"],
     ["III", "The 38-artifact docket, document by document, and the precedence ladder"],
     ["IV", "The loss of chat-1's work — mechanism, cost, and the rules that came out of it"],
     ["V", "What chat-2 rebuilt, and how it verified the rebuild"],
@@ -292,7 +321,7 @@ doc.push(H1("Part I — What this project is"));
 doc.push(P("AxiomDynamics is a predictive-maintenance product for freight rail, built on named physical models rather than machine learning. It monitors freight car axles, derives a condition estimate from wayside detector signals, and presents ranked advisories — called Ghost Warrants — to a certified human reviewer who records a decision. The platform does not decide anything. That boundary is the product's central commercial and legal fact, and it is stated identically in B01, B02, C02, D02, D07, D08 and D12."));
 
 doc.push(H2("The governing idea"));
-doc.push(P("The original instruction, restated in the user's own words and never varied since, was to build the system on real physics: named physical laws, rolling per-axle z-scores, kinematics from Eₖ = ½mv², acoustics against the standard bearing defect-frequency equations (BPFO, BPFI, BSF, FTF) — explicitly not black-box ML and not fixed absolute alarm thresholds. The standing instruction that captured this is: \"We will keep this same concept throughout.\" It has been honoured across all 50 commits."));
+doc.push(P("The original instruction, restated in the user's own words and never varied since, was to build the system on real physics: named physical laws, rolling per-axle z-scores, kinematics from Eₖ = ½mv², acoustics against the standard bearing defect-frequency equations (BPFO, BPFI, BSF, FTF) — explicitly not black-box ML and not fixed absolute alarm thresholds. The standing instruction that captured this is: \"We will keep this same concept throughout.\" It has been honoured across all " + COMMITS + " commits."));
 
 doc.push(H2("Why physics rather than ML — the argument, not the preference"));
 doc.push(P("The argument is written into the documents themselves, most directly in B02 §3 and D08 §1, and it has four parts:"));
@@ -328,7 +357,7 @@ doc.push(P("Every warrant carries a SHA-256 hash over a canonical JSON serialisa
 // ================================================================ PART II
 doc.push(H1("Part II — Stage-by-stage build chronology"));
 
-doc.push(P("The build ran in eight distinct stages across 50 commits, from 2026-11-08 00:53 to 2026-11-10 06:58. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected."));
+doc.push(P(`The build ran in nine distinct stages across ${COMMITS} commits, from 2026-11-08 00:53 to the present. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected.`));
 
 doc.push(callout(
   "Reading the chronology",
@@ -489,6 +518,24 @@ doc.push(P("Verification: 42 export tests, full suite 80. The erasure attack re-
 
 doc.push(H3("7.6 — The transcript"));
 doc.push(P("Re-snapshotted at 5,032 events (17.1 MB) and rebuilt the readable extract at 641 turns, of which ten are the owner's. The mid-session snapshot was byte-for-byte a prefix of the new one, verified line by line, so it was deleted rather than kept as 13 MB of duplicate. The extractor is now committed at project-logs/extract_transcript.py instead of a shell heredoc, with the trap written into it: the role is the top-level `type` field, not message[\"role\"], and reading the wrong one yields zero turns and no error."));
+
+// ---- Stage 8
+doc.push(H2("Stage 8 — chat-4: the replication series, and nine defects two audits found (2026-11-10)"));
+doc.push(P("Chat-4 opened by verifying the handoff against the repository, which is now the established first move and which again found the written push list stale: the carry-forward named a remote ref of bb99cdd while the local ref stood at 4eafe58 with one commit waiting on top of it. The build that followed closed the half of B01 §7 item 12 that needed no commercial decision and no new dependency — nothing produced export bundles on a cadence, so a week nobody remembered to export was a week with no evidence."));
+doc.push(P("The phase's most important output is not the module. It is that two independent audits found nine material defects, and the second found four in code the first had already approved."));
+
+doc.push(H3("8.1 — The design constraint the docket imposed"));
+doc.push(P("D09 §3.2 promises the Platform has no mechanism to send data to Supplier or any external service, and B02 repeats that the supplier cannot reach the box. So off-box replication cannot mean the box pushes bundles over a network without contradicting a customer-facing promise in order to close a control gap. The owner chose on-box scheduling with physical carriage: the Platform produces the series and verifies it, and moving it to backup media remains the Railroad's step under D09 §3.3. The module therefore contains no network code at all, and both docket rows now say carriage remains open rather than claiming replication is finished — which is the honest reading, and a smaller claim than the one the item previously implied was pending."));
+
+doc.push(H3("8.2 — What was built"));
+doc.push(P("backend/ledger_replication.py executes the cadence D09 §4.5.4 already specified: a monthly full export, a weekly incremental (`after_id`, chained by `previous_export_hash`), every bundle citing the previous one's signature_of(), a zero-record week kept rather than skipped, and no file ever overwritten. A series.json beside the bundles records the last digest and the last id carried; it is written via mkstemp, fsync and an atomic rename with the directory entry fsynced, and the whole read-decide-write sequence runs under an advisory lock. inspect opens every bundle, recomputes its digest, verifies it against its predecessor, and walks month and week keys to report a missing period. 32 tests; the full suite went from 80 to 112."));
+
+doc.push(callout(
+  "Two audits, nine material defects, and a green suite of 108 in between",
+  "The first audit found five. The no_regression fix had landed in backend/ledger_export.py but not in tools/verify_ledger_export.py — the very tool D09 §4.5.4 names for the quarterly check — so the contract's own verifier rejected every legitimate chained full export while the in-repo one passed. inspect() never opened a bundle, so a record edited inside a signed bundle came back 'series is continuous'. It could not see a missing period at all. A lost series.json silently restarted the series under a docstring promising refusal, and the test asserting it did so was named as though it tested the opposite. Concurrent runs stranded signed bundles the state never recorded. The second audit then found four more. The period walker HUNG FOREVER on a 53-week ISO year — 2026 is one — so the quarterly tool would simply never return. The same walker could not see a deleted latest month. due_exports read the state outside the lock, so concurrent run_due calls produced duplicate bundles the cadence says must not exist. And the test written to guard the verifier fix asserted that a string was absent in a way that passed when the check was deleted entirely — a test that could not fail. That last one is the most instructive: it was written immediately after an audit about checks that pass for the wrong reason, and it repeated the error in miniature.",
+  { fill: "FBEAEA", labelColor: RED },
+));
+doc.push(P("The pattern across both audits is the one this document has recorded at every stage: the work was internally consistent and externally wrong. A test suite written by the author of a mechanism tests the author's model of the threat. What corrected it each time was a reader with no stake in the conclusion, told to falsify rather than confirm."));
 
 // ================================================================ PART III
 doc.push(H1("Part III — The docket, document by document"));

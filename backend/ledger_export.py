@@ -543,11 +543,18 @@ def verify_bundle(
                   "at id %r, the previous one ended at id %r. Records have been "
                   "removed." % (this_head, prev_head))
 
-        # An export that carries records must start beyond the previous
-        # bundle's end. An empty incremental export has no first_id and is
-        # allowed — it means nothing new was recorded.
+        # A bounded slice must start beyond the previous bundle's end. An empty
+        # incremental has no first_id and is allowed — nothing new was recorded.
+        #
+        # This check applies to *bounded* (incremental) exports only. A full
+        # export is unbounded by definition and re-covers the whole ledger on
+        # purpose: it is a re-statement, and that is what makes it the recovery
+        # point of a series. Scoping it this way keeps the attack it was written
+        # for closed — an incremental overlapping what a recipient already holds
+        # — while no longer rejecting the monthly full of a healthy series.
+        # `no_truncation` above remains the guard against records disappearing.
         prev_last = prev_m.get("last_id")
-        if prev_last is not None:
+        if prev_last is not None and m.get("from_id") is not None:
             check("no_regression",
                   m.get("first_id") is None or m.get("first_id") > prev_last,
                   "this bundle re-covers records already exported (previous ended at "

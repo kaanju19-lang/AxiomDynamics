@@ -472,6 +472,23 @@ python3 tools/verify_ledger_export.py --key-file /path/to/key \
 
 **Two operational rules, both of which are controls rather than housekeeping.** Keep every bundle you are given — do not overwrite last month's with this month's, because the sequence is what detects a ledger truncated or rewritten between exports, and a single bundle cannot testify about its own past (D09 §4.5.4). And copy the key off the host into sealed storage at commissioning; a key that exists only on the platform host is lost with the disk, and every bundle it signed becomes unverifiable.
 
+**Let the Platform produce the series rather than exporting by hand.** The commands above are the one-bundle case. For a real deployment the cadence in D09 §4.5.4 is executed by `backend/ledger_replication.py`, which decides what is due, chains each bundle to the last, keeps a zero-record week instead of skipping it, and never overwrites. One scheduler entry is all it needs:
+
+```bash
+# Run daily; it produces only what is due (weekly incremental, monthly full).
+# A run with nothing due exits 0 without writing a bundle, so daily is safe.
+0 2 * * * cd /opt/axiom/AxiomDynamics && python3 -m backend.ledger_replication run \
+    --key-file /root/axiom-export.key --series-dir /var/lib/axiom-export/series \
+    >> /var/log/axiom-replication.log 2>&1
+
+# Quarterly, and before any bundle is taken off the host:
+python3 -m backend.ledger_replication inspect \
+    --series-dir /var/lib/axiom-export/series --key-file /root/axiom-export.key
+# Expected: "OK — series is continuous and every bundle verifies"
+```
+
+**The Platform does not carry the series off the box.** D09 §3.2 promises no outbound network, so there is nothing to configure and nothing that transmits: the series accumulates in `--series-dir` on the platform host. Copying it to backup media is your step under D09 §3.3, and it is the step that stops a lost disk from losing the ledger. If `inspect` reports a gap or an unrecorded bundle, do not delete anything — preserve the directory and treat it under D09 §4.5.6.
+
 **No HTTP route performs this.** Export is deliberately an operator command on the box, because the server has no authentication yet (B01 §4.5a). Do not expose one until AD-2 exists.
 
 ### E3. Log file inspection
