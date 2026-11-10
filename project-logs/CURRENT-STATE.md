@@ -1,6 +1,7 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-09 (chat-3 — arithmetic pass, then the build history document)
+**Last updated:** 2026-11-09 (chat-3 — arithmetic pass, build history document,
+then the append-only ledger rebuild)
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** run `git log --oneline origin/main..HEAD`. As last confirmed the
@@ -137,8 +138,10 @@ remote state without checking the commits page.
 **Pushing is done by the owner**, with `PUSH-TO-GITHUB.bat` in the repo root. It
 prints the commits waiting to go up and verifies afterwards.
 
-**As of 2026-11-09, everything is pushed.** GitHub's top commit is `2ec168b`,
-confirmed by the owner against the commits page.
+**As of 2026-11-09, everything is pushed.** GitHub's top commit as last confirmed
+by the owner against the commits page was `2ec168b`. Two commits are local and
+waiting since then — `209efe6`, the append-only ledger rebuild, and the log entry
+after it.
 
 **The host repo at `C:\Users\RGV\AxiomDynamics` is authoritative for push state.**
 Verify by opening the commits page.
