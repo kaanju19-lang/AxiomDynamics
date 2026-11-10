@@ -13,6 +13,7 @@ project-logs/
 ├── AxiomDynamics-Build-History-and-Working-Summary.docx
 │                           the long-form account of the whole build (29 pp)
 ├── build-history-summary.js  generator for the above; re-run after a change
+├── extract_transcript.py   turns a raw session .jsonl into the readable extract
 ├── chat-1/
 │   ├── SUMMARY.md          what chat-1 did, decided, caught, and left open
 │   └── CARRY-FORWARD.md    the handoff document for chat-2
@@ -47,9 +48,10 @@ governs and the summary is corrected.**
 
 ## The record, and the gap in it
 
-`transcripts/` holds the conversation logs. **`2026-11-09-chat-2.md` and its raw
-`.jsonl` are here** — chat-2 was extracted and committed at the end of its
-session, raw log included, and that is now the rule for every session.
+`transcripts/` holds the conversation logs. **`2026-11-09-chat-2.md`,
+`2026-11-09-chat-3.md` and their raw `.jsonl` files are here** — each session is
+extracted and committed at its close, raw log included, and that is now the rule
+for every session.
 
 **Chat-1 is lost.** It covered 2,527 turns across three raw session logs from
 2026-11-08 04:24 to 2026-11-10 03:00. Chat-1 extracted readable transcripts from

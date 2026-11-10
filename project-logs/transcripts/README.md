@@ -6,11 +6,11 @@ Conversation records for the project.
 
 | File | Turns | Covers |
 |---|---|---|
-| `2026-11-09-chat-2.md` | 256 | chat-2, from the first line to the point of extraction |
-| `2026-11-09-chat-3.md` | 582 | chat-3, from the first line to the transcript phase |
+| `2026-11-09-chat-2.md` | 302 (134 user, 168 assistant) | chat-2, first line to the point of extraction |
+| `2026-11-09-chat-3.md` | 641 | chat-3, first line to the signed ledger export and its transcript step |
 | `raw/2026-11-09-chat-2.jsonl` | 780 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
-| `raw/2026-11-09-chat-3-snapshot.jsonl` | 3,385 events | the chat-3 log, 13.2 MB, valid JSONL |
+| `raw/2026-11-10-chat-3-snapshot.jsonl` | 5,032 events | the chat-3 log, 17.1 MB, valid JSONL |
 
 The `.md` is the readable version: every user and assistant turn in order. Tool
 calls are recorded inline so you can see what was run; tool *output* — command
@@ -21,10 +21,11 @@ The `.jsonl` in `raw/` is the source. Don't edit it. It is what the `.md` was
 derived from, so if the extraction ever looks wrong, the raw file is the answer.
 Commit both: an extract alone is a summary pretending to be a record.
 
-**Chat-3's raw log is a mid-session snapshot.** It captures the session as of the
-moment the transcript was taken, not the final state, because the session was
-still running. Later work in that session is covered by `chat-3/SUMMARY.md`, and
-the raw log can be re-snapshotted at close.
+**The chat-3 snapshot supersedes the one taken mid-session.** The earlier
+`raw/2026-11-09-chat-3-snapshot.jsonl` (3,385 events, 13.2 MB) was byte-for-byte
+a prefix of this one — verified by comparing the two files line by line — so it
+was deleted rather than kept as a second copy that adds 13 MB and no information.
+A snapshot is worth keeping only when it shows a state the final one cannot.
 
 ## What is NOT here, and cannot be
 
@@ -48,8 +49,14 @@ Nothing is left in temporary storage to be lost.
 
 The raw log lives at
 `.claude/projects/session/<session-id>.jsonl` inside the session's mounted
-folder. The extractor keeps only `user` and `assistant` events, drops sidechains
-and system reminders, and writes them in order.
+folder. The extractor is committed at `project-logs/extract_transcript.py`:
+`python3 project-logs/extract_transcript.py <source.jsonl> <out.md> <out-raw.jsonl>`.
+It keeps only `type: user` and `type: assistant` events, drops sidechains and
+system reminders, and writes them in order. It also copies the source to the raw
+destination, so the two are always produced together.
+
+Note the record shape: the role is the top-level `type` field, not
+`message["role"]`. Reading the wrong one yields zero turns and no error.
 
 Three things it must do, learned the hard way on chat-3:
 
@@ -57,7 +64,7 @@ Three things it must do, learned the hard way on chat-3:
    message several times while it streams. Without de-duplication by
    `message["id"]` and by tool-call block `id`, every paragraph and every tool
    call appears three or four times. The first chat-3 extract was 1,062 turns and
-   contained duplicates; the correct count is 582.
+   contained duplicates.
 2. **Drop machine-injected `user` messages.** Skill bodies (they begin
    `Base directory for this skill:`), compaction summaries (they begin `This
    session is being continued from a previous conversation`) and slash-command
@@ -68,6 +75,7 @@ Three things it must do, learned the hard way on chat-3:
    every one. If a message is missing or a prompt appears that nobody typed, the
    filter is wrong.
 
-The extractor is a small script and easy to rewrite if needed; the point is that
-the **raw file is committed**, so the conversation survives even if the extractor
-does not.
+**A caveat on the turn count.** It grows as the session does, and it counts
+assistant *messages*, which include every tool call as a separate entry. The
+number is a size, not a measure of how much was said. Read the user turns: there
+are ten in chat-3, and they are the whole of the owner's side of it.

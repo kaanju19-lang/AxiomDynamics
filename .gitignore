@@ -16,6 +16,11 @@ axiom.db
 .env
 .DS_Store
 
+# Excel lock files. Opening a workbook in Excel creates ~$name.xlsx beside it;
+# it is a lock marker, not content, and committing one tells the next reader
+# nothing except that somebody had the file open.
+~$*
+
 # Ledger export signing keys (AD-3). A committed signing key makes every bundle
 # it ever signed forgeable by anyone who can read the repo -- precisely the
 # property the signature exists to rule out. Keys live off the platform host,
