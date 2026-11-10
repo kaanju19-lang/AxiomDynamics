@@ -10,6 +10,9 @@ rebuilds the same mistakes.
 project-logs/
 ├── README.md               this file — structure, purpose, order of authority
 ├── CURRENT-STATE.md        authoritative project state, updated as work lands
+├── AxiomDynamics-Build-History-and-Working-Summary.docx
+│                           the long-form account of the whole build (29 pp)
+├── build-history-summary.js  generator for the above; re-run after a change
 ├── chat-1/
 │   ├── SUMMARY.md          what chat-1 did, decided, caught, and left open
 │   └── CARRY-FORWARD.md    the handoff document for chat-2
@@ -21,6 +24,11 @@ project-logs/
 └── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
     └── raw/                the source logs, committed with each transcript
 ```
+
+**Start with the build history if you are new to this project.** It is 29 pages
+covering the product, every build stage and its corrections, the full docket, the
+loss of chat-1's work, the internal strategy, and the open items — written to be
+read cold, without the conversation it describes.
 
 ## Order of authority
 
