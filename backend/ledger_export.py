@@ -369,6 +369,21 @@ def verify_bundle(
             check("bundle_structure", False, f"missing '{field}'")
             return _result(checks)
 
+    # Nothing but the four covered parts may ride along. This was found on
+    # 2026-11-10 by trying it: add any top-level key to a written bundle and the
+    # signature still verified, because the signature and the digest both select
+    # named fields rather than covering the document. The added key is not signed
+    # — so it can be changed after signing without detection — and a recipient
+    # reading it would reasonably believe it was covered by the bundle it sits in.
+    # Rejecting the bundle is the right answer: a body that is not exactly what
+    # was signed cannot be attested to, and no legitimate writer adds a field.
+    extra = sorted(set(bundle) - {"format", "manifest", "records", "signature"})
+    check("bundle_no_extras", not extra,
+          f"bundle carries field(s) outside the signed body and cannot be "
+          f"attested: {', '.join(extra)}")
+    if extra:
+        return _result(checks)
+
     check("format", bundle["format"] == FORMAT,
           f"expected {FORMAT}, got {bundle['format']}")
 

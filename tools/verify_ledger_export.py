@@ -88,6 +88,17 @@ def verify(bundle, key, previous=None):
             check("bundle_structure", False, "missing '%s'" % field)
             return _result(checks)
 
+    # A bundle must be exactly the four signed parts, nothing else. Added
+    # 2026-11-10: any extra top-level key previously rode along unchecked,
+    # because both the signature and the digest select named fields rather than
+    # covering the document. The extra key is not signed, so it can be changed
+    # after signing, and a recipient reading it would think it was covered.
+    extra = sorted(set(bundle) - {"format", "manifest", "records", "signature"})
+    check("bundle_no_extras", not extra,
+          "bundle carries field(s) outside the signed body: %s" % ", ".join(extra))
+    if extra:
+        return _result(checks)
+
     check("format", bundle["format"] == FORMAT,
           "expected %s, got %r" % (FORMAT, bundle["format"]))
     if bundle["format"] != FORMAT:

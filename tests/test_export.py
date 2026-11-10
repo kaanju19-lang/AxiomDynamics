@@ -533,6 +533,31 @@ def test_standalone_verifier_rejects_a_tampered_bundle():
 
 
 @test
+def test_a_bundle_with_an_extra_top_level_field_is_rejected():
+    """Found by trying it on 2026-11-10, not by reasoning about the code.
+
+    The signature covers a selected tuple — ("format", "manifest", "records") —
+    and the digest selected four named fields. Neither selected "everything
+    else", so any added top-level key rode along unsigned and both verifiers
+    reported ok=True. It matters because that key is not covered by the
+    signature: it can be set after signing, and a recipient reading it would
+    reasonably take it as attested. A body that is not exactly what was signed
+    cannot be vouched for.
+    """
+    b = fresh()
+    b["record_count"] = 99                      # plausible-looking, unsigned
+    r = le.verify_bundle(b, KEY)
+    assert not r["ok"], "a bundle with an unsigned extra field must not verify"
+    assert "bundle_no_extras" in r["failed"], r["checks"]
+
+    # The standalone verifier — the tool D09 names for the quarterly check —
+    # must reject it too, not just the in-repo one.
+    code, result = _run_standalone(b, KEY)
+    assert code == 1, result
+    assert "bundle_no_extras" in result["failed"], result["checks"]
+
+
+@test
 def test_standalone_verifier_rejects_the_wrong_key():
     b = fresh()
     code, result = _run_standalone(b, OTHER_KEY)
