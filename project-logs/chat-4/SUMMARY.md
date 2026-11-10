@@ -101,6 +101,30 @@ sandbox permission. The rebuilt file therefore sits beside the original with
 $285,000 pilot year, and A2 §5.1 charges $370,000. This is the one
 owner-action item blocking a clean close.
 
+## The tenth defect, found by validating the completed work
+
+Before closing, the owner asked that the completed tasks be *validated*. That
+meant attacking the artifacts rather than re-reading them — and it found one the
+two adversarial audits had missed.
+
+**A signed bundle accepted an arbitrary top-level field.** Add any key beside
+`format` / `manifest` / `records` / `signature` and both verifiers reported
+`ok=True`. Cause: the signature covers a selected tuple and the digest names its
+fields; neither covers "everything else", so the added key rode along **unsigned**.
+It could be changed after signing with nothing noticing, and a recipient reading
+it would reasonably take it as attested by the bundle it sits in.
+
+Both verifiers now fail with `bundle_no_extras` and stop. The signing
+construction was left alone — selecting named fields is the right way to sign,
+because it makes the covered set explicit in code rather than implicit in the
+document. The defect was that verification never checked for anything outside
+that set. One test added, mutation-tested in both files: red when the check is
+neutered (113 passed, 1 failed), green on restore (114 passed, 0 failed).
+
+**Why this is worth recording.** Nine defects here came from two adversarial
+audits. This one came from *trying the thing* rather than reading it, which is a
+different act. A green suite says the tests you thought of pass.
+
 ## Close of chat-4
 
 Transcript extracted at 420 turns (4 user, 421 assistant after the closing
@@ -115,5 +139,5 @@ written in chat-3 and stopped being true in phase 2 of this session. That is the
 same defect class the document records elsewhere — a claim that was true when
 written and never revisited when the evidence moved.
 
-Verification at close: **113 tests, 97 arithmetic checks, 65 decision-paper
+Verification at close: **114 tests, 97 arithmetic checks, 65 decision-paper
 checks — all green.**

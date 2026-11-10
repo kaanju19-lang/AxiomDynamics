@@ -140,6 +140,34 @@ tampering or gaps, the period walker hung on a 53-week ISO year, concurrent runs
 duplicated bundles, and one test passed only because the check it guarded was
 absent. A green suite of 108 preceded all of it.
 
+## Export hardened at chat-4's validation pass, 2026-11-10
+
+Found by attacking the artifact rather than re-reading it, when the owner asked
+for the completed work to be validated: **a written bundle accepted any extra
+top-level field and both verifiers still returned `ok=True`.** The signature
+covers a selected tuple and the digest names its fields, so a key added beside
+them was unsigned — changeable after signing, and readable by a recipient as
+though the bundle attested it.
+
+Both `backend/ledger_export.py` and `tools/verify_ledger_export.py` now reject a
+bundle whose top level is not exactly `format` / `manifest` / `records` /
+`signature`, with the check named `bundle_no_extras`. The signing construction is
+unchanged: a named field list is the correct way to sign, because it puts the
+covered set in code rather than in the document. The gap was the absence of a
+check on what else the document contains. One test added and mutation-tested in
+both files; suite 113 → **114**.
+
+## Status at close — every completed task re-verified against the repository
+
+Not re-read. Executed: the suite (114/0), the arithmetic pass (97/97), the
+decision paper (65/65); the withdrawn 2.0×/4.1× pair confirmed absent as a live
+claim in both documents; `roi.py` constants read back from the module ($999,750
+expected cost, 4.8/1.5 h MTTD); the replication module built a real series and
+`inspect` verified it, then **detected** both a manifest edit and the extra-field
+case; the rebuilt workbook reopened and its cached values checked ($370,000
+pilot, ROI 2.0653) — and the original confirmed still stale, because the `~$`
+Excel lock is still present.
+
 ## Transcript — chat-4 extracted and committed at close, 2026-11-10
 
 The standing rule is that a phase is not finished until its assets and its
@@ -183,8 +211,8 @@ honestly, and a recipient holding the previous bundle was told everything
 passed. Each check was individually correct; none compared the bundle against
 one already held. Fixed by recording the ledger's own head in every bundle and
 failing when a later bundle reports a shorter ledger (`no_truncation`), plus
-`genesis_anchor` for rows deleted from the front. 42 export tests, full suite
-80. Three tests assert a failure to detect on purpose, recording disclosed
+`genesis_anchor` for rows deleted from the front. Export tests are now 43; the
+suite at the time of that build was 80. Three tests assert a failure to detect on purpose, recording disclosed
 limits rather than hiding them.
 
 **What it does not do:** detect a ledger wiped before the first bundle in a

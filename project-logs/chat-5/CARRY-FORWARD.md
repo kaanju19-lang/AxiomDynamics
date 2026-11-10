@@ -25,7 +25,7 @@ least once — four sessions running now, including this one's.
 git log --oneline -8                            # where chat-4 stopped
 git log --oneline origin/main..HEAD             # what is actually unpushed
 git diff --ignore-cr-at-eol --stat              # real changes only
-python3 -I tests/run_tests.py                   # 113 passed at close
+python3 -I tests/run_tests.py                   # 114 passed at close
 python3 -I assets/a2-d08-arithmetic-pass.py     # 97 checks at close
 python3 -I assets/a2-d08-model-decision.py      # 65 checks at close
 ```
@@ -77,6 +77,24 @@ charges the pilot with no benefit; D08 credits the 200-axle pilot's actual
 benefit). And D08 §2 scopes the pilot at 100–200 axles, so any pilot-year benefit
 computed at 500 contradicts the document's own scope — that was my defect, caught
 before commit.
+
+## A tenth defect found at validation — read this before touching the export
+
+Nine defects came from two adversarial audits. The tenth came from *attacking the
+artifact* when the owner asked that the completed tasks be validated, and it is
+the most transferable of the set.
+
+**A signed bundle accepted any extra top-level field.** Both verifiers returned
+`ok=True` while an unsigned key rode along beside the four signed parts. The
+signature covers a selected tuple and the digest names its fields; neither covers
+"everything else". Such a key can be changed after signing without detection, and
+a recipient would reasonably read it as attested. Both verifiers now reject it
+with `bundle_no_extras`.
+
+The design decision stands: signing a named field list is correct, because it
+makes the covered set explicit in code. What was missing was the check that
+nothing outside that set is present. If you change the bundle format, that check
+has to change with it.
 
 ## The lesson chat-4 most wants carried
 

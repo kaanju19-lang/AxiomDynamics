@@ -561,7 +561,7 @@ doc.push(H3("7.6 — The transcript"));
 doc.push(P("Re-snapshotted at 5,032 events (17.1 MB) and rebuilt the readable extract at 641 turns, of which ten are the owner's. The mid-session snapshot was byte-for-byte a prefix of the new one, verified line by line, so it was deleted rather than kept as 13 MB of duplicate. The extractor is now committed at project-logs/extract_transcript.py instead of a shell heredoc, with the trap written into it: the role is the top-level `type` field, not message[\"role\"], and reading the wrong one yields zero turns and no error."));
 
 // ---- Stage 8
-doc.push(H2("Stage 8 — chat-4: the replication series, the model decision, and ten defects two audits found (2026-11-10)"));
+doc.push(H2("Stage 8 — chat-4: the replication series, the model decision, and ten defects three passes found (2026-11-10)"));
 doc.push(P("Chat-4 opened by verifying the handoff against the repository, which is now the established first move and which again found the written push list stale: the carry-forward named a remote ref of bb99cdd while the local ref stood at 4eafe58 with one commit waiting on top of it. The build that followed closed the half of B01 §7 item 12 that needed no commercial decision and no new dependency — nothing produced export bundles on a cadence, so a week nobody remembered to export was a week with no evidence."));
 doc.push(P("The phase's most important output is not the module. It is that two independent audits found nine material defects, and the second found four in code the first had already approved."));
 
@@ -572,11 +572,16 @@ doc.push(H3("8.2 — What was built"));
 doc.push(P("backend/ledger_replication.py executes the cadence D09 §4.5.4 already specified: a monthly full export, a weekly incremental (`after_id`, chained by `previous_export_hash`), every bundle citing the previous one's signature_of(), a zero-record week kept rather than skipped, and no file ever overwritten. A series.json beside the bundles records the last digest and the last id carried; it is written via mkstemp, fsync and an atomic rename with the directory entry fsynced, and the whole read-decide-write sequence runs under an advisory lock. inspect opens every bundle, recomputes its digest, verifies it against its predecessor, and walks month and week keys to report a missing period. 32 tests; the full suite went from 80 to 112."));
 
 doc.push(callout(
-  "Two audits, nine material defects, and a green suite of 108 in between",
+  "Two audits and nine material defects, with a green suite of 108 in between",
   "The first audit found five. The no_regression fix had landed in backend/ledger_export.py but not in tools/verify_ledger_export.py — the very tool D09 §4.5.4 names for the quarterly check — so the contract's own verifier rejected every legitimate chained full export while the in-repo one passed. inspect() never opened a bundle, so a record edited inside a signed bundle came back 'series is continuous'. It could not see a missing period at all. A lost series.json silently restarted the series under a docstring promising refusal, and the test asserting it did so was named as though it tested the opposite. Concurrent runs stranded signed bundles the state never recorded. The second audit then found four more. The period walker HUNG FOREVER on a 53-week ISO year — 2026 is one — so the quarterly tool would simply never return. The same walker could not see a deleted latest month. due_exports read the state outside the lock, so concurrent run_due calls produced duplicate bundles the cadence says must not exist. And the test written to guard the verifier fix asserted that a string was absent in a way that passed when the check was deleted entirely — a test that could not fail. That last one is the most instructive: it was written immediately after an audit about checks that pass for the wrong reason, and it repeated the error in miniature.",
   { fill: "FBEAEA", labelColor: RED },
 ));
 doc.push(P("The pattern across both audits is the one this document has recorded at every stage: the work was internally consistent and externally wrong. A test suite written by the author of a mechanism tests the author's model of the threat. What corrected it each time was a reader with no stake in the conclusion, told to falsify rather than confirm."));
+
+doc.push(H3("8.2a — A tenth defect, found by trying it rather than reading the code"));
+doc.push(PB("At chat-4's close, validating the completed work rather than assuming it, I attacked a written bundle by adding a top-level key. **Both verifiers reported ok=True.** The signature covers a selected tuple — `format`, `manifest`, `records` — and the digest names four fields; neither covers \"everything else\", so any added key rode along unsigned. It could then be changed after signing with nothing noticing, and a recipient reading it would reasonably take it as attested by the bundle it sat in."));
+doc.push(PB("The fix is small: verification now requires the bundle to be exactly the four signed parts and rejects anything else with the check `bundle_no_extras`. The signing construction was left alone, because selecting named fields is the right way to sign — it makes the covered set explicit in code rather than implicit in whatever the document happens to contain. **The defect was that verification never checked for anything outside that set.** One test was added and mutation-tested: neuter the check in both files and it goes red, restore it and it passes."));
+doc.push(PB("This one is worth recording because of how it was found. Nine defects in this stage came from two adversarial audits; this one came from the owner's instruction to *validate the completed tasks*, which meant attacking the artifact instead of re-reading it. The lesson is the same one at a different angle: a green suite says the tests you thought of pass."));
 
 doc.push(H3("8.3 — The model decision, and the numeric defect under it"));
 doc.push(PB("The second phase of chat-4 closed both findings carried in Part VII. The owner delegated the question (\"you decide\"); the answer was **A1**, expressed as Option D in the decision paper. D08 was restated from A1 rather than the reverse, on the reasoning that A1 is the instrument the customer operates from their own inputs while D08 is a narrative built on top of it."));
@@ -936,7 +941,7 @@ doc.push(table(
     ["git diff --ignore-cr-at-eol --stat", "Real changes. Without the flag, nearly every file reads as modified"],
     ["python3 -I assets/a2-d08-arithmetic-pass.py", "Whether the A2/D08 figures still hold. Currently 97 checks, all passing; Findings 1 and 2 are checked as closed"],
     ["python3 -I assets/a2-d08-model-decision.py", "The decision paper's 65 figures. Exits non-zero on any mismatch"],
-    ["python3 -I tests/run_tests.py", "The full suite: physics, ledger, export and replication. Currently 113 passed, 0 failed"],
+    ["python3 -I tests/run_tests.py", "The full suite: physics, ledger, export and replication. Currently 114 passed, 0 failed"],
     ["python3 tools/verify_ledger_export.py --bundle B --key-file K", "Checks an exported ledger bundle without the application or the database"],
   ],
   { width: [4.6, 5.4], size: 16, mono: [0] },
@@ -967,7 +972,7 @@ doc.push(table(
     ["backend/", "physics.py (models 1–5), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (model 6, the ROI panel), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
     ["tools/", "verify_ledger_export.py — standalone export verifier, imports nothing from backend/", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
-    ["tests/", "test_physics.py (physics formulas plus the A1 constants guard), test_store.py (ledger), test_export.py (signed export), test_ledger_replication.py (cadence, chaining, inspection), run_tests.py (stdlib runner, discovers test_*.py) — 113 tests", "Code"],
+    ["tests/", "test_physics.py (physics formulas plus the A1 constants guard), test_store.py (ledger), test_export.py (signed export), test_ledger_replication.py (cadence, chaining, inspection), run_tests.py (stdlib runner, discovers test_*.py) — 114 tests", "Code"],
     ["client-assets/MASTER-BRIEF-DOCKET/", "The 38-artifact docket: A1–A2, B01–B05, C01–C02, D00–D14, F00–F13 (36 Markdown + xlsx + html)", "Client-facing"],
     ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass, model decision paper, export and replication build records, each with its check script", "Internal — never forwardable"],
     ["project-logs/", "CURRENT-STATE, README, chat-1/2/3/4 summaries and carry-forwards, transcripts with raw jsonl, extract_transcript.py, build-history-summary.js", "Internal"],
@@ -1043,12 +1048,12 @@ doc.push(H2("Current status at a glance"));
 doc.push(table(
   ["Area", "State", "Note"],
   [
-    ["Physics engine and tests", "Complete, 113/113 passing", "Physics formula tests, ledger, signed export, replication; deterministic, no learned parameters"],
+    ["Physics engine and tests", "Complete, 114/114 passing", "Physics formula tests, ledger, signed export, replication; deterministic, no learned parameters"],
     ["Demonstration application", "Runs", "Synthetic data only"],
     ["Client docket", "38 artifacts built, 0 outstanding in the index", "Not yet counsel-reviewed"],
     ["Detector ingest", "Not built", "The largest gap; disclosed in three places"],
     ["Append-only ledger", "Built 2026-11-09", "Insert-only, triggers, SHA-256 chain"],
-    ["Signed ledger export", "Built 2026-11-10", "HMAC-SHA256 bundle, standalone verifier, chaining. Symmetric: cannot name the signer or date itself"],
+    ["Signed ledger export", "Built 2026-11-10, hardened", "HMAC-SHA256 bundle, standalone verifier, chaining, and a body that must be exactly the signed parts. Symmetric: cannot name the signer or date itself"],
     ["Ledger replication series", "Built 2026-11-10", "Monthly full + weekly incremental, chained, inspection reports gaps. Carries nothing off the box by design (D09 §3.2)"],
     ["Off-box carriage", "By design the Railroad's step", "The Platform produces and verifies the series; physically moving it to backup media is the customer's action under D09 §3.3"],
     ["Signed certification registry", "Not built", "F08 is the manual substitute; it is the dependency for signer attribution"],
