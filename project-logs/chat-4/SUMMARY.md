@@ -130,11 +130,13 @@ different act. A green suite says the tests you thought of pass.
 
 ## Close of chat-4
 
-Transcript extracted at 420 turns (4 user, 421 assistant after the closing
-exchange) into `project-logs/transcripts/2026-11-10-chat-4.md`, with the raw log
-at `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl` (12 MB,
-5,016 events, 627 turns). The extractor's hard-coded `# Chat-3` heading was replaced with a
-title derived from the output filename so it cannot mislabel a session again.
+Transcript extracted and re-extracted as the session grew, finally at **691 turns
+(6 user, 685 assistant)** into `project-logs/transcripts/2026-11-10-chat-4.md`,
+with the raw log at `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl`
+(12 MB, 5,574 events). The extract was taken after the last exchange, not before
+it — the first attempt missed 110 turns and 3.7 MB of log by snapshotting early.
+The extractor's hard-coded `# Chat-3` heading was replaced with a title derived
+from the output filename so it cannot mislabel a session again.
 
 Build history regenerated at 34 pages. Part VII was rewritten rather than left
 alone: it still described Findings 1 and 2 as open, which had been true when
