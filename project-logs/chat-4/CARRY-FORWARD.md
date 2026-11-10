@@ -38,6 +38,31 @@ content: `git diff --ignore-cr-at-eol` returns empty for those. There is no
 ## Push required before anything else
 
 The command environment cannot reach GitHub — `git push` and `git fetch` both fail
+with HTTP 403 from the proxy. The owner pushes with `PUSH-TO-GITHUB.bat` in the
+repo root, and then confirms on the commits page. Until that happens, none of it
+is durable anywhere but this disk.
+
+**Check the queue with `git log --oneline origin/main..HEAD`; do not trust a
+number written here.** At chat-4's close of this phase the local branch stood two
+commits ahead of its own `origin/main` ref (`548ab32`, `5ce18cd`), and the ref
+itself is not evidence of what the remote holds, because the sandbox cannot
+fetch.
+
+## Chat-4 phase one — the replication series (built, audited, committed)
+
+`5ce18cd`. `backend/ledger_replication.py` produces the D09 §4.5.4 cadence and
+verifies it; it deliberately transmits nothing, because D09 §3.2 promises no
+outbound network, so carriage is the Railroad's physical step. Full record,
+including all nine defects two audits found, in
+`assets/ledger-replication-build-2026-11-10.md`.
+
+**The version of this file below was written at chat-3's close and its push
+section is stale — the rest of it still stands.** Everything from "What chat-3
+built" down remains an accurate account of the preceding session.
+
+## Chat-3's close, as written then
+
+The command environment cannot reach GitHub — `git push` and `git fetch` both fail
 with HTTP 403 from the proxy. Chat-3 ended with commits local and unpushed on top
 of a remote ref of `bb99cdd`. The owner pushes with `PUSH-TO-GITHUB.bat` in the
 repo root, and then confirms on the commits page. Until that happens, none of it
