@@ -91,15 +91,18 @@ shape in the checkers.
 
 The corrected A1 workbook was built and recalculated with LibreOffice: pilot year
 **$370,000** (was $285,000, omitting two A2 lines), three-year ROI **2.0653×**.
-It could not replace the original because **Excel held a lock on it** — copy,
-delete and move all failed with Permission denied even after
+At close it could not replace the original because **Excel held a lock on it** —
+copy, delete and move all failed with Permission denied even after
 `allow_cowork_file_delete`, because the lock is the host application and not a
-sandbox permission. The rebuilt file therefore sits beside the original with
-`REPLACE-WORKBOOK.bat` to swap it in.
+sandbox permission. It was therefore left beside the original as
+`AxiomDynamics-ROI-Calculator.rebuilt.xlsx` with `REPLACE-WORKBOOK.bat` to swap
+it in.
 
-**Until that runs, the committed `.xlsx` is stale** — it still carries the
-$285,000 pilot year, and A2 §5.1 charges $370,000. This is the one
-owner-action item blocking a clean close.
+**That swap has since run.** Excel released the lock, the corrected file was
+copied over the original, the two confirmed byte-identical, and both
+intermediates deleted. The docket `.xlsx` now charges $370,000 and returns
+2.0653×, agreeing with A2 §5.1. The stale `$285,000` / 2.25× workbook described
+below is history, not state.
 
 ## The tenth defect, found by validating the completed work
 

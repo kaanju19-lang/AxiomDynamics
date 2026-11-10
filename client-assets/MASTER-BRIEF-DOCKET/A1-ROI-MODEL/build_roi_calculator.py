@@ -14,7 +14,18 @@ Rules that hold throughout:
   2. No derived value is pre-computed in Python. Every one is a live formula.
 
 Run:  python3 build_roi_calculator.py
-Then: python3 <skill>/scripts/recalc.py AxiomDynamics-ROI-Calculator.xlsx
+
+The saved workbook holds live formulas and **no cached values**, because openpyxl
+cannot evaluate them; an Excel reader shows zeros until the file is opened and
+recalculated. The builder therefore recalculates it through LibreOffice headless
+before it finishes, and says so loudly if LibreOffice is missing rather than
+leaving a formula-only file behind without a word.
+
+That matters more than it looks. On 2026-11-10 the builder was run only to check
+it still ran, and it silently overwrote the recalculated workbook with a
+formula-only copy -- the pilot year and the ROI disappeared from the very cached
+values the docket and A2 5.1 are checked against. The recalc below is what makes
+running the builder safe.
 """
 
 from openpyxl import Workbook
@@ -629,6 +640,50 @@ for sheet, cell in ((ws, "A7"), (d, "A5"), (b, "A5"), (ct, "A5"), (s, "A5")):
     sheet.freeze_panes = cell
 
 import os
-wb.save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                     "AxiomDynamics-ROI-Calculator.xlsx"))
+import shutil
+import subprocess
+import sys
+import tempfile
+
+_here = os.path.dirname(os.path.abspath(__file__))
+_out = os.path.join(_here, "AxiomDynamics-ROI-Calculator.xlsx")
+wb.save(_out)
 print("written")
+
+
+def recalculate(path):
+    """Evaluate every formula and write the results back as cached values.
+
+    Without this the saved workbook is formulas only, and every value the docket
+    quotes reads as zero to anything that does not open it in Excel first. The
+    round trip goes through a temp directory so a failed conversion cannot leave a
+    half-written file in the docket.
+    """
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if not soffice:
+        print("WARNING: LibreOffice not found. %s now contains formulas with no "
+              "cached values -- open it in Excel, or install LibreOffice and re-run, "
+              "before anyone reads a number out of it." % os.path.basename(path),
+              file=sys.stderr)
+        return False
+
+    tmp = tempfile.mkdtemp()
+    try:
+        shutil.copy2(path, os.path.join(tmp, "in.xlsx"))
+        subprocess.run(
+            [soffice, "--headless", "--convert-to",
+             "xlsx:Calc MS Excel 2007 XML", "--outdir",
+             os.path.join(tmp, "out"), os.path.join(tmp, "in.xlsx")],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        recalculated = os.path.join(tmp, "out", "in.xlsx")
+        if not os.path.exists(recalculated):
+            raise RuntimeError("LibreOffice produced no output file")
+        shutil.copy2(recalculated, path)
+        print("recalculated")
+        return True
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+recalculate(_out)

@@ -36,21 +36,24 @@ content: `git diff --ignore-cr-at-eol` returns empty for those. There is no
 `.gitattributes` and `core.autocrlf` is unset. Always check with
 `--ignore-cr-at-eol`, stage named files only, and **never `git add -A`**.
 
-## Two things that need the owner, before anything else
+## One thing that needs the owner, before anything else
 
-1. **`client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat`** —
-   after closing Excel. The rebuilt workbook is committed beside the old one
-   because the old one was locked open in Excel and could not be replaced from
-   here. **Until this runs, the committed `.xlsx` is stale**: its pilot year is
-   $285,000 while A2 §5.1 charges $370,000, and its three-year ROI reads 2.25×
-   against the rebuilt file's 2.0653×.
-2. **`PUSH-TO-GITHUB.bat`** — the sandbox cannot reach GitHub (`git push` and
-   `git fetch` both fail HTTP 403 from the proxy). Until it runs, everything is
-   durable only on this disk.
+**`PUSH-TO-GITHUB.bat`** — the sandbox cannot reach GitHub (`git push` and
+`git fetch` both fail HTTP 403 from the proxy). Until it runs, everything is
+durable only on this disk.
 
 **Check the queue with `git log --oneline origin/main..HEAD`; do not trust a
 number written here.** The sandbox's `origin/main` ref is not evidence of what
 the remote holds, because it cannot fetch.
+
+**The A1 workbook item is closed.** The old `.xlsx` was locked open in Excel at
+chat-4's close, so the corrected file was left beside it as
+`AxiomDynamics-ROI-Calculator.rebuilt.xlsx` with `REPLACE-WORKBOOK.bat`. Excel
+released the lock and the swap was then done directly: the docket `.xlsx` now
+carries the $370,000 pilot year and a 2.0653× three-year ROI, agreeing with A2
+§5.1. Both intermediates were deleted. If you find `REPLACE-WORKBOOK.bat` in the
+A1 folder again, something has reverted that commit — investigate rather than run
+it.
 
 ## What chat-4 decided, and what it changed
 

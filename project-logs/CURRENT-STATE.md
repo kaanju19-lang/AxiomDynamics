@@ -57,20 +57,10 @@ The validation chain — schema, timestamp, plausibility — is designed and not
 
 ## Open items, in priority order
 
-1. **A1 workbook install — one command, needs the owner.** The workbook was
-   rebuilt, recalculated and committed beside the original
-   (`AxiomDynamics-ROI-Calculator.rebuilt.xlsx`), but the original was locked open
-   in Excel and could not be replaced from here. **Run
-   `client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat` after
-   closing Excel.** Until then the committed `.xlsx` carries the $285,000 pilot
-   year while A2 §5.1 charges $370,000, and reads 2.25× against the rebuilt
-   file's 2.0653×.
-2. **D07 §14.5 — governing law and venue.** An open counsel decision, correctly
+1. **D07 §14.5 — governing law and venue.** An open counsel decision, correctly
    labelled as open as of chat-2 (previously a blank pointing at an Order field
    that does not exist). Must be closed by signed addendum before first execution.
-3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
-   dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
-4. **Ledger signer attribution and off-box carriage** — the signed export landed
+2. **Ledger signer attribution and off-box carriage** — the signed export landed
    2026-11-09 and the **series build landed 2026-11-10**, so the Platform now
    produces the D09 §4.5.4 cadence itself. What remains: the HMAC signature is
    symmetric, so it cannot name the signer; it cannot prove when it was made; a
@@ -79,6 +69,8 @@ The validation chain — schema, timestamp, plausibility — is designed and not
    because D09 §3.2 promises no outbound network, so carriage is the Railroad's
    physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items 11–12.
    Closing attribution is an **AD-2 dependency**, not more export code.
+3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
+   dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
 
 ## Model decision — A1 governs, decided 2026-11-10 (chat-4)
 
@@ -165,8 +157,14 @@ claim in both documents; `roi.py` constants read back from the module ($999,750
 expected cost, 4.8/1.5 h MTTD); the replication module built a real series and
 `inspect` verified it, then **detected** both a manifest edit and the extra-field
 case; the rebuilt workbook reopened and its cached values checked ($370,000
-pilot, ROI 2.0653) — and the original confirmed still stale, because the `~$`
-Excel lock is still present.
+pilot, ROI 2.0653).
+
+**The workbook swap was completed on 2026-11-10 after Excel released its lock.**
+`AxiomDynamics-ROI-Calculator.xlsx` in the docket is now the corrected file —
+$370,000 pilot year, three-year ROI 2.0653×, agreeing with A2 §5.1. The
+intermediate `…rebuilt.xlsx` and `REPLACE-WORKBOOK.bat` were deleted once the
+swap was confirmed byte-identical, because a second copy of the same workbook
+under a different name is how the staleness got missed in the first place.
 
 ## Transcript — chat-4 extracted and committed at close, 2026-11-10
 

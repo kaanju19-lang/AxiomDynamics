@@ -432,6 +432,14 @@ thing in this document I would slow down for.
 
 ## 8. What changes once the option is chosen
 
+**Status: Option D was adopted on 2026-11-10 (chat-4), and every row below has
+been applied and verified.** The table is kept as written so the decision records
+its own prospective terms rather than being retrofitted to what happened. Its
+"currently" and "now" wording describes the state at the decision, not the state
+today. The workbook, which then carried a $285,000 pilot against a $370,000 rate
+card, now reads $370,000 with a three-year ROI of 2.0653×, and the intermediate
+`…rebuilt.xlsx` / `REPLACE-WORKBOOK.bat` pair was deleted once the swap ran.
+
 | Artifact | Change under Option A/D | Change under Option B |
 |---|---|---|
 | `A1-ROI-MODEL/build_roi_calculator.py` | B17 stays 0.05%; regenerate workbook from corrected builder | B17 → ~0.8–1.4%; delete the "physically impossible" note |
@@ -444,17 +452,17 @@ thing in this document I would slow down for.
 | `project-logs/CURRENT-STATE.md` | Open items 1 and 3 closed | Same |
 | `D00` Part IV | Two open rows closed | Same |
 
-One further item, independent of the choice: **the committed workbook is stale**
-in a way the pass record noted and did not fix. It structures the pilot as
+One further item, independent of the choice: **the committed workbook was stale**
+in a way the pass record noted and did not fix. It structured the pilot as
 $285,000 — a $180,000 licence plus $65,000 hardware integration plus $40,000
 training — against A2's $370,000, which has no hardware line at all and adds
-$35,000 validation support and $50,000 pilot support. It also has no conversion-
-credit line, so Year 1 production is $300,000 rather than the $210,000 A2 §9
+$35,000 validation support and $50,000 pilot support. It also had no conversion-
+credit line, so Year 1 production was $300,000 rather than the $210,000 A2 §9
 produces. Its platform-fee row (row 10) exists and works, but reads $0 at one
 site, which is correct and easy to mistake for a missing line. **The workbook
-disagrees with A2 §5.1 and §9 regardless of which model wins**, and must be
-regenerated in the same pass as whichever option is chosen, not before and not
-after.
+disagreed with A2 §5.1 and §9 regardless of which model won**, and was
+regenerated in the same pass as the choice rather than before or after it. It
+now charges $370,000 and returns 2.0653×.
 
 ---
 

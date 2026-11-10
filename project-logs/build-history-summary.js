@@ -955,9 +955,8 @@ doc.push(H2("Push"));
 doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, and the first commit after it was 893096e. The number of commits ahead is not written here on purpose: this document's own commit changes it, which is exactly why the instruction is to run the command rather than read a figure. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
 
 doc.push(H2("The decisions waiting, in order of consequence"));
-doc.push(PB("Three of the five items this list carried in chat-3 closed on 2026-11-10. Recorded here so the next reader does not reopen them: the **model question was decided in favour of A1** (Option D in the decision paper), the **2.0×/4.1× anchors were restated** at 1.77×/3.36× with the basis in the text and the 1.65×/3.34× fallback stated, and **the A1 workbook was rebuilt** from the corrected builder. The rebuild is built and committed but **not yet installed** — the old `.xlsx` was locked open in Excel, so the corrected file sits beside it with `REPLACE-WORKBOOK.bat`. Until that runs, the committed workbook still carries the $285,000 pilot year. What remains:"));
+doc.push(PB("Three of the five items this list carried in chat-3 closed on 2026-11-10. Recorded here so the next reader does not reopen them: the **model question was decided in favour of A1** (Option D in the decision paper), the **2.0×/4.1× anchors were restated** at 1.77×/3.36× with the basis in the text and the 1.65×/3.34× fallback stated, and **the A1 workbook was rebuilt** from the corrected builder and, once Excel released its lock, **installed** — the docket `.xlsx` now charges the $370,000 pilot year and returns 2.0653×, agreeing with A2 §5.1, and the intermediate `REPLACE-WORKBOOK.bat` pair was deleted. What remains:"));
 doc.push(...numbered("numE", [
-  "Run client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat after closing Excel. Not a decision — one command, and until it runs the workbook and the prose disagree on the pilot fee.",
   "D07 §14.5 — approve a governing law, seat and mediation provider with counsel, and record it in a signed addendum. Blocks first execution. Not a formation question, and entity choice does not answer it.",
   "Phase 0 formation, if a real customer conversation is closer than a code milestone. Texas LLC, $300 filing, operating agreement worth paying for.",
   "Signer attribution for the ledger — the largest remaining code item, and a genuine AD-2 dependency rather than more export code: it needs real local accounts with a key per reviewer.",
@@ -1060,7 +1059,7 @@ doc.push(table(
     ["SBOM, hash pinning, signed releases", "Not built", "Q1–Q2 2027 targets; disclosed"],
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
     ["Commercial numbers", "Decided 2026-11-10 — A1 governs", "A2 §3.2 / D08 §3 restate at 1.77×–3.36×; D08 §5–§6 restated from A1. Findings 1 and 2 closed"],
-    ["A1 workbook", "Rebuilt, not yet installed", "Run REPLACE-WORKBOOK.bat after closing Excel; until then the committed .xlsx carries the $285,000 pilot year"],
+    ["A1 workbook", "Rebuilt and installed 2026-11-10", "$370,000 pilot year, 2.0653x three-year ROI, agreeing with A2 §5.1"],
     ["D07 §14.5 venue", "Open counsel decision", "Blocks first execution"],
     ["Push state", "Commits ahead of the local remote ref", "Not counted here — the count changes with every commit. Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
   ],
