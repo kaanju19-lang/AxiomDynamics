@@ -11,7 +11,7 @@ project-logs/
 ├── README.md               this file — structure, purpose, order of authority
 ├── CURRENT-STATE.md        authoritative project state, updated as work lands
 ├── AxiomDynamics-Build-History-and-Working-Summary.docx
-│                           the long-form account of the whole build (32 pp)
+│                           the long-form account of the whole build (34 pp)
 ├── build-history-summary.js  generator for the above; re-run after a change
 ├── extract_transcript.py   turns a raw session .jsonl into the readable extract
 ├── chat-1/
@@ -23,18 +23,22 @@ project-logs/
 ├── chat-3/
 │   └── SUMMARY.md          chat-3, closed 2026-11-10
 ├── chat-4/
+│   ├── SUMMARY.md          chat-4, closed 2026-11-10
 │   └── CARRY-FORWARD.md    the handoff document for chat-4
+├── chat-5/
+│   └── CARRY-FORWARD.md    the handoff document for chat-5
 └── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
     ├── 2026-11-09-chat-2.md   readable extract
     ├── 2026-11-09-chat-3.md   readable extract
+    ├── 2026-11-10-chat-4.md   readable extract
     └── raw/                the source logs, committed with each transcript
 ```
 
-**Start with the build history if you are new to this project.** It is 32 pages
+**Start with the build history if you are new to this project.** It is 34 pages
 covering the product, every build stage and its corrections, the full docket, the
 loss of chat-1's work, the internal strategy, and the open items — written to be
-read cold, without the conversation it describes. Revised 2026-11-10 to carry
-Stages 6 and 7, so the ledger and signed-export phases are in it.
+read cold, without the conversation it describes. Revised 2026-11-10 at chat-4's
+close to carry Stage 8, the model decision, and the closure of both findings.
 
 ## Order of authority
 
@@ -52,9 +56,9 @@ governs and the summary is corrected.**
 ## The record, and the gap in it
 
 `transcripts/` holds the conversation logs. **`2026-11-09-chat-2.md`,
-`2026-11-09-chat-3.md` and their raw `.jsonl` files are here** — each session is
-extracted and committed at its close, raw log included, and that is now the rule
-for every session.
+`2026-11-09-chat-3.md`, `2026-11-10-chat-4.md` and their raw `.jsonl` files are
+here** — each session is extracted and committed at its close, raw log included,
+and that is the rule for every session.
 
 **Chat-1 is lost.** It covered 2,527 turns across three raw session logs from
 2026-11-08 04:24 to 2026-11-10 03:00. Chat-1 extracted readable transcripts from

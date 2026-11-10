@@ -16,6 +16,7 @@ Usage: python3 project-logs/extract_transcript.py <source.jsonl> <out.md> <out-r
 """
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -119,7 +120,11 @@ def main(src, out_md, out_raw):
 
     os.makedirs(os.path.dirname(out_md), exist_ok=True)
     with open(out_md, "w", encoding="utf-8", newline="\n") as f:
-        f.write("# Chat-3\n\n")
+        # Title from the output filename, e.g. 2026-11-10-chat-4.md -> "Chat-4".
+        stem = os.path.splitext(os.path.basename(out_md))[0]
+        m = re.search(r"chat-(\d+)", stem, re.I)
+        title = "# Chat-%s\n\n" % m.group(1) if m else "# %s\n\n" % stem
+        f.write(title)
         f.write("Extracted %d turns from the raw session log at `%s`. "
                 "Tool output is omitted; tool calls are recorded inline.\n\n---\n\n"
                 % (len(deduped), os.path.basename(src)))

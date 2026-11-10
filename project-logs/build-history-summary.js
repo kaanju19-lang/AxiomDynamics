@@ -86,6 +86,49 @@ function P(text, opts = {}) {
 }
 
 /** Paragraph built from an array of {text, bold, italics, color, size} runs. */
+/** Turn a string with **bold** and `mono` spans into TextRuns. */
+function inlineRuns(text, size, color, forceBold, baseFont) {
+  const font = baseFont || "Calibri";
+  const runs = [];
+  String(text).split("**").forEach((seg, si) => {
+    const strong = si % 2 === 1 || forceBold;
+    seg.split("`").forEach((t, ti) => {
+      if (!t) return;
+      runs.push(new TextRun({
+        text: t, size, color,
+        bold: strong || undefined,
+        font: ti % 2 === 1 ? "Consolas" : font,
+      }));
+    });
+  });
+  return runs;
+}
+
+/** Paragraph that honours **bold** spans inside its text. */
+function PB(text, opts = {}) {
+  const {
+    size = 21, italics = false, color = SLATE, font = "Calibri",
+    spaceBefore = 0, spaceAfter = 120, align = AlignmentType.JUSTIFIED,
+  } = opts;
+  const runs = [];
+  String(text).split("**").forEach((seg, si) => {
+    const strong = si % 2 === 1;
+    seg.split("`").forEach((t, ti) => {
+      if (!t) return;
+      runs.push(new TextRun({
+        text: t, size, italics, color, font,
+        bold: strong || undefined,
+        font: ti % 2 === 1 ? "Consolas" : font,
+      }));
+    });
+  });
+  return new Paragraph({
+    alignment: align,
+    spacing: { before: spaceBefore, after: spaceAfter, line: 276 },
+    children: runs,
+  });
+}
+
 function PR(runs, opts = {}) {
   const { spaceBefore = 0, spaceAfter = 120, align = AlignmentType.JUSTIFIED, indent = 0 } = opts;
   return new Paragraph({
@@ -150,13 +193,11 @@ function cell(text, opts = {}) {
     children: [new Paragraph({
       alignment: align,
       spacing: { after: 0, line: 250 },
-      children: [new TextRun({
-        text: String(text),
-        bold: bold || header,
-        size,
-        color: header ? "FFFFFF" : (color || SLATE),
-        font: mono ? "Consolas" : "Calibri",
-      })],
+      children: inlineRuns(
+        String(text), size,
+        header ? "FFFFFF" : (color || SLATE),
+        bold || header, mono ? "Consolas" : "Calibri",
+      ),
     })],
   });
 }
@@ -224,7 +265,7 @@ function callout(label, text, opts = {}) {
             ? [new Paragraph({
               alignment: AlignmentType.JUSTIFIED,
               spacing: { after: 0, line: 264 },
-              children: [new TextRun({ text, size: 19, color: textColor, font: "Calibri" })],
+              children: inlineRuns(text, 19, textColor),
             })]
             : text),
         ],
@@ -495,7 +536,7 @@ doc.push(P("The highest-value item in the handoff and untouched since cf2e6ba. a
 doc.push(P("The pass also fixed two real defects in the A1 workbook builder: a sheet-5 note attributed a 2% escalation rate to a cell that has held 0.05% since the correction, and the script saved to a path inside the destroyed chat-1 sandbox, so running it raised FileNotFoundError. The committed workbook was deliberately not regenerated — doing so would have baked both open findings into a new file before the model question was settled."));
 
 doc.push(H3("7.2 — The build history document (commit a3ba43f)"));
-doc.push(P("Requested by the owner because chat-1's conversation no longer exists and the build needed a readable record of itself. 29 pages when written, 32 after the revision recorded below; eight parts plus an appendix, generated from the repository by project-logs/build-history-summary.js so it can be rebuilt after a change. Layout was verified by rendering to PDF and reading the pages, which found two defects: every numbered list shared one continuous sequence, and the Word TOC field rendered empty in a converter that does not update fields."));
+doc.push(P("Requested by the owner because chat-1's conversation no longer exists and the build needed a readable record of itself. 29 pages when written, 32 after the Stage 6–7 revision, and revised again at chat-4's close to carry Stage 8 and to mark Findings 1 and 2 closed; eight parts plus an appendix, generated from the repository by project-logs/build-history-summary.js so it can be rebuilt after a change. Layout was verified by rendering to PDF and reading the pages, which found two defects: every numbered list shared one continuous sequence, and the Word TOC field rendered empty in a converter that does not update fields."));
 
 doc.push(H3("7.3 — The append-only disposition ledger (commit 209efe6)"));
 doc.push(P("Chosen next because it was the one open code control needing no commercial decision from the owner, and because the docket's most legally significant record was overstating what the code did. backend/store.py used advisory_id as PRIMARY KEY with INSERT ... ON CONFLICT DO UPDATE, so a second disposition on the same advisory overwrote the first — its reviewer, its note and its recorded_at all gone. F09 described an append-only record; the code produced one row that could be rewritten. Six documents disclosed the gap."));
@@ -520,7 +561,7 @@ doc.push(H3("7.6 — The transcript"));
 doc.push(P("Re-snapshotted at 5,032 events (17.1 MB) and rebuilt the readable extract at 641 turns, of which ten are the owner's. The mid-session snapshot was byte-for-byte a prefix of the new one, verified line by line, so it was deleted rather than kept as 13 MB of duplicate. The extractor is now committed at project-logs/extract_transcript.py instead of a shell heredoc, with the trap written into it: the role is the top-level `type` field, not message[\"role\"], and reading the wrong one yields zero turns and no error."));
 
 // ---- Stage 8
-doc.push(H2("Stage 8 — chat-4: the replication series, and nine defects two audits found (2026-11-10)"));
+doc.push(H2("Stage 8 — chat-4: the replication series, the model decision, and ten defects two audits found (2026-11-10)"));
 doc.push(P("Chat-4 opened by verifying the handoff against the repository, which is now the established first move and which again found the written push list stale: the carry-forward named a remote ref of bb99cdd while the local ref stood at 4eafe58 with one commit waiting on top of it. The build that followed closed the half of B01 §7 item 12 that needed no commercial decision and no new dependency — nothing produced export bundles on a cadence, so a week nobody remembered to export was a week with no evidence."));
 doc.push(P("The phase's most important output is not the module. It is that two independent audits found nine material defects, and the second found four in code the first had already approved."));
 
@@ -536,6 +577,17 @@ doc.push(callout(
   { fill: "FBEAEA", labelColor: RED },
 ));
 doc.push(P("The pattern across both audits is the one this document has recorded at every stage: the work was internally consistent and externally wrong. A test suite written by the author of a mechanism tests the author's model of the threat. What corrected it each time was a reader with no stake in the conclusion, told to falsify rather than confirm."));
+
+doc.push(H3("8.3 — The model decision, and the numeric defect under it"));
+doc.push(PB("The second phase of chat-4 closed both findings carried in Part VII. The owner delegated the question (\"you decide\"); the answer was **A1**, expressed as Option D in the decision paper. D08 was restated from A1 rather than the reverse, on the reasoning that A1 is the instrument the customer operates from their own inputs while D08 is a narrative built on top of it."));
+doc.push(PB("Restating D08 §5 surfaced a defect in it that the old headline had hidden. D08 §2 scopes the pilot at **100–200 axles**; the old §5 computed a pilot-year benefit at 500. At 200 axles A1 produces $278,670 against a $370,000 fee — **0.75×. The pilot does not pay for itself at its own scoped fleet size**, and D08 now says so in those words instead of quoting a millions figure. That is an uncomfortable sentence in a licensing document and it stayed in, because the alternative is a customer discovering it during the pilot."));
+doc.push(PB("The numeric defect underneath was worse than either document. **`backend/roi.py` valued a missed defect 29× too high** — it carried a 2% catastrophic-escalation probability where A1's cell B17 has held 0.05% since the first correction, and blended the $9.25M midpoint of two severe-tier benchmarks as though it were the typical cost. Expected cost per missed defect is now **$999,750**, arithmetically identical to A1's B22. The two NTSB benchmarks survive as `SEVERE_FAILURE_COST_*`, explicitly reference-only, and the dataclass field was renamed `severe_cost_range_usd` so no later reader mistakes them for the typical case."));
+doc.push(callout(
+  "The guard that could not fail",
+  "The ROI test rebuilt its expected value from the same constants it then compared against — `expected = (1 - roi.P_CAT) * roi.TYPICAL + roi.P_CAT * roi.CATASTROPHIC`, asserted equal to `roi.EXPECTED_COST_PER_MISSED_DEFECT_USD`, which is that same expression. It passes for any values of the constants. Restoring the 2% defect deliberately produced **112 passed, 0 failed**. The fix was to assert literals, then break the thing on purpose and confirm red — after which the same defect gives 111 passed, 1 failed. This is the third session running in which an audit found a test passing for the wrong reason, and the second in which the failing test was one I had just written.",
+  { fill: "FBEAEA", labelColor: RED },
+));
+doc.push(P("Nine more findings from the adversarial audit of the restatement were fixed before commit, and they are worth listing because most were questions of citation rather than arithmetic: A2 §3.2 claimed its rules needed \"no conversion credit\" when 1.77× requires one (no-credit is 1.65×/3.34×); the \"CLOSED\" block printed pre-restatement totals while checking nothing; two internal assets still carried the withdrawn model; A2 §9 ran the pilot at 500 axles; D08 §4's $1,390,000 was a rounded figure $289.50 light and was replaced with the derived $1,399,650; a \"five years\" heading sat over a six-year table; and the A1 builder's own prose said \"~2.0×\" while its cell computed 2.2546×."));
 
 // ================================================================ PART III
 doc.push(H1("Part III — The docket, document by document"));
@@ -791,10 +843,10 @@ doc.push(P("The export build record §5.1 is the most useful page in the set. It
 // ================================================================ PART VII
 doc.push(H1("Part VII — Open items and unresolved findings"));
 
-doc.push(P("The docket index asks to be corrected when a gap closes and refuses to claim a gap is closed when it is not. This part applies the same standard to the project as a whole. Five items are open. Two of them were found in chat-3, priced in the decision paper, and remain the most consequential things in this document."));
+doc.push(PB("The docket index asks to be corrected when a gap closes and refuses to claim a gap is closed when it is not. This part applies the same standard to the project as a whole. Five items were open when this part was written in chat-3. **Two of them — Findings 1 and 2 — closed on 2026-11-10 in chat-4**, when the owner delegated the model question and it was decided in favour of A1. They are kept here in full with their resolution rather than deleted, because the misstatements they describe are exactly what a first draft of a commercial document does, and the reader who writes the next one should see how they were caught. Items 3 to 5 below are the three that remain open, and item 6 records work deliberately deferred."));
 
-doc.push(H2("1. Finding 1 — the modelled-return anchors do not reproduce"));
-doc.push(P("A2 §3.2 states that the customer's modelled return improves \"approximately 2.0× at 500 axles, rising to about 4.1× at 10,000.\" D08 §3 repeats both figures verbatim. Recomputed with A1's own default assumptions, on the only two cost bases that exist in the repository:"));
+doc.push(H2("1. Finding 1 — the modelled-return anchors did not reproduce (CLOSED 2026-11-10)"));
+doc.push(P("A2 §3.2 stated that the customer's modelled return improves \"approximately 2.0× at 500 axles, rising to about 4.1× at 10,000.\" D08 §3 repeated both figures verbatim. Recomputed with A1's own default assumptions, on the only two cost bases that then existed in the repository:"));
 doc.push(table(
   ["Axles", "3-yr benefit", "On A2/D08 cost basis", "On A1 workbook basis"],
   [
@@ -807,26 +859,28 @@ doc.push(table(
   { width: [2, 3, 2.5, 2.5], size: 17 },
 ));
 doc.push(P("Neither basis produces 2.0× at 500 and 4.1× at 10,000. On the two cost bases that already exist in the repository, the shipped model does not reproduce the anchors. The direction of the claim is correct — return does improve monotonically with fleet size on either basis — but the two anchor values are not derivable from the model as presented."));
-doc.push(P("The decision paper then found a third basis that does reproduce them, and this is the correction worth carrying. On pilot cost plus three full years at list price with no conversion credit, the cost ratio the anchors demand — cost at 10,000 axles over cost at 500 = 9.756 — is a property of the pricing, not of the benefit model, so a single value of the catastrophic-escalation probability fits both endpoints. Against three years of benefit that value is p = 0.0714%, producing 2.00× and 4.06×; against four years of benefit it is 0.0412%, which also fits. Finding 1 is therefore a disclosure defect: an unstated frame, not an invention. But the parameter is not uniquely determined, because the benefit horizon is stated nowhere — and that is exactly why it stays open. The anchors cannot ship as written until a frame is stated that a customer can see."));
-doc.push(P("This was left open deliberately. The sentences carrying these numbers are also the document's defence against a flat-tier cliff objection, and D08 already labels them a pricing hypothesis validated only against modelled return. Restating them at 1.77×/3.36× on the A2/D08 cost basis — which is the basis the rate card itself prices on — is defensible; so is stating the frame. That is a commercial decision about what the first real conversation opens with, and it changes a client-facing sentence in two documents — so it should be decided, not quietly edited. Both answers are costed in the decision paper, §6–§7."));
+doc.push(P("The decision paper then found a third basis that does reproduce them, and this is the correction worth carrying. On pilot cost plus three full years at list price with no conversion credit, the cost ratio the anchors demand — cost at 10,000 axles over cost at 500 = 9.756 — is a property of the pricing, not of the benefit model, so a single value of the catastrophic-escalation probability fits both endpoints. Against three years of benefit that value is p = 0.0714%, producing 2.00× and 4.06×; against four years of benefit it is 0.0412%, which also fits. Finding 1 was therefore a disclosure defect — an unstated frame, not an invention — but the parameter was not uniquely determined, because the benefit horizon was stated nowhere."));
+doc.push(PB("**How it closed.** The owner delegated the choice in chat-4 (\"you decide\") and A1 was chosen, expressed as Option D in `assets/a2-d08-model-decision-2026-11-09.md`. A2 §3.2 and D08 §3 now state **1.77× at 500 axles and 3.36× at 10,000**, with the cost basis written into the sentence rather than left to inference: A1 at its own defaults, three years of benefit against the four-year fee commitment at list price net of the §9 conversion credit. The text also states the fallback a reader needs — **1.65× and 3.34×** on a basis that additionally disallows the conversion credit — and warns against mixing the two in one table. The withdrawn pair is not reproducible on any basis in the repository, and that sentence is now in the arithmetic pass as a checked statement rather than a claim."));
+doc.push(PB("One consequence is worth a reader's attention because it looks like a contradiction and is not: **A2 §3.2 says 1.77× at 500 axles and D08 §5 says 2.01× on the same inputs.** A2 charges the pilot year in full and credits it with no benefit — the conservative frame appropriate to a rate card. D08 credits the 200-axle pilot year with the modest benefit it actually produces. Both documents now say which question they are answering, which is the fix that mattered."));
 
-doc.push(H2("2. Finding 2 — D08's modelled benefits exceed what A1 produces, and the cause is now identified"));
-doc.push(P("D08 §5 says a 500-axle customer sees $6–8M of avoided damage in the pilot year and $14–20M over four years; §6 says $40–60M over six years with a 20×–30× return. A1 at 500 axles with its default assumptions produces $696,675 net annual benefit. The ratio is between 5× and 14× across the three periods."));
-doc.push(P("The cause is a modelling fork, not an arithmetic error, and it is now traced. Two different figures for the probability that a missed defect escalates to a catastrophic event exist in the repository:"));
+doc.push(H2("2. Finding 2 — D08's modelled benefits exceeded what A1 produces (CLOSED 2026-11-10)"));
+doc.push(P("D08 §5 said a 500-axle customer sees $6–8M of avoided damage in the pilot year and $14–20M over four years; §6 said $40–60M over six years with a 20×–30× return. A1 at 500 axles with its default assumptions produces $696,675 net annual benefit. The ratio was between 5× and 14× across the three periods."));
+doc.push(PB("The cause was a modelling fork, not an arithmetic error. Two different figures for the probability that a missed defect escalates to a catastrophic event existed in the repository — and the table below is written in the past tense deliberately, because **the fork itself is now gone**:"));
 doc.push(table(
-  ["Location", "Probability", "Expected cost per missed defect"],
+  ["Location", "Then", "Now"],
   [
-    ["backend/roi.py — P_CATASTROPHIC_GIVEN_MISSED_DEFECT", "2%", "$29,065,000"],
-    ["A1 workbook, sheet 1 cell B17", "0.05%", "$999,750 on the $500k typical-cost base, $9,745,375 on the $9.25M contained base"],
+    ["backend/roi.py — P_CATASTROPHIC_GIVEN_MISSED_DEFECT", "2% → $29,065,000", "0.05% → $999,750, identical to A1's B22"],
+    ["A1 workbook, sheet 1 cell B17", "0.05% → $999,750 typical / $9,745,375 on the $9.25M severe base", "unchanged — this was already the governing figure"],
   ],
-  { width: [3.4, 1.6, 5], size: 16 },
+  { width: [3.4, 3.1, 3.1], size: 16 },
 ));
-doc.push(P("The two probabilities differ by a factor of 40. The A1 note explains why it was lowered: \"Even 2% per missed defect would imply dozens of billion-dollar events annually nationwide — physically impossible. 0.05% keeps the implied nationwide rate roughly consistent with observed East Palestine-scale frequency.\""));
-doc.push(P("D08's benefit figures, meanwhile, are reproducible if a prevented defect is valued at the contained-tier midpoint of $9.25M and nothing else: 0.65 × $9.25M ≈ $6.0M and 0.86 × $9.25M ≈ $8.0M, which is exactly D08's $6–8M pilot-year band at 0.7 defects missed. So D08 was built on the contained-tier value without the probability blend, and A1 applies the blend — a factor of roughly 9.25."));
+doc.push(P("The two probabilities differed by a factor of 40. The A1 note explains why it holds 0.05%: \"Even 2% per missed defect would imply dozens of billion-dollar events annually nationwide — physically impossible. 0.05% keeps the implied nationwide rate roughly consistent with observed East Palestine-scale frequency.\" A1 was right and `roi.py` was wrong by 29×."));
+doc.push(P("D08's benefit figures were reproducible if a prevented defect was valued at the contained-tier midpoint of $9.25M and nothing else: 0.65 × $9.25M ≈ $6.0M and 0.86 × $9.25M ≈ $8.0M, which is exactly the old $6–8M pilot-year band at 0.7 defects missed. D08 was built on the contained-tier value without the probability blend; A1 applies the blend, a factor of roughly 9.25."));
+doc.push(PB("**How it closed.** D08 §5–§6 were restated from A1 rather than the reverse — the decision was that A1 governs — and the restatement surfaced something the old headline hid. D08 §2 scopes the pilot at **100–200 axles**, and at 200 axles A1's modelled benefit is $278,670 against a $370,000 fee: **0.75×. The pilot does not pay for itself at its own scoped fleet size, and the document now says so in those words** rather than quoting a pilot-year millions figure that assumed 500 axles. Production years at 500 axles model $696,675/yr. Four-year return **2.01×**; six-year **2.06×** — close to flat, because fee escalation from Year 4 nearly cancels the dilution of one weak pilot year across more production years. It does not fall, which is the opposite of what I first assumed and asserted; the check caught it."));
 doc.push(callout(
-  "Why this one matters most",
-  "These are the headline numbers in the document a CFO reads. D08 §5 states that A1 is the instrument of record and that \"this document must never be used to present one\" of these figures. The two disagree by nearly an order of magnitude at identical inputs. One of two things must happen: either D08 §5–§6 is restated from A1's output, or A1's evaluation assumptions are judged too conservative and the workbook is changed. Deciding that changes what the pilot pitch asks a customer to believe — which is why it is an owner decision and not an editorial one.",
-  { fill: "FBEAEA", labelColor: RED },
+  "What this finding was actually about",
+  "Not arithmetic — every individual computation on both sides was correct. It was two documents quietly using different models for the same words. D08 §5 already stated that A1 is the instrument of record and that the document must never be used to present these figures; the document then presented different ones. That is the failure mode this project keeps meeting: internally consistent, externally wrong. The correction that matters is not the new number, it is that the basis is now written beside every figure, so the next reader can tell which question is being answered.",
+  { fill: "EAF3EA", labelColor: "2E6B32" },
 ));
 
 doc.push(H2("3. D07 §14.5 — governing law, seat and forum"));
@@ -840,7 +894,7 @@ doc.push(table(
     ["No detector ingest path at all", "B01 §7 #5 · B02 §2 · B03 status", "Every demonstration number demonstrates the method, not the customer's data. The largest gap in the docket."],
     ["Ledger signer attribution", "B01 §4.5a · B01 §7 #11 · D09 §4.4", "The signed export landed 2026-11-10, but HMAC is symmetric: any verifier can also forge, so the bundle cannot name who signed it. Closing it needs AD-2 — real local accounts with a key per reviewer — not more export code."],
     ["Ledger cannot date itself; a wipe before the first bundle is invisible", "B01 §4.5a · D09 §4.4–4.5", "No timestamping authority and no pre-series anchor. Bundle retention plus a written key-custody procedure are the controls that carry that weight."],
-    ["Nothing replicates the ledger off-box on a schedule", "B01 §7 #12 · D09 §4.5", "A lost disk loses the ledger. Export is a procedure a human runs, not a control that runs itself."],
+    ["Nothing carries the replicated series off-box", "B01 §7 #12 · D09 §4.4–4.5 · D09 §3.2", "The Platform now produces the D09 §4.5.4 cadence itself and verifies it (chat-4, 2026-11-10), so the schedule half is closed. Carriage stays open **by design**: D09 §3.2 promises no outbound network, so moving the series to backup media is the Railroad's physical step under §3.3. A lost disk before carriage loses everything since the last copy."],
     ["Certification registry is local accounts, no cryptographic verification", "B01 §7 #1 · D09 §4.4 · F08 Part 1", "A reviewer can self-assert a cert ID. Manual control via F08 is the substitute."],
     ["No SBOM artefact in releases", "D09 §4.4 · §7.2", "Customer cannot independently verify the dependency chain. Target Q1 2027."],
     ["No hash pinning of dependencies", "D09 §4.4", "A compromised package index could serve malware. Target Q1 2027."],
@@ -865,7 +919,8 @@ doc.push(P("This part is written for whoever opens the next session, including t
 doc.push(H2("Read in this order"));
 doc.push(...numbered("numD", [
   "project-logs/CURRENT-STATE.md — the authoritative state: what is built, what is pushed, what is open.",
-  "project-logs/chat-3/SUMMARY.md — where the last session actually stopped.",
+  "project-logs/chat-4/CARRY-FORWARD.md — where chat-4 actually stopped and what it left waiting.",
+  "project-logs/chat-4/SUMMARY.md — the reasoning behind each phase of chat-4.",
   "This document — the long-form history and the reasoning behind the structure.",
   "client-assets/MASTER-BRIEF-DOCKET/D00-DOCKET-INDEX.md, Part VI — the gap register, which is the authority on what is closed.",
 ]));
@@ -879,9 +934,9 @@ doc.push(table(
     ["git status --short --branch", "Branch and how far ahead of the remote ref"],
     ["git log --oneline origin/main..HEAD", "What is actually unpushed — never trust a written list"],
     ["git diff --ignore-cr-at-eol --stat", "Real changes. Without the flag, nearly every file reads as modified"],
-    ["python3 -I assets/a2-d08-arithmetic-pass.py", "Whether the A2/D08 figures still hold. Currently 78 of 78 agree"],
+    ["python3 -I assets/a2-d08-arithmetic-pass.py", "Whether the A2/D08 figures still hold. Currently 97 checks, all passing; Findings 1 and 2 are checked as closed"],
     ["python3 -I assets/a2-d08-model-decision.py", "The decision paper's 65 figures. Exits non-zero on any mismatch"],
-    ["python3 -I tests/run_tests.py", "The full suite: 21 physics, 17 ledger, 42 export. Currently 80 passed, 0 failed"],
+    ["python3 -I tests/run_tests.py", "The full suite: physics, ledger, export and replication. Currently 113 passed, 0 failed"],
     ["python3 tools/verify_ledger_export.py --bundle B --key-file K", "Checks an exported ledger bundle without the application or the database"],
   ],
   { width: [4.6, 5.4], size: 16, mono: [0] },
@@ -895,12 +950,12 @@ doc.push(H2("Push"));
 doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, and the first commit after it was 893096e. The number of commits ahead is not written here on purpose: this document's own commit changes it, which is exactly why the instruction is to run the command rather than read a figure. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
 
 doc.push(H2("The decisions waiting, in order of consequence"));
+doc.push(PB("Three of the five items this list carried in chat-3 closed on 2026-11-10. Recorded here so the next reader does not reopen them: the **model question was decided in favour of A1** (Option D in the decision paper), the **2.0×/4.1× anchors were restated** at 1.77×/3.36× with the basis in the text and the 1.65×/3.34× fallback stated, and **the A1 workbook was rebuilt** from the corrected builder. The rebuild is built and committed but **not yet installed** — the old `.xlsx` was locked open in Excel, so the corrected file sits beside it with `REPLACE-WORKBOOK.bat`. Until that runs, the committed workbook still carries the $285,000 pilot year. What remains:"));
 doc.push(...numbered("numE", [
-  "Which model governs the commercial numbers — A1's probability-blended evaluation or D08 §5–§6's contained-tier basis. Everything quoted to a customer depends on this. Both answers are costed in assets/a2-d08-model-decision-2026-11-09.md §6–§7; the recommendation is A1.",
-  "Whether to strike or restate the 2.0×/4.1× return anchors in A2 §3.2 and D08 §3. They are recoverable on one unstated cost basis, which makes this a disclosure question rather than a fabrication question.",
-  "With those two answered, regenerate the A1 workbook from the corrected builder and re-run both check scripts and the unit suite.",
-  "D07 §14.5 — approve a governing law, seat and mediation provider with counsel, and record it in a signed addendum.",
-  "Phase 0 formation, if a real customer conversation is closer than a code milestone.",
+  "Run client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat after closing Excel. Not a decision — one command, and until it runs the workbook and the prose disagree on the pilot fee.",
+  "D07 §14.5 — approve a governing law, seat and mediation provider with counsel, and record it in a signed addendum. Blocks first execution. Not a formation question, and entity choice does not answer it.",
+  "Phase 0 formation, if a real customer conversation is closer than a code milestone. Texas LLC, $300 filing, operating agreement worth paying for.",
+  "Signer attribution for the ledger — the largest remaining code item, and a genuine AD-2 dependency rather than more export code: it needs real local accounts with a key per reviewer.",
 ]));
 
 // ================================================================ APPENDIX
@@ -912,10 +967,10 @@ doc.push(table(
     ["backend/", "physics.py (models 1–5), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (model 6, the ROI panel), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
     ["tools/", "verify_ledger_export.py — standalone export verifier, imports nothing from backend/", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
-    ["tests/", "test_physics.py (21 formula tests), test_store.py (17 ledger tests), test_export.py (42 export tests), run_tests.py (stdlib runner, discovers test_*.py)", "Code"],
+    ["tests/", "test_physics.py (physics formulas plus the A1 constants guard), test_store.py (ledger), test_export.py (signed export), test_ledger_replication.py (cadence, chaining, inspection), run_tests.py (stdlib runner, discovers test_*.py) — 113 tests", "Code"],
     ["client-assets/MASTER-BRIEF-DOCKET/", "The 38-artifact docket: A1–A2, B01–B05, C01–C02, D00–D14, F00–F13 (36 Markdown + xlsx + html)", "Client-facing"],
-    ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass, model decision paper, export build record, each with its check script", "Internal — never forwardable"],
-    ["project-logs/", "CURRENT-STATE, README, chat-1/2/3 summaries and carry-forwards, transcripts with raw jsonl, extract_transcript.py, build-history-summary.js", "Internal"],
+    ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass, model decision paper, export and replication build records, each with its check script", "Internal — never forwardable"],
+    ["project-logs/", "CURRENT-STATE, README, chat-1/2/3/4 summaries and carry-forwards, transcripts with raw jsonl, extract_transcript.py, build-history-summary.js", "Internal"],
     ["Dockerfile, render.yaml, requirements.txt, PUSH-TO-GITHUB.bat", "Deployment and the owner's push helper", "Operational"],
   ],
   { width: [3.2, 5.4, 1.4], size: 15 },
@@ -975,26 +1030,32 @@ doc.push(table(
     ["11-09 23:16", "893096e", "7", "chat-3 transcript: extract and commit, raw log included"],
     ["11-10 06:52", "d9c83d4", "7", "Signed, verifiable ledger export (AD-3 part two)"],
     ["11-10 06:58", "53ad93a", "7", "Transcript: snapshot chat-3 at close, raw log included"],
+    ["11-10 09:30", "5ce18cd", "8", "Ledger replication series: scheduled cadence, chained bundles, inspection"],
+    ["11-10 09:30", "7116f64", "8", "chat-4 carry-forward: record the replication phase and de-stale the push section"],
+    ["11-10 10:10", "58bfaef", "8", "Restate A2/D08 and roi.py on A1; fix the ROI test that could not fail"],
+    ["11-10 10:11", "827261f", "8", "chat-4 carry-forward: record the model decision and the one unfinished workbook step"],
   ],
   { width: [1.5, 1.3, 0.8, 6.4], size: 14, mono: [1] },
 ));
-doc.push(P("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3, and it is the stage that changed the most after it was written — two of its four phases were materially repaired because an independent audit found what the author had not.", { spaceBefore: 120 }));
+doc.push(P("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3, and it is the stage that changed the most after it was written — two of its four phases were materially repaired because an independent audit found what the author had not. Stage 8 is chat-4, which ran two phases: the replication series, and the model decision that closed both findings Part VII had carried since chat-3. Its most transferable lesson is in §8.3 — a numeric defect valued a missed defect 29× too high, and the test guarding it could not fail.", { spaceBefore: 120 }));
 
 doc.push(H2("Current status at a glance"));
 doc.push(table(
   ["Area", "State", "Note"],
   [
-    ["Physics engine and tests", "Complete, 80/80 passing", "21 formula tests + 17 ledger tests + 42 export tests; deterministic, no learned parameters"],
+    ["Physics engine and tests", "Complete, 113/113 passing", "Physics formula tests, ledger, signed export, replication; deterministic, no learned parameters"],
     ["Demonstration application", "Runs", "Synthetic data only"],
     ["Client docket", "38 artifacts built, 0 outstanding in the index", "Not yet counsel-reviewed"],
     ["Detector ingest", "Not built", "The largest gap; disclosed in three places"],
-    ["Append-only ledger", "Built 2026-11-09", "Insert-only, triggers, SHA-256 chain, 17 tests"],
-    ["Signed ledger export", "Built 2026-11-10", "HMAC-SHA256 bundle, standalone verifier, chaining, 42 tests. Symmetric: cannot name the signer or date itself"],
-    ["Off-box replication", "Not built", "Export is a procedure a human runs, not a scheduled control"],
+    ["Append-only ledger", "Built 2026-11-09", "Insert-only, triggers, SHA-256 chain"],
+    ["Signed ledger export", "Built 2026-11-10", "HMAC-SHA256 bundle, standalone verifier, chaining. Symmetric: cannot name the signer or date itself"],
+    ["Ledger replication series", "Built 2026-11-10", "Monthly full + weekly incremental, chained, inspection reports gaps. Carries nothing off the box by design (D09 §3.2)"],
+    ["Off-box carriage", "By design the Railroad's step", "The Platform produces and verifies the series; physically moving it to backup media is the customer's action under D09 §3.3"],
     ["Signed certification registry", "Not built", "F08 is the manual substitute; it is the dependency for signer attribution"],
     ["SBOM, hash pinning, signed releases", "Not built", "Q1–Q2 2027 targets; disclosed"],
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
-    ["Commercial numbers", "Two open findings, now priced", "A1 and D08 disagree; an owner decision, options costed in assets/"],
+    ["Commercial numbers", "Decided 2026-11-10 — A1 governs", "A2 §3.2 / D08 §3 restate at 1.77×–3.36×; D08 §5–§6 restated from A1. Findings 1 and 2 closed"],
+    ["A1 workbook", "Rebuilt, not yet installed", "Run REPLACE-WORKBOOK.bat after closing Excel; until then the committed .xlsx carries the $285,000 pilot year"],
     ["D07 §14.5 venue", "Open counsel decision", "Blocks first execution"],
     ["Push state", "Commits ahead of the local remote ref", "Not counted here — the count changes with every commit. Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
   ],

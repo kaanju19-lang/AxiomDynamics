@@ -1,8 +1,9 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-10 (chat-4 in progress — ledger replication series
-built and twice audited; the A1/D08 model decision taken and both documents plus
-`roi.py` restated). Next session: read `chat-4/CARRY-FORWARD.md`, then this file.
+**Last updated:** 2026-11-10 (chat-4 closed — ledger replication series built and
+twice audited, the A1/D08 model decision taken and both documents plus `roi.py`
+restated, the A1 workbook rebuilt). Next session: read
+`chat-5/CARRY-FORWARD.md`, then this file.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -56,28 +57,28 @@ The validation chain — schema, timestamp, plausibility — is designed and not
 
 ## Open items, in priority order
 
-1. **A1 workbook regeneration — the last step of the model decision, not yet done.**
-   The model question was decided on 2026-11-10 (see "Model decision" below) and
-   A2 §3.2, D08 §3, §5 and §6 and `backend/roi.py` were all restated. The workbook
-   itself is still the pre-decision file and **now disagrees with the prose in one
-   place**: A1 sheet 4 carries a $285,000 pilot fee while A2 §5.1 charges $370,000,
-   and A1 has no conversion-credit line. Regenerating it is task 4 and is safe now
-   that the model no longer moves. Until it is regenerated, treat the .xlsx as a
-   working instrument whose pilot-year rows are stale, and quote A2 for price.
+1. **A1 workbook install — one command, needs the owner.** The workbook was
+   rebuilt, recalculated and committed beside the original
+   (`AxiomDynamics-ROI-Calculator.rebuilt.xlsx`), but the original was locked open
+   in Excel and could not be replaced from here. **Run
+   `client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat` after
+   closing Excel.** Until then the committed `.xlsx` carries the $285,000 pilot
+   year while A2 §5.1 charges $370,000, and reads 2.25× against the rebuilt
+   file's 2.0653×.
 2. **D07 §14.5 — governing law and venue.** An open counsel decision, correctly
    labelled as open as of chat-2 (previously a blank pointing at an Order field
    that does not exist). Must be closed by signed addendum before first execution.
 3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
    dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
 4. **Ledger signer attribution and off-box carriage** — the signed export landed
-   2026-11-09, and the **series build landed 2026-11-10** (see below), so the
-   Platform now produces the D09 §4.5.4 cadence itself. What remains: the HMAC
-   signature is symmetric, so it cannot name the signer; it cannot prove when it
-   was made; a ledger wiped before the first bundle in a series is invisible to
-   later ones; and **nothing carries the produced series off the box** — that is
-   deliberate, because D09 §3.2 promises no outbound network, so carriage is the
-   Railroad's physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items
-   11–12. Closing attribution is an **AD-2 dependency**, not more export code.
+   2026-11-09 and the **series build landed 2026-11-10**, so the Platform now
+   produces the D09 §4.5.4 cadence itself. What remains: the HMAC signature is
+   symmetric, so it cannot name the signer; it cannot prove when it was made; a
+   ledger wiped before the first bundle in a series is invisible to later ones;
+   and **nothing carries the produced series off the box** — that is deliberate,
+   because D09 §3.2 promises no outbound network, so carriage is the Railroad's
+   physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items 11–12.
+   Closing attribution is an **AD-2 dependency**, not more export code.
 
 ## Model decision — A1 governs, decided 2026-11-10 (chat-4)
 
@@ -138,6 +139,28 @@ the release verifier rejected every full export, `inspect` could not see
 tampering or gaps, the period walker hung on a 53-week ISO year, concurrent runs
 duplicated bundles, and one test passed only because the check it guarded was
 absent. A green suite of 108 preceded all of it.
+
+## Transcript — chat-4 extracted and committed at close, 2026-11-10
+
+The standing rule is that a phase is not finished until its assets and its
+conversation are in this repository. Chat-4's raw log was extracted at close:
+3,348 events, 6.6 MB, into
+`project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl`, with the
+readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 425 turns
+of which **four are the owner's**.
+
+**A defect in the extractor was fixed in this pass.** `extract_transcript.py`
+wrote a hard-coded `"# Chat-3"` heading into every extract regardless of which
+session it was processing, so chat-4's file opened under the wrong title. It now
+derives the heading from the output filename (`…-chat-4.md` → `# Chat-4`) and
+falls back to the filename stem otherwise.
+
+**Build history regenerated at 34 pages.** Part VII still described Findings 1
+and 2 as open, which had been true when written in chat-3 and stopped being true
+in phase 2 of chat-4. Both are now recorded as closed, with their resolution and
+the reasoning kept rather than deleted. Stage 8 was extended to carry the model
+decision, and the status-at-a-glance table was corrected — its test count, its
+replication row and its commercial-numbers row were all stale.
 
 ## Signed ledger export — built 2026-11-10 (AD-3 part two), commit `d9c83d4`
 
