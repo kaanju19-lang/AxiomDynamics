@@ -205,6 +205,19 @@ When SBOM generation is implemented (target Q1 2027 — §4.4), Supplier will pr
 
 > **Why this is written as a negative.** This section previously said the Supplier "provides an SBOM with each release." It does not, §4.4 of this same document says it does not, and the difference between those two statements is the difference between a security schedule and a marketing document. **A control that is promised in one section and denied in another will be tested by the first auditor who reads both.**
 
+### 7.3 Release artefacts and signing
+
+**Supplier does not currently sign release artefacts, and does not represent that it does.**
+
+Every artefact the Railroad receives today is unsigned. Its integrity rests on the transfer channel and on the Railroad's own verification, not on a cryptographic signature from Supplier:
+
+- **Repository checkout.** Where the Railroad clones the source repository, git's own object hashing provides integrity for the tree it receives, against the branch it received it from. That is a check on corruption and on the transported content. **It is not a signature** — it does not prove which key produced a release, and it does not survive a compromised repository host.
+- **Sealed-archive transfer (C01 Part B).** Supplier provides a **SHA-256 manifest** of the transferred set, which the Railroad verifies against the files it receives. This detects corruption and in-transit substitution **when the manifest itself is trusted** — and today it arrives over the same channel as the archive, which is the weakness. A manifest delivered alongside the thing it describes protects against accident, not against an adversary who can alter both.
+
+When release signing is implemented (target Q2 2027 — §4.4), Supplier will sign release artefacts with a GPG key and publish the corresponding public key, so that the Railroad can verify that an artefact was produced by Supplier and has not been altered since. Until then, the Railroad should treat any artefact received from Supplier as **trusted only to the extent it trusts the channel**, and should apply its own scanning and provenance checks.
+
+> **Why this section exists at all.** Signed release artefacts previously appeared exactly once in this document — as a row in the §4.4 gap table. A control disclosed only in a remediation table is not disclosed; it is noted. A CISO reading §7 for the supply-chain position would have found the SBOM gap stated plainly at §7.2 and no corresponding statement about signing, and would reasonably have concluded that if the drafter had addressed one and not the other, the unaddressed one was probably fine. **The rule for this document is that every control in §4.4's gap table has a corresponding negative statement in the section a reader would look in.** That is now true for signing as it was already true for the SBOM.
+
 ---
 
 ## 8. Access control and personnel management

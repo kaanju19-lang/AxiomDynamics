@@ -91,7 +91,7 @@ Contracts say what the rules are. **Forms are how the rules are actually applied
 
 | ID | Form | Status | Purpose |
 |---|---|---|---|
-| **F00** | Forms Register & Documentation Policy | **Built** | The index, the five documentation rules, and the rule that governs the others: *if no form exists for what you are about to do, create the form first.* |
+| **F00** | Forms Register & Documentation Policy | **Built** | The index, the seven documentation rules, and the rule that governs the others: *if no form exists for what you are about to do, create the form first.* Rule 7 separates a fill-in blank from an unmade decision. |
 | **F01** | Site Readiness & Survey Questionnaire | **Built** | Pre-deployment site assessment: detector, compute, network, people, existing systems. |
 | **F02** | Configuration Attestation | **Built** | The Customer's IT Director certifies the installation. **Establishes the Commissioning Date and starts the pilot clock.** The single most important form in the docket. |
 | **F03** | Change Order | **Built** | The only mechanism by which scope, price or schedule may change on an executed Order. 8-hour tolerance for minor change. |
@@ -251,9 +251,9 @@ These are disclosed rather than hidden, and they are tracked here so the docket 
 | **No detector ingest path at all** — no endpoint accepts a Railroad payload; signals are generated from physics equations on synthetic traces | B01 §7 gap #5 · **B02 §2** · **B03 status block** | **The largest gap in this table.** Every demonstration number is a demonstration of the method, not of the Railroad's data. The validation chain (schema, timestamp, plausibility) is designed and not built. |
 | Disposition ledger **overwrites** rather than appends | B01 §7 gap #2 · D09 §4.4 · **F09 Part 7** | The ledger is a record, not an audit trail. Do not represent it as tamper-evident. |
 | Certification registry is **local accounts**, no cryptographic verification | B01 §7 gap #1 · D09 §4.4 · **F08 Part 1** | Manual control via F08 is the substitute. A reviewer can self-assert a cert ID. |
-| No SBOM artefact in releases | D09 §4.4 | Customer cannot independently verify the dependency chain. Target Q1 2027. |
+| No SBOM artefact in releases | D09 §4.4 · **D09 §7.2** | Customer cannot independently verify the dependency chain. Target Q1 2027. |
 | No hash pinning of dependencies | D09 §4.4 | A compromised package index could serve malware. Target Q1 2027. |
-| No signed release artefacts | D09 §4.4 | A release archive could be substituted. Target Q2 2027. |
+| No signed release artefacts | D09 §4.4 · **D09 §7.3** | A release archive could be substituted. Target Q2 2027. |
 | Licence scope enforced **by contract only**, not by the software | D02 §6 · D05 §5.2 | Nothing technically prevents a second site. Scope is an obligation, not a control. |
 | Insurance limit is **$2M, not $5M** | D07 §10.1 · D03 §9 | Stated honestly with a step-up commitment. Certificates must match the clause. |
 

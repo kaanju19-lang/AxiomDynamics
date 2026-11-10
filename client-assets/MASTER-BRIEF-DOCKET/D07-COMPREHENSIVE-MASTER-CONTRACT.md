@@ -192,11 +192,27 @@ Governed by **D13** in full: ownership, escrow, assignment, contributor assignme
 
 **14.1 Negotiation.** Authorised representatives negotiate in good faith for thirty (30) days from written notice of dispute.
 
-**14.2 Mediation.** If unresolved, mediation under [the mediation rules of the chosen provider] before a single mediator, for a further thirty (30) days.
+**14.2 Mediation.** If unresolved, mediation under [the mediation rules of the chosen provider] before a single mediator, for a further thirty (30) days. The mediation provider is selected at the same time as the governing law and seat under §14.5.
 
-**14.3 Proceedings.** If unresolved, [the courts / arbitration seat] stated in the Order signature block________ have exclusive jurisdiction. **Either party may seek injunctive relief at any time** to protect confidentiality or IP.
+**14.3 Proceedings.** If unresolved after §14.1 and §14.2, the dispute is determined in the forum identified by §14.5. **Either party may seek injunctive relief at any time** to protect confidentiality or IP, in any court of competent jurisdiction, without waiving this section.
 
 **14.4 Continuing performance.** Both parties continue to perform during a dispute, and the Railroad continues to pay undisputed amounts.
+
+**14.5 Governing law, seat and forum — an open item requiring counsel decision.**
+
+> **This is a decision, not a blank.** The law that governs this Agreement, and the forum in which a dispute is determined, are not stated here because they have not yet been chosen. Treating that as a fill-in blank would misrepresent an unmade decision as a settled one (F00 Rule 7). It is written as what it is.
+
+**(a) What must be decided.** Three things, together: the **governing law** (the substantive law applied), the **seat or forum** (the courts, or the arbitral seat and institution), and the **mediation provider** under §14.2.
+
+**(b) Who decides and by when.** The decision is made by the Supplier with advice of counsel qualified in the candidate jurisdiction, **before this Agreement is first executed with any customer**, and it is recorded in a signed addendum to this Agreement. It cannot be left to the Order: an Order is a commercial instrument and its signatories are not the parties who should be choosing a forum.
+
+**(c) Default expectation, stated as an expectation and not as a term.** Texas law and a Texas venue are the working assumption, because the Supplier is a Texas entity and the counterparties are Texas-headquartered Class I carriers — a Texan forum is the least surprising to both. **This is not the governing law of any Agreement until (b) is done.** A default assumption recorded in a footnote is guidance to counsel; it is not a term a party may enforce.
+
+**(d) What happens if an Order is executed and §14.5 is still open.** The Order is not void, and the parties are not left without a forum. In that event, and only in that event, the dispute is brought in the courts of the state of the Supplier's principal place of business, applying the law of that state, and §14.1–§14.4 apply unchanged. This fallback exists so that an administrative omission cannot be argued as an absence of jurisdiction — but it is a fallback, not a preference, and its use is itself evidence that (b) was not completed.
+
+> **Why this section was rebuilt.** §14.3 previously read: "[the courts / arbitration seat] stated in the Order signature block________ have exclusive jurisdiction." No Order template in this docket contains such a field. The clause therefore pointed at something that did not exist, and a reader checking it would find nothing to check. It also described an unmade decision in the grammar of a settled one. §14 now separates the mechanical parts of dispute resolution, which are decided, from the jurisdictional choice, which is not — and says plainly which is which.
+
+**14.6 Cost of dispute.** Each party bears its own costs unless the forum awards costs.
 
 ## 15. Term, termination, and exit
 

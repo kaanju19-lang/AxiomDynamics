@@ -8,7 +8,7 @@
 
 ## Part 1 — The documentation policy
 
-These six rules apply to every form, every agreement, and every record we produce. They are not stylistic preferences. They are the reason a small company can be trusted with a Class I carrier's operating risk.
+These seven rules apply to every form, every agreement, and every record we produce. They are not stylistic preferences. They are the reason a small company can be trusted with a Class I carrier's operating risk.
 
 ### Rule 1 — Every commitment is in a document, and every document has a number.
 
@@ -26,6 +26,8 @@ An unsigned form with no default is a process that stops. Every form in this reg
 
 We write "we" and "you" where the meaning is clear, and use the defined terms where precision requires it. Legalese is not a sign of professionalism; it is a sign the drafter could not decide what the sentence meant. Enterprise-grade means a document a Chief Engineer can read without calling legal.
 
+Square brackets in this docket mean **one thing only: a defined term or an editorial substitution being offered to the reader**, as in "[the mediation rules of the chosen provider]". Brackets are never used to mark a blank to be filled in. Blanks are underscores (Rule 7). This distinction exists because the two were previously mixed, and a bracketed placeholder that is neither a definition nor a blank is a sentence nobody can act on.
+
 ### Rule 5 — Records are retained, and retention is stated on the record.
 
 Every executed form is retained for the period stated in its own header. Nothing is discarded because it became inconvenient. The disposition ledger, the order register, and the certification registry are the three records that make everything else defensible.
@@ -35,6 +37,16 @@ Every executed form is retained for the period stated in its own header. Nothing
 **No form in this register can amend, override, or set aside A2 (Rate Card), D02 (Pilot Agreement), D03 (MSA) or D07 (Master Contract).** Where a completed form appears to conflict with one of those instruments, **the instrument governs and the form is corrected.**
 
 This is the most important rule in this policy, because it is the one most likely to be broken by accident. A payment schedule that quietly restates a fee, a change order that alters liability, an acceptance that waives a warranty — each of these is a form doing something only a signed agreement may do. The forms exist to *evidence* what the agreements already permit; they are not a second, informal contract that bypasses the first.
+
+### Rule 7 — A blank and a decision are different things, and the document says which it is.
+
+Every unfilled field in this docket is one of exactly two kinds, and the drafter must know which before writing it:
+
+**A fill-in blank** is a value that exists and will be entered at execution — a party name, a date, an amount agreed in the Order, an address for notices. It is written as underscores `________`, and it is safe to leave because the process that fills it is defined and the consequence of it staying empty is stated (Rule 3).
+
+**An unmade decision** is a question the docket has not answered — which law governs, which arbitration seat, which entity form. It is **never** written as a blank, because a blank implies "we know that this will be filled in." An unmade decision is written as an **explicit open item**: the section states what has to be decided, who must decide it, and what happens in the meantime. A decision left unmade is a defect; a decision labelled as unmade is a work item. The difference between the two is the difference between a document that is quietly incomplete and one that is honestly incomplete.
+
+**The prohibited pattern.** Never write a clause that points to a field which no document actually contains. An earlier draft of D07 §14.3 sent dispute venue to "[the courts / arbitration seat] stated in the Order signature block" — and no Order template has that field. The clause therefore described a decision as though it had already been made somewhere else, which is worse than either leaving it blank or admitting it was open: it read as complete to every person who did not go and check, and there was nothing to check. Where a term belongs in a separate instrument, the clause cites that instrument and section by number (Rule 1), not a field whose existence nobody has verified.
 
 The lawful scope of each form is narrow and worth stating:
 
