@@ -1,6 +1,7 @@
-# Chat-3 — Running Summary
+# Chat-3 — Summary
 
-Status: **in progress** as of 2026-11-09.
+Status: **closed 2026-11-10.** Handoff for the next session is
+`project-logs/chat-4/CARRY-FORWARD.md`.
 Opened with the chat-2 carry-forward. Its first act was to verify the inherited
 state against the repository rather than trust the handoff, per the standing rule.
 

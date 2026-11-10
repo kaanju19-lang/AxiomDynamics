@@ -7,10 +7,10 @@ Conversation records for the project.
 | File | Turns | Covers |
 |---|---|---|
 | `2026-11-09-chat-2.md` | 302 (134 user, 168 assistant) | chat-2, first line to the point of extraction |
-| `2026-11-09-chat-3.md` | 641 | chat-3, first line to the signed ledger export and its transcript step |
+| `2026-11-09-chat-3.md` | 799 (11 user, 788 assistant) | chat-3, first line to the closing request |
 | `raw/2026-11-09-chat-2.jsonl` | 791 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
-| `raw/2026-11-10-chat-3-snapshot.jsonl` | 5,032 events | the chat-3 log, 17.1 MB, valid JSONL |
+| `raw/2026-11-10-chat-3-snapshot.jsonl` | 6,372 events | the chat-3 log at close, 26 MB, valid JSONL |
 
 The `.md` is the readable version: every user and assistant turn in order. Tool
 calls are recorded inline so you can see what was run; tool *output* — command
@@ -26,6 +26,12 @@ Commit both: an extract alone is a summary pretending to be a record.
 a prefix of this one — verified by comparing the two files line by line — so it
 was deleted rather than kept as a second copy that adds 13 MB and no information.
 A snapshot is worth keeping only when it shows a state the final one cannot.
+
+**This copy was re-taken at chat-3's close, which is the right time to take it.**
+The session log had grown from 5,032 to 6,372 events between the first close
+snapshot and the actual end — every exchange after the extraction is otherwise
+lost. A transcript extracted before the last word is a transcript of the
+session so far.
 
 ## What is NOT here, and cannot be
 

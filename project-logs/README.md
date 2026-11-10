@@ -21,7 +21,9 @@ project-logs/
 │   ├── SUMMARY.md          what chat-2 did; closed 2026-11-09
 │   └── CARRY-FORWARD.md    the handoff document for chat-3
 ├── chat-3/
-│   └── SUMMARY.md          running record of chat-3
+│   └── SUMMARY.md          chat-3, closed 2026-11-10
+├── chat-4/
+│   └── CARRY-FORWARD.md    the handoff document for chat-4
 └── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
     ├── 2026-11-09-chat-2.md   readable extract
     ├── 2026-11-09-chat-3.md   readable extract

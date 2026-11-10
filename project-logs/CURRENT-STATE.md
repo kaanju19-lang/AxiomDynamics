@@ -1,7 +1,8 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-10 (chat-3 — arithmetic pass, build history document,
-append-only ledger, A2/D08 decision paper, signed ledger export, transcript)
+**Last updated:** 2026-11-10 (chat-3 closed — arithmetic pass, build history
+document, append-only ledger, A2/D08 decision paper, signed ledger export,
+transcript). Next session: read `chat-4/CARRY-FORWARD.md`.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
