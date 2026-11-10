@@ -172,10 +172,10 @@ Excel lock is still present.
 
 The standing rule is that a phase is not finished until its assets and its
 conversation are in this repository. Chat-4's raw log was extracted at close:
-4,906 events, 12 MB, into
+5,016 events, 12 MB, into
 `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl`, with the
-readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 613 turns
-of which **five are the owner's**.
+readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 627 turns
+of which **six are the owner's**.
 
 **A defect in the extractor was fixed in this pass.** `extract_transcript.py`
 wrote a hard-coded `"# Chat-3"` heading into every extract regardless of which
