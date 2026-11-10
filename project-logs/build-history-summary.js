@@ -845,7 +845,7 @@ doc.push(callout(
 ));
 
 doc.push(H2("Push"));
-doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, with four commits ahead of it: 893096e, d9c83d4, 53ad93a and the log commit that carries this revision. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
+doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, and the first commit after it was 893096e. The number of commits ahead is not written here on purpose: this document's own commit changes it, which is exactly why the instruction is to run the command rather than read a figure. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
 
 doc.push(H2("The decisions waiting, in order of consequence"));
 doc.push(...numbered("numE", [
@@ -949,7 +949,7 @@ doc.push(table(
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
     ["Commercial numbers", "Two open findings, now priced", "A1 and D08 disagree; an owner decision, options costed in assets/"],
     ["D07 §14.5 venue", "Open counsel decision", "Blocks first execution"],
-    ["Push state", "Four commits ahead of the local remote ref", "Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
+    ["Push state", "Commits ahead of the local remote ref", "Not counted here — the count changes with every commit. Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
   ],
   { width: [3.2, 3.2, 3.6], size: 16 },
 ));

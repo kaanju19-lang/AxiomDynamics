@@ -4,10 +4,9 @@
 append-only ledger, A2/D08 decision paper, signed ledger export, transcript)
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
-**Push state:** run `git log --oneline origin/main..HEAD`. As last confirmed the
-local remote-tracking ref stood at `bb99cdd`, with three commits ahead of it:
-`893096e` (mid-session transcript), `d9c83d4` (signed ledger export) and
-`53ad93a` (close-of-session transcript). Never trust a hash written in this file
+**Push state:** `git log --oneline origin/main..HEAD` is the only answer that
+counts. As last confirmed the local remote-tracking ref stood at `bb99cdd`; the
+first commit after it is `893096e`. Never trust a hash written in this file
 — check with git, because this file's own commit moves the top of the branch
 every time it is edited. Run `PUSH-TO-GITHUB.bat` in the repo root. The sandbox
 cannot reach GitHub: `git push` and `git fetch` both fail with HTTP 403 from the
@@ -200,11 +199,9 @@ remote state without checking the commits page.
 prints the commits waiting to go up and verifies afterwards.
 
 **Last confirmed pushed state, 2026-11-10:** the owner's push moved the remote to
-`bb99cdd`. Three commits are local and waiting on top of it — `893096e`
-(mid-session transcript), `d9c83d4` (signed ledger export) and `53ad93a`
-(close-of-session transcript, raw log included). Check
-`git log --oneline origin/main..HEAD` rather than this paragraph; every edit here
-moves the top of the branch.
+`bb99cdd`. Everything after it is local and waiting, and every edit to this file
+adds to the queue — so the count is deliberately not written here. Run
+`git log --oneline origin/main..HEAD`.
 
 **The host repo at `C:\Users\RGV\AxiomDynamics` is authoritative for push state.**
 Verify by opening the commits page.
