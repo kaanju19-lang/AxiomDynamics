@@ -607,7 +607,7 @@ s["A22"] = ("SOURCED: $5.0M and $13.5M contained derailment costs (NTSB RAB1712 
 s["A22"].font = NOTE_FONT
 s["A22"].alignment = Alignment(wrap_text=True, vertical="top")
 s.merge_cells("A22:E23")
-s["A24"] = ("ASSUMED — replace before quoting: the 2% catastrophic escalation rate, the 4.8-hour "
+s["A24"] = ("ASSUMED — replace before quoting: the 0.05% catastrophic escalation rate (cell B17), the 4.8-hour "
             "legacy and 1.5-hour AxiomDynamics detection times, defects caught per 500 axles, the "
             "3.5% and 0.1% false-positive rates, the $1,500 per-false-alarm cost, the $45,000 "
             "per-site platform fee, and every rate on the rate card.")
@@ -618,5 +618,7 @@ s.merge_cells("A24:E26")
 for sheet, cell in ((ws, "A7"), (d, "A5"), (b, "A5"), (ct, "A5"), (s, "A5")):
     sheet.freeze_panes = cell
 
-wb.save("/sessions/ecstatic-gifted-bell/mnt/outputs/axiomdynamics-app/client-assets/02-roi-calculator/AxiomDynamics-ROI-Calculator.xlsx")
+import os
+wb.save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                     "AxiomDynamics-ROI-Calculator.xlsx"))
 print("written")
