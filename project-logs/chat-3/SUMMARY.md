@@ -83,13 +83,39 @@ builder fixes). `chat-2/SUMMARY.md` finalized and its push claims corrected.
   CRLF and produced 1,248 changed lines for a 2-line fix; reset and recommitted so
   the commit shows 420 insertions and 2 deletions.
 
+## The build history document
+
+Requested by the owner because chat-1's conversation no longer exists and the
+build needed a readable record of itself. Produced as
+`project-logs/AxiomDynamics-Build-History-and-Working-Summary.docx` — 29 pages,
+eight parts plus an appendix — with its generator committed beside it at
+`project-logs/build-history-summary.js` so it can be rebuilt after a change.
+
+Contents, in order: what the product is and why physics rather than ML; the six
+models; the eight build stages across all 37 commits with every correction; the
+38-artifact docket document by document plus the D00 Part IV precedence ladder;
+the loss of chat-1's work, its mechanism and its cost; what chat-2 rebuilt and
+how it verified it; internal strategy in `assets/`; the open items including both
+chat-3 modelling findings; how to resume; and an appendix with the repository
+map, the full commit chronology and a status table.
+
+Written from the repository, not from recollection. Layout verified by rendering
+to PDF and reading the pages: 29 pages, no overflow, tables within margins,
+numbering restarting per list. Two defects were found and fixed in that pass —
+all numbered lists shared one continuous sequence (Part VIII opened at "10."),
+and the Word TOC field rendered empty in a converter that does not update
+fields, so a static Parts table now carries the navigation.
+
 ## Commits
 
 `ed78962` — the arithmetic pass, check script, pass record and builder fixes.
+`a3ba43f` — the build history document and its generator.
+`b3dcda4` — `CURRENT-STATE.md`: points at the summary, corrects the artifact
+count, and replaces the hardcoded unpushed-hash list with an instruction to check
+`git log origin/main..HEAD`.
 
-**Push required.** Five commits are unpushed: `3d773ac`, `36b43bd`, `d6f25ac`,
-`05b161d` and `ed78962`. The sandbox cannot reach GitHub (HTTP 403 from the
-proxy). Run `PUSH-TO-GITHUB.bat` in the repo root.
+**Push required.** Run `PUSH-TO-GITHUB.bat` in the repo root, then confirm with
+`git log --oneline origin/main..HEAD` rather than trusting any hash written here.
 
 ## Next
 
