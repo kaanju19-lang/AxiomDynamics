@@ -48,6 +48,31 @@ commits ahead of its own `origin/main` ref (`548ab32`, `5ce18cd`), and the ref
 itself is not evidence of what the remote holds, because the sandbox cannot
 fetch.
 
+## Chat-4 phase two — the model decision (decided, restated, committed)
+
+The owner delegated the A1-versus-D08 question ("you decide"). **A1 governs**, as
+Option D in `assets/a2-d08-model-decision-2026-11-09.md`. Commit `58bfaef`.
+
+A2 §3.2 and D08 §3 now state **1.77x at 500 axles, 3.36x at 10,000** instead of
+the withdrawn 2.0x/4.1x. D08 §5–§6 restated from A1 — and the restatement found
+something the old text hid: **at the 100–200 axles §2 scopes the pilot at, the
+pilot does not pay for itself (0.75x the fee)**. The document says so now. Four
+years is 2.01x, six years 2.06x. `backend/roi.py` was valuing a missed defect
+29x too high; it is now $999,750, identical to A1's B22.
+
+**One step is unfinished and needs the owner: run
+`client-assets/MASTER-BRIEF-DOCKET/A1-ROI-MODEL/REPLACE-WORKBOOK.bat` after
+closing Excel.** The rebuilt workbook is committed beside the old one because the
+old one was locked open in Excel and could not be replaced from here. Until that
+runs, the committed `.xlsx` still carries the $285,000 pilot year and 2.25x.
+
+**The lesson worth carrying.** The ROI test rebuilt its expected value from the
+same constants it compared against, so it could never fail: restoring the 2%
+defect gave 112 passed, 0 failed. A guard that recomputes its own expectation is
+not a guard. Assert literals, then break the thing deliberately and confirm red.
+This is the third time in three sessions that an audit found a test passing for
+the wrong reason.
+
 ## Chat-4 phase one — the replication series (built, audited, committed)
 
 `5ce18cd`. `backend/ledger_replication.py` produces the D09 §4.5.4 cadence and
