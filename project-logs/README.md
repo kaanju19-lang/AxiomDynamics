@@ -62,6 +62,14 @@ Two, from the original build, still in force:
   `assets/`, never in `client-assets/`. Client-facing material is
   `client-assets/MASTER-BRIEF-DOCKET/` only.
 
+A third, added 2026-11-09 after the loss described above:
+
+- **"Drop all the entire project work directly in AxiomDynamics folder so we don't
+  lose any data from sandbox."** Work is written into this repository on the first
+  pass and committed in the same pass that produces it. No drafts parked anywhere
+  else. The sandbox is scratch space and its storage does not survive a session;
+  this repository does.
+
 ## The discipline that matters most
 
 Chat-1's own summary records it, and the record confirms it: nearly every bad

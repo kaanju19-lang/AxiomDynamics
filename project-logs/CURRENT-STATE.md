@@ -74,6 +74,7 @@ Recorded here so nobody goes looking for it:
 
 ## Standing instructions
 
+- **[WORK LOCATION] All project work is written directly into this repository, first pass, and committed in the same pass.** No drafts in sandbox scratch space — that is how chat-1's final phase was lost.
 - Keep the same concept throughout — consistency of framing across every document.
 - Internal analysis goes in `assets/`, never `client-assets/`.
 - Verify against the file before writing the claim.
