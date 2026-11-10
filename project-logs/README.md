@@ -14,8 +14,12 @@ project-logs/
 │   ├── SUMMARY.md          what chat-1 did, decided, caught, and left open
 │   └── CARRY-FORWARD.md    the handoff document for chat-2
 ├── chat-2/
-│   └── SUMMARY.md          running record of chat-2
+│   ├── SUMMARY.md          what chat-2 did; closed 2026-11-09
+│   └── CARRY-FORWARD.md    the handoff document for chat-3
+├── chat-3/
+│   └── SUMMARY.md          running record of chat-3
 └── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
+    └── raw/                the source logs, committed with each transcript
 ```
 
 ## Order of authority

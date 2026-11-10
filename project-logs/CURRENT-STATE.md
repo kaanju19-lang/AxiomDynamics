@@ -1,9 +1,12 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-09 (chat-2, all work pushed)
+**Last updated:** 2026-11-09 (chat-3, A2/D08 arithmetic pass committed)
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
-**Top commit on `origin/main`:** `2ec168b` — confirmed on GitHub 2026-11-09. Everything is pushed; nothing is outstanding.
+**Top commit on `origin/main`:** `ee9800c` as last confirmed. **Five commits are
+unpushed** as of chat-3: `3d773ac`, `36b43bd`, `d6f25ac`, `05b161d` (chat-2
+transcript and handoff) and `ed78962` (chat-3 arithmetic pass). Run
+`PUSH-TO-GITHUB.bat` in the repo root.
 
 ---
 
@@ -38,16 +41,44 @@ The validation chain — schema, timestamp, plausibility — is designed and not
 
 ## Open items, in priority order
 
-1. **A2 / D08 arithmetic pass.** Neither has been re-derived figure by figure
-   since `cf2e6ba`. A wrong number in a rate card is found by a customer's AP
-   clerk, not by us. **This is the highest-value remaining task.**
+1. **Two A2/D08 model findings — need an owner decision.** The arithmetic pass of
+   2026-11-09 found **no arithmetic errors** in either document (78 of 78 figures
+   recompute correctly). It did find that two *claims* do not reproduce from the
+   shipped model. Full detail in
+   `assets/a2-d08-arithmetic-pass-2026-11-09.md`; run the check with
+   `python3 -I assets/a2-d08-arithmetic-pass.py`.
+   - **Finding 1.** A2 §3.2 and D08 §3 claim ~2.0x return at 500 axles rising to
+     ~4.1x at 10,000. The shipped models give 1.77x/3.36x on the A2 cost basis or
+     2.36x/4.99x on A1's. No parameter set in the repo reproduces both anchors.
+     The monotonic claim holds on every basis; the two anchor values do not.
+   - **Finding 2.** D08 §5–§6 modelled benefits ($6–8M pilot year, $14–20M
+     four-year, $40–60M six-year) run 5x–14x above the $696,675 annual benefit A1
+     computes at identical inputs. D08 §5 states A1 must never be bypassed.
+     One of the two models governs and it has not been chosen.
 2. **D07 §14.5 — governing law and venue.** An open counsel decision, correctly
    labelled as open as of chat-2 (previously a blank pointing at an Order field
    that does not exist). Must be closed by signed addendum before first execution.
-3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
+3. **A1 workbook regeneration.** Deliberately not regenerated during the
+   arithmetic pass, because doing so would bake both open findings into a new
+   file before the model question is settled. The builder is now fixed (see
+   below) and will regenerate on demand once findings 1 and 2 are decided.
+4. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
    dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
-4. **Disposition ledger** — currently overwrites rather than appends. The
+5. **Disposition ledger** — currently overwrites rather than appends. The
    evidentiary claim in F09 is ahead of the code until AD-3 lands (Q2 2027).
+
+## A1 builder — fixed in chat-3
+
+Two defects in `A1-ROI-MODEL/build_roi_calculator.py`, both cosmetic to the
+workbook but both real if anyone runs it:
+
+- The sheet-5 assumptions note attributed a **2% catastrophic escalation rate** to
+  a model whose cell B17 has held **0.05%** since the correction. A reader
+  reconciling the sheet against its own footnote would find a ten-fold conflict.
+- The script saved to `/sessions/.../mnt/outputs/...`, a path inside the destroyed
+  chat-1 sandbox, so running it raised `FileNotFoundError`. It now writes beside
+  itself.
+
 
 ## Git state
 
@@ -64,6 +95,15 @@ confirmed by the owner against the commits page.
 
 **The host repo at `C:\Users\RGV\AxiomDynamics` is authoritative for push state.**
 Verify by opening the commits page.
+
+**The line-ending trap.** `git status` in this repo lists nearly every tracked file
+as modified on a fresh Windows checkout. It is CRLF working-tree content against
+LF blobs, not a content change — `git diff --ignore-cr-at-eol` returns empty.
+There is no `.gitattributes` and `core.autocrlf` is unset. **Always check with
+`--ignore-cr-at-eol` before believing a diff stat**, and never let an editor
+rewrite a whole file's endings into a commit: doing so once during chat-3 turned a
+two-line fix into 1,248 changed lines, which had to be reset and recommitted.
+
 
 ## What was lost in the chat-1 → chat-2 transition
 

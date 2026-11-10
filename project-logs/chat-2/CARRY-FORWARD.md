@@ -32,14 +32,24 @@ The repo is at `C:\Users\RGV\AxiomDynamics`, remote
 `git log --oneline -5` and `git status` in the repo, read
 `project-logs/CURRENT-STATE.md`, then say what you found.
 
-**Two commits are unpushed** as of chat-2's end: `785f335` and `ee9800c`. Run
-`PUSH-TO-GITHUB.bat` in the repo root. The sandbox cannot reach GitHub — 403 from
-the proxy — so pushing is always the owner's job.
+**Push state — corrected in chat-3.** This file originally named `785f335` and
+`ee9800c` as unpushed. **Both reached GitHub;** `ee9800c` became the top of
+`origin/main`. What was actually unpushed at the chat-2 → chat-3 boundary was the
+later transcript and handoff work: `3d773ac`, `36b43bd`, `d6f25ac`, `05b161d`.
+Run `PUSH-TO-GITHUB.bat` in the repo root. The sandbox cannot reach GitHub — 403
+from the proxy — so pushing is always the owner's job. **Always confirm push state
+with `git log --oneline origin/main..HEAD` rather than trusting a written list.**
+
 
 **The work waiting:**
 
-1. **A2 / D08 arithmetic pass** — the highest-value item. The rate card and
-   liability annex have not been re-derived figure by figure since `cf2e6ba`.
+1. **Two A2/D08 model findings — an owner decision.** The arithmetic pass was
+   completed in chat-3: all 78 figures recompute correctly, no arithmetic error.
+   But two claims do not reproduce from the shipped model — the 2.0x/4.1x return
+   anchors in A2 §3.2 and D08 §3, and D08 §5–§6's modelled benefits, which run
+   5x–14x above what A1 computes at identical inputs. Details in
+   `assets/a2-d08-arithmetic-pass-2026-11-09.md`. Deciding which model governs
+   changes client-facing sentences, so it needs the owner.
 2. **D07 §14.5** — governing law and venue. Honestly labelled as an open counsel
    decision; still needs a decision and a signed addendum before first execution.
 

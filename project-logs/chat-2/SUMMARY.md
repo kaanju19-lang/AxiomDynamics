@@ -1,6 +1,8 @@
 # Chat-2 — Running Summary
 
-Status: **in progress**. This file is filled in properly when chat-2 closes.
+Status: **closed 2026-11-09.** Finalized at the start of chat-3, which found this
+file still marked "in progress" and still carrying push claims that had gone stale.
+Where this file disagrees with `CURRENT-STATE.md` or the docket, those win.
 
 ## How chat-2 started
 
@@ -56,15 +58,24 @@ or with the transcripts under `project-logs/transcripts/`, they win.
 
 ## Commits
 
-`f58b07c` — the rebuild. `c9b32bd` — push helper.
+`f58b07c` — the rebuild. `c9b32bd` — push helper. Both were superseded later in
+the session by `785f335` and `ee9800c`, then by the transcript and handoff commits.
 
-**Neither is pushed.** The sandbox cannot reach GitHub (HTTP 403 from the proxy).
-`PUSH-TO-GITHUB.bat` is in the repo root for the owner to run.
+**Correction made in chat-3:** when this summary was written it said "Neither is
+pushed." By close of chat-2 all six commits were in place locally and the owner
+had pushed through `ee9800c`, which became the top of `origin/main`. Four commits
+were still unpushed at the chat-2 → chat-3 boundary — the transcript and handoff
+work (`3d773ac`, `36b43bd`, `d6f25ac`, `05b161d`) — because they were made after
+that push. See `CURRENT-STATE.md` for authoritative push state.
+
 
 ## Next
 
 The A2/D08 arithmetic pass — the highest-value remaining task, and untouched
-since `cf2e6ba`.
+since `cf2e6ba`. **Completed in chat-3:** 78 of 78 figures recompute correctly; no
+arithmetic error found. Two model-level findings were raised and left open for a
+decision. See `assets/a2-d08-arithmetic-pass-2026-11-09.md`.
+
 
 ## Carried over from chat-1 — must not be lost
 
