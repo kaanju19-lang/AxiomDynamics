@@ -104,6 +104,17 @@ It should be decided, not quietly edited.
 and keep the monotonic claim, which is true on every basis tested. If anchors are
 wanted, use values the shipped model actually produces and say which basis.
 
+> **Update, same day — see `assets/a2-d08-model-decision-2026-11-09.md`.** The
+> statement above that "no parameter set in the repository reproduces both
+> endpoints" is correct only for the two cost bases tested here. A third basis —
+> a four-year cost including the pilot and three full production years at list,
+> with no conversion credit — reproduces both anchors from a single value of the
+> catastrophic probability, **0.0714%**, to within 1.8%. So the anchors were not
+> invented; they were computed on an unstated frame at an undisclosed third value
+> of the parameter. That makes Finding 1 a disclosure defect rather than a
+> fabrication, and the disposition above still stands: state the frame or strike
+> the numbers. The decision paper carries the full table.
+
 ---
 
 ## Finding 2 — D08's modelled benefits exceed what A1 produces
@@ -144,6 +155,16 @@ valuation or defect-frequency assumption is too conservative and the workbook is
 the thing to fix. Deciding this changes what the pilot pitch asks a customer to
 believe, so it is left open deliberately.
 
+> **Update, same day — see `assets/a2-d08-model-decision-2026-11-09.md`.** This
+> section compares D08 §5–§6 against A1 and against the fee schedule, but not
+> against **D08 §4**, which sits immediately above it and prices a prevented
+> failure at about $993,000. §5 prices the same prevented failure at
+> $8.6M–$11.4M. That is a contradiction inside one document and it does not
+> depend on A1 being correct about anything. The decision paper also shows that
+> the three periods fail to reconcile with each other: read as one model, they
+> imply years 2–4 producing 44%–50% of the pilot year, then years 5–6 producing
+> 217%–250% of it, with nothing in the model to explain either turn.
+
 ---
 
 ## Corrections made in this pass
@@ -176,11 +197,17 @@ divergence and is covered by Finding 2's disposition.
 
 ## What to do next
 
-1. Decide Finding 1 — strike or restate the 2.0x/4.1x anchors.
-2. Decide Finding 2 — which model governs, A1 or D08 §5–§6.
+1. Decide Finding 1 — strike or restate the 2.0x/4.1x anchors. **Options priced in
+   `assets/a2-d08-model-decision-2026-11-09.md` §6.**
+2. Decide Finding 2 — which model governs, A1 or D08 §5–§6. **Same document, §6.**
 3. Then regenerate the A1 workbook from the corrected builder and re-run this
    script; it will hold as long as no figure moves.
 4. D07 §14.5 governing law and venue remains open, unchanged by this pass.
+5. **New, found while costing the decision:** `backend/roi.py` uses a 2%
+   catastrophic rate and `roi.py`'s own note calls that "conservatively low",
+   while A1's B17 note calls 2% "physically impossible". Both files are wrong
+   about the other being wrong. This third divergence belongs in the same
+   decision — see the decision paper §4.4.
 
 *This record is internal analysis and lives in `assets/` by standing instruction.
 Nothing here is client-facing.*
