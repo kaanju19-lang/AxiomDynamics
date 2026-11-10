@@ -3,10 +3,11 @@
  *
  * Every figure, date, commit hash and document reference in the output was read
  * from the repository, not recalled. Sources, in order of authority:
- *   - git log (37 commits, efb87ed..b946678)
+ *   - git log (50 commits, efb87ed..53ad93a)
  *   - client-assets/MASTER-BRIEF-DOCKET/D00 Part VI (the gap register)
  *   - project-logs/{CURRENT-STATE.md, chat-1,chat-2,chat-3}
- *   - assets/* (internal analysis: Q6, IP strategy, library reconciliation)
+ *   - assets/* (internal analysis: Q6, IP strategy, library reconciliation,
+ *     the arithmetic pass, the model decision paper, the export build record)
  *   - backend/*.py and tests/*.py, executed
  *
  * Run: node project-logs/build-history-summary.js
@@ -240,8 +241,8 @@ doc.push(table(
   ["Field", "Value"],
   [
     ["Document", "Build History & Working Summary"],
-    ["Prepared", "2026-11-09, at the opening of chat-3"],
-    ["Scope", "Repository as it stands at commit b946678 — 37 commits, 80 tracked files"],
+    ["Prepared", "2026-11-09 at the opening of chat-3; revised 2026-11-10 after the ledger and export phases"],
+    ["Scope", "Repository as it stands at commit 53ad93a — 50 commits; Stages 0–7 covering chat-1, chat-2 and chat-3"],
     ["Purpose", "Standing reference before the next build phase; replaces the memory of a conversation that no longer exists"],
     ["Classification", "Internal. Contains commercial strategy and a candid record of failures. Not for customer distribution."],
     ["Companion", "project-logs/CURRENT-STATE.md (state), assets/ (analysis), client-assets/MASTER-BRIEF-DOCKET/ (deliverables)"],
@@ -273,7 +274,7 @@ doc.push(table(
   ["Part", "Covers"],
   [
     ["I", "What the product is, why physics rather than ML, and the six models"],
-    ["II", "Stage 0–5: the eight stages of the build, 37 commits, and every correction"],
+    ["II", "Stages 0–7: the build from first commit to the signed ledger export, and every correction"],
     ["III", "The 38-artifact docket, document by document, and the precedence ladder"],
     ["IV", "The loss of chat-1's work — mechanism, cost, and the rules that came out of it"],
     ["V", "What chat-2 rebuilt, and how it verified the rebuild"],
@@ -291,7 +292,7 @@ doc.push(H1("Part I — What this project is"));
 doc.push(P("AxiomDynamics is a predictive-maintenance product for freight rail, built on named physical models rather than machine learning. It monitors freight car axles, derives a condition estimate from wayside detector signals, and presents ranked advisories — called Ghost Warrants — to a certified human reviewer who records a decision. The platform does not decide anything. That boundary is the product's central commercial and legal fact, and it is stated identically in B01, B02, C02, D02, D07, D08 and D12."));
 
 doc.push(H2("The governing idea"));
-doc.push(P("The original instruction, restated in the user's own words and never varied since, was to build the system on real physics: named physical laws, rolling per-axle z-scores, kinematics from Eₖ = ½mv², acoustics against the standard bearing defect-frequency equations (BPFO, BPFI, BSF, FTF) — explicitly not black-box ML and not fixed absolute alarm thresholds. The standing instruction that captured this is: \"We will keep this same concept throughout.\" It has been honoured across all 37 commits."));
+doc.push(P("The original instruction, restated in the user's own words and never varied since, was to build the system on real physics: named physical laws, rolling per-axle z-scores, kinematics from Eₖ = ½mv², acoustics against the standard bearing defect-frequency equations (BPFO, BPFI, BSF, FTF) — explicitly not black-box ML and not fixed absolute alarm thresholds. The standing instruction that captured this is: \"We will keep this same concept throughout.\" It has been honoured across all 50 commits."));
 
 doc.push(H2("Why physics rather than ML — the argument, not the preference"));
 doc.push(P("The argument is written into the documents themselves, most directly in B02 §3 and D08 §1, and it has four parts:"));
@@ -322,12 +323,12 @@ doc.push(...numbered("numB", [
   "Severity tiers are named INFORMATIONAL, REVIEW and URGENT REVIEW — never watch/warning/critical. The rename exists so that no reader can mistake these for operational alarm levels. The platform never issues a stop-train or braking instruction.",
   "Escalation to URGENT REVIEW requires corroboration: at least two independent signal types must agree. A single signal, however severe, is capped at REVIEW. One noisy sensor cannot manufacture a false urgent case on its own.",
 ]));
-doc.push(P("Every warrant carries a SHA-256 hash over a canonical JSON serialisation of its advisory ID, asset, timestamp, full evidence array and both model and reference-population versions. That is what makes the record tamper-evident at the individual-warrant level — and it is a different claim from the ledger being append-only, which it is not yet (see Part VII)."));
+doc.push(P("Every warrant carries a SHA-256 hash over a canonical JSON serialisation of its advisory ID, asset, timestamp, full evidence array and both model and reference-population versions. That is what makes the record tamper-evident at the individual-warrant level. The disposition ledger, which is a different record, is now append-only, hash-chained and signed (Stage 7), and the residual limits of that claim are in Part VII."));
 
 // ================================================================ PART II
 doc.push(H1("Part II — Stage-by-stage build chronology"));
 
-doc.push(P("The build ran in eight distinct stages across 37 commits, from 2026-11-08 00:53 to 2026-11-09 22:02. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected."));
+doc.push(P("The build ran in eight distinct stages across 50 commits, from 2026-11-08 00:53 to 2026-11-10 06:58. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected."));
 
 doc.push(callout(
   "Reading the chronology",
@@ -450,6 +451,37 @@ doc.push(H3("B02 and B03, and the correction that followed"));
 doc.push(P("33ccc7e added the flow map and the one-page executive infographic, and reconciled build status. de9b245 followed eleven minutes later with a correction that is the most important single commit in the project's quality history: \"Correct B02/B03: disclose that no detector ingest path exists.\""));
 doc.push(P("The diagram had drawn a flow from wayside detector to edge inference. No endpoint accepted a Railroad payload. The signals came from the physics equations on synthetic traces. The docket's largest known gap had been drawn as a built capability — and it was found by checking the diagram against the code, not by reading the diagram."));
 doc.push(P("That correction is now the standing discipline of the project: verify against the file, then write. Every later stage cites it, and the transcript of chat-2 records the assistant's own summary of why it matters — \"it looked right, so nobody checked whether it was true.\""));
+
+// ---- Stage 6
+doc.push(H2("Stage 6 — Recovering the loss, and the rules that came out of it (2026-11-09, 21:16–22:02)"));
+doc.push(P("Stage 6 is process rather than product, and it is the stage that makes every later stage recoverable. It is covered in Part IV and Part V; what belongs here is the chronology. Commits f58b07c through b946678 rebuilt chat-1's lost work (F00 Rule 7, D07 §14, Q6), installed the write-in-repo standing instruction, built the push helper, and committed the chat-2 transcript with its raw log — which is why the conversation now survives its session."));
+doc.push(P("It closes with ed78962 and b946678: the A2/D08 arithmetic pass, which recomputed every figure in both money documents from its stated source equation. 78 of 78 computed figures agreed. No arithmetic error exists in either. Two *claims* did not reproduce, and both are carried into Part VII as Findings 1 and 2 — an owner decision, priced in the next stage."));
+
+// ---- Stage 7
+doc.push(H2("Stage 7 — chat-3: three builds, one decision paper, and two audits (2026-11-09 22:18 – 2026-11-10 06:58)"));
+doc.push(P("Three build phases and one analysis phase, in this order: the build history document itself; the append-only disposition ledger; the A2/D08 decision paper; and the signed ledger export. Two of the four were materially changed by an independent audit after they were written, and in both cases the audit found something I had not thought of."));
+
+doc.push(H3("7.1 — The append-only disposition ledger (commit 209efe6)"));
+doc.push(P("Chosen first because it was the one open code control needing no commercial decision from the owner, and because the docket's most legally significant record was overstating what the code did. backend/store.py used advisory_id as PRIMARY KEY with INSERT ... ON CONFLICT DO UPDATE, so a second disposition on the same advisory overwrote the first — its reviewer, its note and its recorded_at all gone. F09 described an append-only record; the code produced one row that could be rewritten. Six documents disclosed the gap."));
+doc.push(P("The rebuild: insert-only writes, with a correction expressed as a new row carrying supersedes_id; BEFORE UPDATE and BEFORE DELETE triggers that RAISE(ABORT), so the guarantee lives in the schema rather than in application convention; a per-row SHA-256 chain (prev_hash plus record_hash) and verify_chain() naming the first row that fails; and BEGIN IMMEDIATE on writes so two concurrent appends cannot both read the same prev_hash and fork the chain. Migration from the v1 table runs inside init_db(), preserving the surviving decision and its original timestamp without fabricating lost history."));
+doc.push(P("Two defects were found while closing it. tests/run_tests.py was loading only test_physics.py, so the new 17-test module would never have run in CI — it now discovers every test_*.py. And the root README opened \"three named physical models\" then listed seven, had two items numbered 7., and described the 2% catastrophic-escalation placeholder as current."));
+
+doc.push(H3("7.2 — The A2/D08 decision paper (commit b23d0c7)"));
+doc.push(P("No product code changed. assets/a2-d08-model-decision-2026-11-09.md plus its checker price both answers so the owner's decision is a comparison rather than more research. Three findings the arithmetic pass did not have: the 2.0×/4.1× anchors are recoverable on a third cost basis (pilot plus three full years at list, no conversion credit) at p ≈ 0.0412%, which makes Finding 1 a disclosure defect rather than a fabrication — but p is not unique, so it stays open; D08 contradicts itself, pricing a prevented failure at ~$993,000 in §4 and $8.6M–$11.4M in §5, with §4's figure within 0.7% of A1's; and backend/roi.py is 29× from A1 per missed defect, of which probability accounts for 20.5×."));
+doc.push(P("The audit found four errors in the paper, including one where I had labelled a figure as roi.py's output when roi.py takes warrants rather than axles and the number was never computable. The corrected comparison is per defect, and it is a larger gap than the one I had written."));
+
+doc.push(H3("7.3 — The signed ledger export (commit d9c83d4)"));
+doc.push(P("backend/ledger_export.py writes an HMAC-SHA256-signed bundle — manifest, records, signature — and tools/verify_ledger_export.py verifies it without importing anything from backend/, from an empty directory under -I. A recipient needs the bundle, the key and a Python standard library. Bundles chain through previous_export_hash; keygen refuses to clobber a key and forces mode 0600."));
+doc.push(P("HMAC rather than Ed25519, and the reason is a constraint rather than a preference: the standard library has no asymmetric primitive, requirements.txt is numpy-only by design for air-gapped installs, and hand-rolling a curve in a product that tells CISOs it does not hand-roll crypto would be worse than the gap. The two limits — a symmetric signature cannot name the signer, and cannot prove when it was made — are given their own section in B01 §4.5a rather than a footnote."));
+doc.push(callout(
+  "The audit found a total wipe that verified green",
+  "Delete every row with file access, run the honest exporter, and a recipient holding the previous bundle was told every check passed — five records gone, no warning. Each check was individually correct: hashes valid, ids ordered, count matching, signature good. None compared the bundle against one the recipient already held, and an empty bundle is trivially self-consistent. My own 33 tests passed because I had not thought of the attack, so had not written it. Fixed by recording the ledger's own head in every manifest and failing when a later bundle reports a shorter ledger (no_truncation), plus genesis_anchor for rows deleted from the front and empty_bundle_justified for a zero-record export. The fix then broke the zero-record incremental export — a quiet week failed range_from — and D09 requires a weekly export, so the documented procedure would have failed on any quiet week. Both are covered by tests now.",
+  { fill: "FBEAEA", labelColor: RED },
+));
+doc.push(P("Verification: 42 export tests, full suite 80. The erasure attack re-run against the fixed standalone tool exits 1 with no_truncation. Live end-to-end: real server, three dispositions including a genuine supersede, exported, verified from a different directory under -I."));
+
+doc.push(H3("7.4 — The transcript"));
+doc.push(P("Re-snapshotted at 5,032 events (17.1 MB) and rebuilt the readable extract at 641 turns, of which ten are the owner's. The mid-session snapshot was byte-for-byte a prefix of the new one, verified line by line, so it was deleted rather than kept as 13 MB of duplicate. The extractor is now committed at project-logs/extract_transcript.py instead of a shell heredoc, with the trap written into it: the role is the top-level `type` field, not message[\"role\"], and reading the wrong one yields zero turns and no error."));
 
 // ================================================================ PART III
 doc.push(H1("Part III — The docket, document by document"));
@@ -616,6 +648,7 @@ doc.push(table(
   { width: [3.4, 2.4, 4.2], size: 16 },
 ));
 doc.push(P("The distinction matters for anyone reading the rebuilt documents: because the rebuild is a reconstruction rather than a recovery, the wording may differ from what chat-1 wrote. The decisions are identical. The prose is not. Do not treat the current text as a restoration of an earlier draft."));
+doc.push(P("Chat-3's own record of its opening is worth adding because it is the same lesson applied one layer up. The handoff document named specific commits as unpushed; four of them were already in origin/main, and the work actually waiting was different. A written state list is a hypothesis. The repository is the fact."));
 
 doc.push(H2("The rules that came out of it"));
 doc.push(P("Three standing instructions now govern every session, and each is a direct consequence of something that went wrong:"));
@@ -624,7 +657,7 @@ doc.push(...numbered("numC", [
   "Verify against the file, then write. Never cite from memory and check afterwards. That habit produced every bad citation in the project, and the worst defect — the ingest path drawn as built — came from the same habit applied to a diagram.",
   "Extract and commit the session transcript at close, raw .jsonl included. From chat-2 onward this holds, and the files are in project-logs/transcripts/.",
 ]));
-doc.push(P("One further operational fact, because it is not obvious: the sandbox cannot reach GitHub. git push and git fetch both fail with HTTP 403 from the proxy. Commits land locally in the real repository; the owner pushes with PUSH-TO-GITHUB.bat in the repo root. This means \"committed\" and \"on GitHub\" are different states, and the local origin/main ref is not evidence of remote state."));
+doc.push(P("One further operational fact, because it is not obvious: the command environment cannot reach GitHub. git push and git fetch both fail with HTTP 403 from the proxy. Commits land locally in the real repository; the owner pushes with PUSH-TO-GITHUB.bat in the repo root. This means \"committed\" and \"on GitHub\" are different states, and the local origin/main ref is not evidence of remote state."));
 
 // ================================================================ PART V
 doc.push(H1("Part V — What chat-2 did"));
@@ -645,13 +678,13 @@ doc.push(P("The D09 signed-release gap. Signing previously appeared only as a §
 doc.push(H2("Verification performed in chat-2"));
 doc.push(P("Citational: every D-reference in Q6 and every section reference in the rebuilt sections was resolved to a real heading. Two errors were found this way and corrected — D06 §2.4 corrected to §7.4, and D03 §12 corrected to §9. Count consistency: no document still said \"six rules\". Duplicate-heading scan across all 36 docket documents: clean. Scope: Q6 confirmed absent from client-assets/. Diff inspected with --ignore-cr-at-eol: 536 real insertions against 7 real deletions, the larger raw numbers being CRLF conversion rather than content."));
 doc.push(H2("The transcript rule, and its limit"));
-doc.push(P("Chat-2 found its own session log still on disk at .claude/projects/session/ — 780 events, 1.6 MB — extracted 256 readable turns and committed both the readable version and the raw .jsonl as ee9800c. That is now the standing rule, recorded in project-logs/transcripts/README.md and in persistent memory."));
+doc.push(P("Chat-2 found its own session log still on disk at .claude/projects/session/ — 780 events, 1.6 MB — extracted 256 readable turns and committed both the readable version and the raw .jsonl as ee9800c. That is now the standing rule, recorded in project-logs/transcripts/README.md and in persistent memory. Chat-3 repeated it at close: 5,032 events, 641 extracted turns, raw log committed (53ad93a), with the extractor itself committed so the procedure is reproducible rather than remembered."));
 doc.push(P("The honest limit, stated in the same README: this protects chat-2 onward. Chat-1 is a real loss and no amount of procedure brings it back."));
 
 // ================================================================ PART VI
 doc.push(H1("Part VI — Internal strategy in assets/"));
 
-doc.push(P("Five internal documents sit in assets/. None may be forwarded to a customer, and the classification rule in Part II is what keeps them there. Each is summarised here because the strategy they contain is not in the docket and is needed to discuss the next phase."));
+doc.push(P("Five internal documents sit in assets/ from chat-1 and chat-2, and three working papers were added in chat-3. None may be forwarded to a customer, and the classification rule in Part II is what keeps them there. Each is summarised here because the strategy they contain is not in the docket and is needed to discuss the next phase."));
 
 doc.push(H2("Q6 — Entity formation, support boundary, corridor strategy"));
 doc.push(table(
@@ -688,10 +721,23 @@ doc.push(callout(
 doc.push(H2("External pilot cost structure and licensing model"));
 doc.push(P("The internal counterpart to A2 and D08: the same commercial model from the vendor's side, with margin reasoning that does not belong in a client-facing annex."));
 
+doc.push(H2("Three documents added in chat-3, and what each is for"));
+doc.push(P("These are working papers, not strategy. Each exists so that a claim made elsewhere can be checked by running a script rather than by re-reading a document."));
+doc.push(table(
+  ["Document", "What it does", "Checks"],
+  [
+    ["a2-d08-arithmetic-pass-2026-11-09.md", "Recomputes every figure in A2 and D08 from its stated source equation. Establishes that neither document contains an arithmetic error, and isolates the two claims that do not reproduce.", "78 figures, a2-d08-arithmetic-pass.py"],
+    ["a2-d08-model-decision-2026-11-09.md", "Prices both answers to Findings 1 and 2 so the owner's decision is a comparison rather than more research. Adds three findings the arithmetic pass did not have, including that D08 contradicts itself.", "65 figures, a2-d08-model-decision.py"],
+    ["ledger-export-build-2026-11-09.md", "Records the signed export: the HMAC decision and its three bounds, the erasure hole the audit found and the attack that demonstrated it, the fix, and the quiet-week regression the fix caused.", "the export suite, tests/test_export.py"],
+  ],
+  { width: [3.4, 5.2, 1.4], size: 15 },
+));
+doc.push(P("The export build record §5.1 is the most useful page in the set. It walks the erasure attack step by step and shows that every individual check was correct — which is why 33 tests passed. The lesson recorded there and in persistent memory is that a suite written by the author of a mechanism tests the author's model of the threat, not the threat."));
+
 // ================================================================ PART VII
 doc.push(H1("Part VII — Open items and unresolved findings"));
 
-doc.push(P("The docket index asks to be corrected when a gap closes and refuses to claim a gap is closed when it is not. This part applies the same standard to the project as a whole. Six items are open. Two of them were found in chat-3 and are the most consequential things in this document."));
+doc.push(P("The docket index asks to be corrected when a gap closes and refuses to claim a gap is closed when it is not. This part applies the same standard to the project as a whole. Five items are open. Two of them were found in chat-3, priced in the decision paper, and remain the most consequential things in this document."));
 
 doc.push(H2("1. Finding 1 — the modelled-return anchors do not reproduce"));
 doc.push(P("A2 §3.2 states that the customer's modelled return improves \"approximately 2.0× at 500 axles, rising to about 4.1× at 10,000.\" D08 §3 repeats both figures verbatim. Recomputed with A1's own default assumptions, on the only two cost bases that exist in the repository:"));
@@ -706,8 +752,9 @@ doc.push(table(
   ],
   { width: [2, 3, 2.5, 2.5], size: 17 },
 ));
-doc.push(P("Neither basis produces 2.0× at 500 and 4.1× at 10,000, and a sweep across plausible per-defect valuations found no parameter set in the repository that reproduces both endpoints. The direction of the claim is correct — return does improve monotonically with fleet size on either basis — but the two anchor values are not derivable from the model the docket ships."));
-doc.push(P("This was left open deliberately. The sentences carrying these numbers are also the document's defence against a flat-tier cliff objection, and D08 already labels them a pricing hypothesis validated only against modelled return. Replacing them with 1.77/3.36 is defensible; so is restating the claim without anchor values. That is a commercial decision about what the first real conversation opens with, and it changes a client-facing sentence in two documents — so it should be decided, not quietly edited."));
+doc.push(P("Neither basis produces 2.0× at 500 and 4.1× at 10,000. On the two cost bases that already exist in the repository, the shipped model does not reproduce the anchors. The direction of the claim is correct — return does improve monotonically with fleet size on either basis — but the two anchor values are not derivable from the model as presented."));
+doc.push(P("The decision paper then found a third basis that does reproduce them, and this is the correction worth carrying. On pilot cost plus three full years at list price with no conversion credit, the cost ratio the anchors demand — cost at 10,000 axles over cost at 500 = 9.756 — is a property of the pricing, not of the benefit model, so a single value of the catastrophic-escalation probability fits both endpoints. Against three years of benefit that value is p = 0.0714%, producing 2.00× and 4.06×; against four years of benefit it is 0.0412%, which also fits. Finding 1 is therefore a disclosure defect: an unstated frame, not an invention. But the parameter is not uniquely determined, because the benefit horizon is stated nowhere — and that is exactly why it stays open. The anchors cannot ship as written until a frame is stated that a customer can see."));
+doc.push(P("This was left open deliberately. The sentences carrying these numbers are also the document's defence against a flat-tier cliff objection, and D08 already labels them a pricing hypothesis validated only against modelled return. Restating them at 1.77/3.36 on A1's basis is defensible; so is stating the frame. That is a commercial decision about what the first real conversation opens with, and it changes a client-facing sentence in two documents — so it should be decided, not quietly edited. Both answers are costed in the decision paper, §6–§7."));
 
 doc.push(H2("2. Finding 2 — D08's modelled benefits exceed what A1 produces, and the cause is now identified"));
 doc.push(P("D08 §5 says a 500-axle customer sees $6–8M of avoided damage in the pilot year and $14–20M over four years; §6 says $40–60M over six years with a 20×–30× return. A1 at 500 axles with its default assumptions produces $696,675 net annual benefit. The ratio is between 5× and 14× across the three periods."));
@@ -731,13 +778,15 @@ doc.push(callout(
 doc.push(H2("3. D07 §14.5 — governing law, seat and forum"));
 doc.push(P("An open counsel decision, correctly labelled as open. The section now says what must be decided, who decides and by when, that Texas is an expectation rather than a term, and what happens if an Order is executed while it is open. It must still be closed by signed addendum before first execution. Q6 is explicit that this is not a formation question and that entity choice does not answer it."));
 
-doc.push(H2("4. The four unbuilt code controls"));
-doc.push(P("D00 Part VI is the authority on these, and it refuses to let them migrate to \"closed\" on the strength of a document. The largest is the absent detector ingest path: no endpoint accepts a Railroad payload, so every demonstration number demonstrates the method, not the Railroad's data. The validation chain — schema, timestamp, plausibility — is designed and not built. The other three are the append-only ledger, the signed certification registry, and the signed audit export, each with a disclosed workaround and a remediation target in D09 §4.4."));
+doc.push(H2("4. The unbuilt code controls"));
+doc.push(P("D00 Part VI is the authority on these, and it refuses to let them migrate to \"closed\" on the strength of a document. The largest is the absent detector ingest path: no endpoint accepts a Railroad payload, so every demonstration number demonstrates the method, not the Railroad's data. The validation chain — schema, timestamp, plausibility — is designed and not built. Of the other three, one closed in chat-3: the ledger is now append-only, hash-chained and signed. The signing registry and the residue of the export item remain open."));
 doc.push(table(
   ["Gap", "Disclosed in", "Consequence while open"],
   [
     ["No detector ingest path at all", "B01 §7 #5 · B02 §2 · B03 status", "Every demonstration number demonstrates the method, not the customer's data. The largest gap in the docket."],
-    ["Signed, off-box export of the ledger", "B01 §4.5 · B01 §7 #8 · D09 §4.4 · F09 Part 7", "Append-only and hash-chained, but not signed and not replicated: someone with write access to the database file could rewrite and rehash, and a lost disk loses the ledger."],
+    ["Ledger signer attribution", "B01 §4.5a · B01 §7 #11 · D09 §4.4", "The signed export landed 2026-11-10, but HMAC is symmetric: any verifier can also forge, so the bundle cannot name who signed it. Closing it needs AD-2 — real local accounts with a key per reviewer — not more export code."],
+    ["Ledger cannot date itself; a wipe before the first bundle is invisible", "B01 §4.5a · D09 §4.4–4.5", "No timestamping authority and no pre-series anchor. Bundle retention plus a written key-custody procedure are the controls that carry that weight."],
+    ["Nothing replicates the ledger off-box on a schedule", "B01 §7 #12 · D09 §4.5", "A lost disk loses the ledger. Export is a procedure a human runs, not a control that runs itself."],
     ["Certification registry is local accounts, no cryptographic verification", "B01 §7 #1 · D09 §4.4 · F08 Part 1", "A reviewer can self-assert a cert ID. Manual control via F08 is the substitute."],
     ["No SBOM artefact in releases", "D09 §4.4 · §7.2", "Customer cannot independently verify the dependency chain. Target Q1 2027."],
     ["No hash pinning of dependencies", "D09 §4.4", "A compromised package index could serve malware. Target Q1 2027."],
@@ -776,8 +825,10 @@ doc.push(table(
     ["git status --short --branch", "Branch and how far ahead of the remote ref"],
     ["git log --oneline origin/main..HEAD", "What is actually unpushed — never trust a written list"],
     ["git diff --ignore-cr-at-eol --stat", "Real changes. Without the flag, nearly every file reads as modified"],
-    ["python3 -I assets/a2-d08-arithmetic-pass.py", "Whether the A2/D08 figures still hold. Exits non-zero on any mismatch"],
-    ["python3 tests/run_tests.py", "The 21 physics and warrant tests. Currently 21 passed, 0 failed"],
+    ["python3 -I assets/a2-d08-arithmetic-pass.py", "Whether the A2/D08 figures still hold. Currently 78 of 78 agree"],
+    ["python3 -I assets/a2-d08-model-decision.py", "The decision paper's 65 figures. Exits non-zero on any mismatch"],
+    ["python3 -I tests/run_tests.py", "The full suite: 21 physics, 17 ledger, 42 export. Currently 80 passed, 0 failed"],
+    ["python3 tools/verify_ledger_export.py --bundle B --key-file K", "Checks an exported ledger bundle without the application or the database"],
   ],
   { width: [4.6, 5.4], size: 16, mono: [0] },
 ));
@@ -787,13 +838,13 @@ doc.push(callout(
 ));
 
 doc.push(H2("Push"));
-doc.push(P("The sandbox cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this document was written the six earlier commits had been pushed and the local ref for origin/main stood at b946678, so what remains ahead of it is this document\u2019s own commit. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
+doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, with three commits ahead of it: 893096e, d9c83d4 and 53ad93a. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
 
 doc.push(H2("The decisions waiting, in order of consequence"));
 doc.push(...numbered("numE", [
-  "Which model governs the commercial numbers — A1's probability-blended evaluation or D08 §5–§6's contained-tier basis. Everything quoted to a customer depends on this.",
-  "Whether to strike or restate the 2.0×/4.1× return anchors in A2 §3.2 and D08 §3.",
-  "Which of those two answered, regenerate the A1 workbook from the corrected builder and re-run the arithmetic check.",
+  "Which model governs the commercial numbers — A1's probability-blended evaluation or D08 §5–§6's contained-tier basis. Everything quoted to a customer depends on this. Both answers are costed in assets/a2-d08-model-decision-2026-11-09.md §6–§7; the recommendation is A1.",
+  "Whether to strike or restate the 2.0×/4.1× return anchors in A2 §3.2 and D08 §3. They are recoverable on one unstated cost basis, which makes this a disclosure question rather than a fabrication question.",
+  "With those two answered, regenerate the A1 workbook from the corrected builder and re-run both check scripts and the unit suite.",
   "D07 §14.5 — approve a governing law, seat and mediation provider with counsel, and record it in a signed addendum.",
   "Phase 0 formation, if a real customer conversation is closer than a code milestone.",
 ]));
@@ -804,12 +855,13 @@ doc.push(H1("Appendix A — Repository map"));
 doc.push(table(
   ["Path", "Contents", "Class"],
   [
-    ["backend/", "physics.py (the six models), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (cost model), store.py (SQLite dispositions), main.py (stdlib HTTP server and routes)", "Code"],
+    ["backend/", "physics.py (the six models), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (cost model), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
+    ["tools/", "verify_ledger_export.py — standalone export verifier, imports nothing from backend/", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
-    ["tests/", "test_physics.py (21 formula tests), test_store.py (17 ledger tests), run_tests.py (stdlib runner, discovers test_*.py)", "Code"],
+    ["tests/", "test_physics.py (21 formula tests), test_store.py (17 ledger tests), test_export.py (42 export tests), run_tests.py (stdlib runner, discovers test_*.py)", "Code"],
     ["client-assets/MASTER-BRIEF-DOCKET/", "The 38-artifact docket: A1–A2, B01–B05, C01–C02, D00–D14, F00–F13 (36 Markdown + xlsx + html)", "Client-facing"],
-    ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass and its check script", "Internal — never forwardable"],
-    ["project-logs/", "CURRENT-STATE, README, chat-1/2/3 summaries and carry-forwards, transcripts with raw jsonl", "Internal"],
+    ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass, model decision paper, export build record, each with its check script", "Internal — never forwardable"],
+    ["project-logs/", "CURRENT-STATE, README, chat-1/2/3 summaries and carry-forwards, transcripts with raw jsonl, extract_transcript.py, build-history-summary.js", "Internal"],
     ["Dockerfile, render.yaml, requirements.txt, PUSH-TO-GITHUB.bat", "Deployment and the owner's push helper", "Operational"],
   ],
   { width: [3.2, 5.4, 1.4], size: 15 },
@@ -856,26 +908,41 @@ doc.push(table(
     ["11-09 21:49", "05b161d", "6", "Final transcript and raw log at close"],
     ["11-09 22:01", "ed78962", "7", "A2/D08 arithmetic pass — 78 figures, two findings"],
     ["11-09 22:02", "b946678", "7", "Project logs record the pass; chat-2 summary finalized"],
+    ["11-09 22:18", "a3ba43f", "7", "Build history and working summary (29 pp) plus generator"],
+    ["11-09 22:19", "b3dcda4", "7", "CURRENT-STATE: document, push state, artifact counts"],
+    ["11-09 22:19", "8716b6c", "7", "chat-3 summary: record the build history document"],
+    ["11-09 22:20", "bd2e67b", "7", "project-logs README: list the build history document"],
+    ["11-09 22:35", "209efe6", "7", "Rebuild disposition ledger as append-only (AD-3)"],
+    ["11-09 22:37", "07f567c", "7", "chat-3 log: record the append-only ledger phase"],
+    ["11-09 22:38", "57f7c23", "7", "CURRENT-STATE: date the ledger phase"],
+    ["11-09 23:08", "b23d0c7", "7", "Cost the A2/D08 model decision so it can be made"],
+    ["11-09 23:09", "44e2cac", "7", "CURRENT-STATE: point open item 1 at the decision paper"],
+    ["11-09 23:09", "bb99cdd", "7", "chat-3 log: record the decision phase and its audit"],
+    ["11-09 23:16", "893096e", "7", "chat-3 transcript: extract and commit, raw log included"],
+    ["11-10 06:52", "d9c83d4", "7", "Signed, verifiable ledger export (AD-3 part two)"],
+    ["11-10 06:58", "53ad93a", "7", "Transcript: snapshot chat-3 at close, raw log included"],
   ],
   { width: [1.5, 1.3, 0.8, 6.4], size: 14, mono: [1] },
 ));
-doc.push(P("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3.", { spaceBefore: 120 }));
+doc.push(P("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3, and it is the stage that changed the most after it was written — two of its four phases were materially repaired because an independent audit found what the author had not.", { spaceBefore: 120 }));
 
 doc.push(H2("Current status at a glance"));
 doc.push(table(
   ["Area", "State", "Note"],
   [
-    ["Physics engine and tests", "Complete, 38/38 passing", "21 formula tests + 17 ledger tests; deterministic, no learned parameters"],
+    ["Physics engine and tests", "Complete, 80/80 passing", "21 formula tests + 17 ledger tests + 42 export tests; deterministic, no learned parameters"],
     ["Demonstration application", "Runs", "Synthetic data only"],
     ["Client docket", "38 artifacts built, 0 outstanding in the index", "Not yet counsel-reviewed"],
     ["Detector ingest", "Not built", "The largest gap; disclosed in three places"],
     ["Append-only ledger", "Built 2026-11-09", "Insert-only, triggers, SHA-256 chain, 17 tests"],
-    ["Signed certification registry", "Not built", "F08 is the manual substitute"],
+    ["Signed ledger export", "Built 2026-11-10", "HMAC-SHA256 bundle, standalone verifier, chaining, 42 tests. Symmetric: cannot name the signer or date itself"],
+    ["Off-box replication", "Not built", "Export is a procedure a human runs, not a scheduled control"],
+    ["Signed certification registry", "Not built", "F08 is the manual substitute; it is the dependency for signer attribution"],
     ["SBOM, hash pinning, signed releases", "Not built", "Q1–Q2 2027 targets; disclosed"],
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
-    ["Commercial numbers", "Two open findings", "A1 and D08 disagree; an owner decision"],
+    ["Commercial numbers", "Two open findings, now priced", "A1 and D08 disagree; an owner decision, options costed in assets/"],
     ["D07 §14.5 venue", "Open counsel decision", "Blocks first execution"],
-    ["Push state", "1 commit ahead of the local remote ref", "Verify with git log origin/main..HEAD; sandbox cannot reach GitHub"],
+    ["Push state", "Three commits ahead of the local remote ref", "Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
   ],
   { width: [3.2, 3.2, 3.6], size: 16 },
 ));

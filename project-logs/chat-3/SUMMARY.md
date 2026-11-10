@@ -87,17 +87,28 @@ builder fixes). `chat-2/SUMMARY.md` finalized and its push claims corrected.
 
 Requested by the owner because chat-1's conversation no longer exists and the
 build needed a readable record of itself. Produced as
-`project-logs/AxiomDynamics-Build-History-and-Working-Summary.docx` — 29 pages,
-eight parts plus an appendix — with its generator committed beside it at
+`project-logs/AxiomDynamics-Build-History-and-Working-Summary.docx` — 29 pages
+when first written, 32 after the 2026-11-10 revision — eight parts plus an
+appendix, with its generator committed beside it at
 `project-logs/build-history-summary.js` so it can be rebuilt after a change.
 
 Contents, in order: what the product is and why physics rather than ML; the six
-models; the eight build stages across all 37 commits with every correction; the
+models; the build stages across all 50 commits with every correction; the
 38-artifact docket document by document plus the D00 Part IV precedence ladder;
 the loss of chat-1's work, its mechanism and its cost; what chat-2 rebuilt and
 how it verified it; internal strategy in `assets/`; the open items including both
 chat-3 modelling findings; how to resume; and an appendix with the repository
-map, the full commit chronology and a status table.
+map, the full commit chronology and a status table. The revision added Stage 6
+(the rebuild and its rules), Stage 7 (the three chat-3 builds and the decision
+paper), and the three working papers added to `assets/`.
+
+**The revision found a defect worth recording.** Part VII still carried the
+arithmetic pass's conclusion on Finding 1 — that no parameter set reproduces the
+2.0×/4.1× anchors — when the decision paper had since shown that one does, on an
+unstated cost basis. The stale conclusion had been left in a document that was
+otherwise the project's most careful account of itself. It is the same defect
+class the project keeps correcting: a claim that was true when written, never
+revisited when the evidence moved.
 
 Written from the repository, not from recollection. Layout verified by rendering
 to PDF and reading the pages: 29 pages, no overflow, tables within margins,
@@ -256,3 +267,110 @@ because I wrote it to.
 4. D07 §14.5 governing law and venue remains open, unchanged.
 5. Signed, off-box ledger export — the next *build*, now unblocked by priority
    but not by dependency; it does not touch any of the above.
+
+## Phase 4 — the signed ledger export (committed `d9c83d4`)
+
+Deferred the A2/D08 decision at the owner's instruction ("will defer now and just
+focus on next phase build") and built the signed export instead. It is the second
+half of AD-3 and the last item in D09 §4.4 that could be closed without a
+commercial decision or a new dependency.
+
+**What was built.** `backend/ledger_export.py` writes an HMAC-SHA256-signed
+bundle — manifest, records, signature. `tools/verify_ledger_export.py` verifies
+it with **no import from `backend/`**, from an empty directory under `-I`, so a
+regulator, auditor or successor vendor can check a bundle without running,
+trusting or even having the exporting software. Bundles chain via
+`previous_export_hash`. CLI: `keygen`, `export`, `verify`; `keygen` refuses to
+clobber a key and forces mode 0600.
+
+**Why HMAC, stated because it is the kind of choice this project documents.**
+The stdlib ships HMAC but no Ed25519. Adding a compiled crypto dependency to an
+air-gapped single-dependency install, or hand-rolling a curve, were both worse
+than a symmetric signature with its limits spelled out. A symmetric signature
+cannot name the signer — any verifier can also forge — and cannot prove when it
+was made. Both limits are now sections, not footnotes: B01 §4.5a exists solely
+to state them.
+
+**The audit found a serious hole, and this is the part worth keeping.** The
+first version let a **total wipe verify green**. Delete every row with file
+access, run the honest exporter, and a recipient holding the previous bundle
+was told every check passed — five records gone, no warning. Each check was
+individually correct: hashes valid, ids ordered, count matching, signature good.
+None compared the bundle against one the recipient already held, and an empty
+bundle is trivially self-consistent. My own 33 tests passed because I had not
+thought of the attack, so had not written it.
+
+Fixed by recording the ledger's own head (`backend_head_id`) in every bundle
+and failing when a later bundle reports a shorter ledger (`no_truncation`), plus
+`genesis_anchor` for rows deleted from the front. The same audit produced four
+smaller findings, all fixed: a `genesis_hash` check that only the standalone
+verifier performed (so the two implementations disagreed); a false claim in the
+`covered_fields` comment; tracebacks instead of verdicts on malformed bundles;
+and `keygen --force` leaving an existing key world-readable because `os.open`'s
+mode argument is ignored for an existing file.
+
+**A second bug found by the tests written for the first one:** the erasure fix
+broke the zero-record incremental export — a quiet week produced a bundle that
+failed `range_from` — and D09 now requires a weekly export, so the documented
+procedure would have failed every quiet week.
+
+**Verification.** 42 export tests (up from 33), full suite 80. The erasure
+attack re-run against the fixed standalone tool now exits 1 with `no_truncation`.
+Live end-to-end: real server, three dispositions including a supersede, exported,
+verified from a different directory with `-I`. Three tests assert a *failure to
+detect* on purpose, recording disclosed limits rather than hiding them.
+
+**Docket amended in the same commit:** B01 §4.5/§4.5a/§7 items 8 and 11–12, B02,
+C01 §E2a (commissioning procedure), D00 Part V, D09 §4.2/§4.4/§4.5/§5.3/§6.2/§7.3,
+F09 Part 7, F13 Part 4, root README, `.gitignore`. Internal account in
+`assets/ledger-export-build-2026-11-09.md`.
+
+**Lesson, recorded in memory.** A suite written by the author of a mechanism
+tests the author's model of the threat, not the threat. For anything making a
+security claim, falsification must come from outside — a fresh reader prompted
+to break it, not check it. It has now earned its cost twice.
+
+## Phase 5 — the transcript, at close (committed `53ad93a`)
+
+The standing rule the owner restated in the message that opened this phase:
+"upon each build completion you will store its assets/files and complete chat
+logs in our Local disk project folder."
+
+Re-snapshotted the live session log at 5,032 events (17.1 MB) into
+`project-logs/transcripts/raw/2026-11-10-chat-3-snapshot.jsonl` and rebuilt
+`project-logs/transcripts/2026-11-09-chat-3.md` from it: 641 turns, of which
+**ten are the owner's** and the rest are assistant text and tool calls.
+
+The mid-session snapshot was deleted rather than kept. Verified line by line
+first that it was byte-for-byte a prefix of the new one, so keeping it would
+have added 13 MB and no information. A snapshot is worth keeping only when it
+shows a state the final one cannot.
+
+**What cost a cycle, and is now written into the tooling.** The first extract
+returned zero turns and no error: it read `record["role"]`, but the role in this
+log format is the top-level `type` field. The extractor is therefore committed at
+`project-logs/extract_transcript.py` rather than living in a shell heredoc, with
+that trap and the three extraction rules in its docstring.
+
+**Also in this commit:** a `.gitignore` entry for Excel lock files (`~$*`) after
+one appeared beside the A1 workbook, and the build history document regenerated
+at 32 pages to cover Stages 6 and 7.
+
+**One defect found while regenerating it.** Part VII still carried the
+arithmetic pass's conclusion that no parameter set reproduces the 2.0×/4.1×
+anchors, when the decision paper had since shown that one does on an unstated
+cost basis. The claim had been true when written and was never revisited when
+the evidence moved — the same defect class the project keeps correcting. Fixed,
+and it is now recorded in the summary as well as in the document.
+
+## End of chat-3
+
+Three build phases, one analysis phase and a transcript phase, across commits
+`209efe6` through `53ad93a`. Two of the four substantive phases were materially
+repaired after an independent audit: the decision paper (four errors) and the
+signed export (the total-erasure hole). Both repairs are in the record rather
+than tidied out of it, because the pattern — *I wrote the checker, so the checker
+agreed with my mistake* — is the most transferable thing this session produced.
+
+**Push required.** `PUSH-TO-GITHUB.bat`. Three commits were ahead of the local
+`origin/main` ref at close: `893096e`, `d9c83d4`, `53ad93a`.
