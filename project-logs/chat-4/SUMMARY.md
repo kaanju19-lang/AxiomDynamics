@@ -129,8 +129,8 @@ different act. A green suite says the tests you thought of pass.
 
 Transcript extracted at 420 turns (4 user, 421 assistant after the closing
 exchange) into `project-logs/transcripts/2026-11-10-chat-4.md`, with the raw log
-at `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl` (9.9 MB,
-4,322 events, 535 turns). The extractor's hard-coded `# Chat-3` heading was replaced with a
+at `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl` (12 MB,
+4,906 events, 613 turns). The extractor's hard-coded `# Chat-3` heading was replaced with a
 title derived from the output filename so it cannot mislabel a session again.
 
 Build history regenerated at 34 pages. Part VII was rewritten rather than left
