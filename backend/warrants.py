@@ -77,6 +77,7 @@ class GhostWarrant:
     reviewer_disposition: str
     ground_truth_status: str
     cryptographic_hash: str
+    disposition_history_count: int = 0
 
 
 REFERENCE_POPULATION_VERSION = "v1.4.2"   # stands in for a real versioned baseline dataset

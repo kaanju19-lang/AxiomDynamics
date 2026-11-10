@@ -166,15 +166,15 @@ flowchart TB
     style I stroke-dasharray: 5 5
 ```
 
-> **Dotted = designed, not built.** Three things in this diagram are requirements rather than current behaviour, and a customer's IT reviewer will find each of them in **B01 §7**:
+> **Dotted = designed, not built.** Three things in this diagram are requirements rather than current behaviour. One of the three has since been built and one has narrowed; a customer's IT reviewer will find each in **B01 §7**.
 >
-> **1. The ledger is not yet append-only.** The current write path uses an upsert that overwrites a record if one exists for the same advisory. It is a record, not a tamper-evident trail. (B01 §7 item 2; AD-3; target Q2 2027 per D09 §4.4.)
+> **1. The ledger is append-only — built 2026-11-09.** Each disposition is a new row; a correction carries a `supersedes_id` naming the row it corrects; `UPDATE` and `DELETE` are refused by database triggers; every row is SHA-256 chained to its predecessor and the chain is verifiable on demand. Corrections are new records, never edits, and the earlier record keeps its own timestamp. (B01 §4.1, §4.6, §7 item 2; AD-3.)
 >
 > **2. Reviewer identity is not yet cryptographically registered.** Dispositions carry a free-text name and certification ID, not a verified credential. (B01 §7 item 1; AD-2; target Q2 2027 per D09 §4.4.)
 >
-> **3. The export is not yet signed.** Content hashes are produced; a signed bundle with partition boundary and record count is not. (B01 §7 item 8; target Q2 2027 per D09 §4.4.)
+> **3. The export is not yet signed, and the ledger is not replicated off-box.** Content hashes are produced and the chain can be re-verified; a signed bundle with partition boundary and record count is not, and a destroyed disk destroys the ledger. (B01 §7 items 6 and 8; target Q2 2027 per D09 §4.4.)
 >
-> **What this means in practice:** today the ledger proves what the record says and that its content has not changed since it was written. It does not yet prove who wrote it, or that no earlier version existed. **Do not present it as tamper-evident to a regulator, an investigator, or opposing counsel until these three close** — the hash will be produced, and the overwrite will be found.
+> **What this means in practice:** the ledger now proves what the record says, that its content has not changed, and — because superseded rows survive — that the decision history is complete as written. It does **not** prove who wrote it (item 2), and it cannot prove tamper-freedom against a party holding the database file, who could drop the triggers, rewrite rows and recompute the chain (item 3). Say the first; do not claim the second.
 
 **Corrections are new records, never edits.** Where a signed disposition contains an error, the correction is a new record referencing the original (Form F09 Part 8). The original stays. That is the only mechanism that preserves a history worth having.
 

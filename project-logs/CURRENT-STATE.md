@@ -76,8 +76,43 @@ The validation chain — schema, timestamp, plausibility — is designed and not
    below) and will regenerate on demand once findings 1 and 2 are decided.
 4. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
    dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
-5. **Disposition ledger** — currently overwrites rather than appends. The
-   evidentiary claim in F09 is ahead of the code until AD-3 lands (Q2 2027).
+5. **Signed, off-box ledger export** — the append-only ledger itself landed
+   2026-11-09 (see below), which closed the overwrite gap. What remains is
+   provability against a party holding the database file, and durability
+   against disk loss: the export is not signed and the ledger is not
+   replicated. D09 §4.4, B01 §7 items 6 and 8.
+
+## Append-only disposition ledger — built 2026-11-09 (AD-3)
+
+The gap that had been disclosed in six documents since `cf2e6ba` is closed at
+the code level.
+
+- `backend/store.py` rewritten. Records are inserted, never updated. A second
+  decision on an advisory is a new row carrying `supersedes_id`; the earlier row
+  keeps its content and timestamp. `BEFORE UPDATE` and `BEFORE DELETE` triggers
+  `RAISE(ABORT)`, so the guarantee lives in the schema rather than in convention.
+  Every row stores `prev_hash` and `record_hash` — a SHA-256 over its own
+  canonical content plus the predecessor's hash — and `verify_chain()`
+  recomputes the whole chain and names the first row that fails.
+- Migration from the v1 one-row-per-advisory table runs inside `init_db()`,
+  preserves the surviving decision and its original timestamp, and does not
+  fabricate history that the old schema had already destroyed.
+- 17 adversarial tests in `tests/test_store.py`: an UPDATE, a DELETE, a second
+  disposition, a tampered row, a removed row, and two migration shapes. Each
+  asserts the attempt fails or is detected. `tests/run_tests.py` now discovers
+  every `test_*.py`, so the total suite is 38.
+- New routes: `GET /api/warrant/{id}/disposition` (full trail, with `chain_ok`)
+  and `GET /api/ledger/verify`. The dashboard shows the decision trail under the
+  form and marks a corrected decision as superseding an earlier record.
+
+**What it does not prove, and the docket now says so in these words:** the chain
+is tamper-*evident*, not tamper-*proof*. A party with write access to the
+database file can drop the triggers, rewrite rows and recompute every hash. That
+is why items 6 and 8 above stay open.
+
+Docket corrected in the same commit: B01 §4 and §7 items 2/8, D09 §4.4 and the
+audit-logging row, F09 Part 6 and Part 7, F00, B02, C02, D12, D14 §5, D00 Part V
+and Part VI, and the root README.
 
 ## A1 builder — fixed in chat-3
 

@@ -124,7 +124,7 @@ Pilot evaluation report → D05 conversion election
 2. **F09 Disposition Records** — the append-only ledger. Establishes what the human reviewer decided, when, and on what advisory. This is the record that answers "did someone look at this?" after an incident.
 3. **F03 Change Orders** — establishes that scope moved deliberately rather than by drift.
 
-**Note on F09 — current implementation gap.** The Platform's disposition write path currently overwrites records rather than appending (see B01 §7, blocking gap #2). Form F09 describes the required behaviour. Until the append-only ledger is implemented, the evidentiary claim in this docket is ahead of the code. That gap is disclosed in D09 §4.4 and must be closed before production deployment. **Do not represent F09 as append-only until it is.**
+**Note on F09 — implementation status.** The Platform's disposition write path is append-only as of 2026-11-09: records are inserted, never updated; a correction supersedes by reference; database triggers refuse `UPDATE` and `DELETE`; and each record is SHA-256 chained to its predecessor (AD-3; B01 §4.1, §4.6). F09's evidentiary claims now match the code at that level. Two things remain open and are disclosed in D09 §4.4: reviewer identity is asserted, not cryptographically verified (AD-2), and the ledger is neither signed nor replicated off-box. **Represent F09 as append-only; do not represent it as a provable-identity or tamper-proof record until those close.**
 
 ### The forms that protect the liability boundary
 

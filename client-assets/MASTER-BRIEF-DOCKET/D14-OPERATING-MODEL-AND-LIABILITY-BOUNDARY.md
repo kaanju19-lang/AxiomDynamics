@@ -70,15 +70,16 @@ On each alert, the reviewing dispatcher records a disposition. The record captur
 **What this record proves:**
 
 - The alert content presented to the reviewer, unaltered since the record was created.
-- Which certified individual recorded the decision.
+- Which individual recorded the decision, and their asserted certification ID.
 - The decision recorded and the time it was recorded.
+- **That the decision history is append-only** (AD-3, built 2026-11-09): a later decision supersedes an earlier one rather than replacing it, both survive with their own content and timestamps, and neither can be edited or deleted through the Platform or by ordinary database access.
 
 **What this record does not prove, and must not be represented as proving:**
 
 - **That the alert fired when the record says it fired.** A hash over content establishes integrity, not chronology. Without an external time anchor, the timestamp is only as trustworthy as the system clock.
-- **That the reviewer's identity was verified.** Until the certification registry (B01 AD-2) is operational, an identifier in a field is not an authenticated identity.
+- **That the reviewer's identity was verified.** Until the certification registry (B01 AD-2) is operational, an identifier in a field is not an authenticated identity. The record proves *what was asserted*, not *who asserted it*.
 - **That the underlying physics was correct.** The record evidences the decision process, not the accuracy of the advisory.
-- **That the record is complete.** Unless the ledger is append-only (B01 AD-3), records can be superseded or omitted without trace.
+- **That the record is tamper-proof against someone holding the database file.** Append-only closes the *superseded-without-trace* risk. It does not close the *rewritten-and-rehashed* risk: a party with write access to the file can drop the guard triggers, rewrite rows and recompute the chain. That risk needs the signed, off-box digest in design consequence 1.
 
 **Two design consequences:**
 

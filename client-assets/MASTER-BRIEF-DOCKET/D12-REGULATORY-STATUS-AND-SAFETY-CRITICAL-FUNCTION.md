@@ -78,7 +78,7 @@ AxiomDynamics does not decide. It does not recommend an operating action. It doe
 
 The disposition ledger records what was presented to a reviewer and what that reviewer decided. Its limits, stated in full in D14 §5, are summarised here because they bear on regulatory use:
 
-- It evidences the **content** of an advisory and a recorded decision, and — **once the ledger is append-only (AD-3, target Q2 2027)** — that neither has been altered since recording. **Today the write path overwrites a record for the same advisory**, so the useful claim is only the hash of the content as it stands, not a tamper-evident history. See D14 §5.
+- It evidences the **content** of an advisory and a recorded decision, and — **since 2026-11-09 (AD-3)** — that the decision history is append-only: a later decision supersedes rather than replaces an earlier one, both survive with their own timestamps, and neither can be edited or deleted through the Platform or by ordinary database access. It does **not** evidence that the record is signed or replicated off-box; a party with write access to the database file could rewrite it and recompute the chain. See D14 §5.
 - It does **not** establish chronology independently of the Railroad's system clock.
 - It does **not** establish that the reviewer's identity was verified, until the certification registry is operational.
 - It does **not** evidence the accuracy of the underlying physics.

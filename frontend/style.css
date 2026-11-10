@@ -491,6 +491,71 @@ canvas {
   color: var(--text-muted);
 }
 
+/* --- Append-only decision trail (AD-3) --- */
+.disposition-history {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 11px;
+}
+
+.disposition-history:empty {
+  margin-top: 0;
+}
+
+.disposition-history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: var(--bg-subtle, #f1f5f9);
+  border-radius: 4px 4px 0 0;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.chain-ok {
+  color: #065f46;
+  font-weight: 600;
+}
+
+.chain-bad {
+  color: #9b1c1c;
+  font-weight: 700;
+}
+
+.disposition-history-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 2px 10px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.disposition-history-row:last-child {
+  border-bottom: none;
+}
+
+.dh-when {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dh-who {
+  color: var(--text, #1e293b);
+}
+
+.dh-what {
+  grid-column: 1 / -1;
+  color: var(--text, #1e293b);
+}
+
+.dh-note {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* --- SVG Icons & Inline Graphics --- */
 svg {
   vertical-align: middle;

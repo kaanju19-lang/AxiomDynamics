@@ -273,14 +273,52 @@ function buildDispositionForm(w) {
   for (const [val, label] of DISPOSITION_OPTIONS) {
     select.appendChild(el("option", { value: val, text: label }));
   }
+  const noteInput = el("input", {
+    type: "text", placeholder: "Note (optional, 500 chars)", maxLength: "500",
+  });
   const submit = el("button", { type: "submit", text: "Record Disposition" });
   const status = el("span", { class: "disposition-status" });
 
   form.appendChild(nameInput);
   form.appendChild(certInput);
   form.appendChild(select);
+  form.appendChild(noteInput);
   form.appendChild(submit);
   form.appendChild(status);
+
+  // Existing decisions are shown, not hidden. A reviewer recording a second
+  // disposition should be able to see what they are superseding.
+  const history = el("div", { class: "disposition-history" });
+  form.appendChild(history);
+
+  async function loadHistory() {
+    try {
+      const r = await fetch(`/api/warrant/${w.advisory_id}/disposition`);
+      if (!r.ok) return;
+      const data = await r.json();
+      history.textContent = "";
+      if (!data.count) return;
+      const head = el("div", { class: "disposition-history-head" }, [
+        el("span", {
+          text: `${data.count} recorded decision${data.count === 1 ? "" : "s"}`,
+        }),
+        el("span", {
+          class: data.chain_ok ? "chain-ok" : "chain-bad",
+          text: data.chain_ok ? "chain verified" : "CHAIN BROKEN",
+        }),
+      ]);
+      history.appendChild(head);
+      for (const rec of data.history) {
+        const row = el("div", { class: "disposition-history-row" }, [
+          el("span", { class: "dh-when", text: rec.recorded_at }),
+          el("span", { class: "dh-who", text: `${rec.reviewer_name} (${rec.cert_id})` }),
+          el("span", { class: "dh-what", text: rec.disposition_label }),
+        ]);
+        if (rec.note) row.appendChild(el("span", { class: "dh-note", text: rec.note }));
+        history.appendChild(row);
+      }
+    } catch (_) { /* history is informative; failing to load it must not block a review */ }
+  }
 
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
@@ -290,17 +328,26 @@ function buildDispositionForm(w) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reviewer_name: nameInput.value, cert_id: certInput.value, disposition: select.value,
+          reviewer_name: nameInput.value,
+          cert_id: certInput.value,
+          disposition: select.value,
+          note: noteInput.value,
         }),
       });
       if (!r.ok) throw new Error((await r.json()).error || `HTTP ${r.status}`);
-      status.textContent = "Saved.";
+      const saved = await r.json();
+      status.textContent = saved.supersedes_id
+        ? `Appended (supersedes record #${saved.supersedes_id}).`
+        : "Recorded.";
+      noteInput.value = "";
+      await loadHistory();
       await loadAlerts();
     } catch (e) {
       status.textContent = `Error: ${e.message}`;
     }
   });
 
+  loadHistory();
   return form;
 }
 

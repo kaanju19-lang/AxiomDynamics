@@ -246,12 +246,18 @@ def route_unit_acoustics(unit_id, _query):
 
 
 # ---------------------------------------------------------------------------
-# Human reviewer disposition -- in-memory only (resets on restart; this is
-# a demo, not a system of record). Keyed by advisory_id. This is what
-# makes "REVIEW" / "URGENT REVIEW" an actual workflow step a named,
-# credentialed person acts on, rather than a status string nothing ever
-# writes back to -- the core of the "human-in-the-loop, AI never dispatches"
-# story this product depends on.
+# Human reviewer disposition -- append-only since 2026-11-09 (AD-3).
+#
+# A disposition is never overwritten: a second decision on the same advisory is
+# appended as a new row carrying `supersedes_id`, and the earlier row keeps its
+# own content and timestamp. SQLite triggers refuse UPDATE and DELETE outright,
+# and every row is chained by SHA-256 to the one before it, so a row edited or
+# removed outside the app is detectable via store.verify_chain().
+#
+# This is what makes "REVIEW" / "URGENT REVIEW" an actual workflow step a named,
+# credentialed person acts on, rather than a status string nothing ever writes
+# back to -- the core of the "human-in-the-loop, AI never dispatches" story, and
+# the record F09 produces.
 # ---------------------------------------------------------------------------
 VALID_DISPOSITIONS = {
     "concur_dispatch": "Concurred — dispatch order issued",
@@ -261,13 +267,22 @@ VALID_DISPOSITIONS = {
 }
 
 
+def _disposition_label(rec):
+    """'Label — Name (CERT)' plus a superseded-count marker when there is one."""
+    label = (
+        f"{VALID_DISPOSITIONS.get(rec['disposition'], rec['disposition'])} "
+        f"— {rec['reviewer_name']} ({rec['cert_id']})"
+    )
+    history = store.disposition_history(rec["advisory_id"])
+    if len(history) > 1:
+        label += f" · supersedes {len(history) - 1} earlier record{'s' if len(history) > 2 else ''}"
+    return label, len(history)
+
+
 def _apply_disposition(warrant):
     rec = store.get_disposition(warrant.advisory_id)
     if rec:
-        warrant.reviewer_disposition = (
-            f"{VALID_DISPOSITIONS.get(rec['disposition'], rec['disposition'])} "
-            f"— {rec['reviewer_name']} ({rec['cert_id']})"
-        )
+        warrant.reviewer_disposition, warrant.disposition_history_count = _disposition_label(rec)
     return warrant
 
 
@@ -306,10 +321,54 @@ def route_post_disposition(advisory_id, body):
     reviewer_name = (body.get("reviewer_name") or "").strip()
     cert_id = (body.get("cert_id") or "").strip()
     disposition = body.get("disposition")
+    note = (body.get("note") or "").strip()
     if not reviewer_name or not cert_id or disposition not in VALID_DISPOSITIONS:
         return {"error": "reviewer_name, cert_id, and a valid disposition are required"}, 400
-    store.save_disposition(advisory_id, reviewer_name, cert_id, disposition)
-    return {"ok": True, "advisory_id": advisory_id, "disposition": disposition}, 200
+    if len(note) > 500:
+        return {"error": "note must be 500 characters or fewer"}, 400
+
+    # Appends. An earlier decision on this advisory is superseded, not replaced.
+    rec = store.save_disposition(advisory_id, reviewer_name, cert_id, disposition, note)
+    return {
+        "ok": True,
+        "advisory_id": advisory_id,
+        "disposition": disposition,
+        "record_id": rec["id"],
+        "supersedes_id": rec["supersedes_id"],
+        "recorded_at": rec["recorded_at"],
+        "record_hash": rec["record_hash"],
+    }, 200
+
+
+def route_get_disposition_history(advisory_id):
+    """
+    The full decision trail for one advisory, oldest first. This is the record
+    F09 produces: every decision, who made it, when, and what it corrected.
+    """
+    history = store.disposition_history(advisory_id)
+    if not history:
+        return {"advisory_id": advisory_id, "history": [], "count": 0,
+                "chain_ok": store.verify_chain()["ok"]}, 200
+
+    return {
+        "advisory_id": advisory_id,
+        "count": len(history),
+        "history": [
+            {
+                "record_id": r["id"],
+                "reviewer_name": r["reviewer_name"],
+                "cert_id": r["cert_id"],
+                "disposition": r["disposition"],
+                "disposition_label": VALID_DISPOSITIONS.get(r["disposition"], r["disposition"]),
+                "note": r["note"],
+                "recorded_at": r["recorded_at"],
+                "supersedes_id": r["supersedes_id"],
+                "record_hash": r["record_hash"],
+            }
+            for r in history
+        ],
+        "chain_ok": store.verify_chain()["ok"],
+    }, 200
 
 
 # ---------------------------------------------------------------------------
@@ -360,6 +419,14 @@ class Handler(BaseHTTPRequestHandler):
         query = {k: v[0] for k, v in parse_qs(parsed.query).items()}
 
         try:
+            if path.startswith("/api/warrant/") and path.endswith("/disposition"):
+                # ['', 'api', 'warrant', '<advisory_id>', 'disposition']
+                parts = path.split("/")
+                if len(parts) == 5 and parts[3]:
+                    result, status = route_get_disposition_history(parts[3])
+                    return self._send_json(result, status=status)
+            if path.startswith("/api/ledger/verify"):
+                return self._send_json(store.verify_chain())
             if path == "/api/fleet":
                 return self._send_json(route_fleet(query))
             if path == "/api/alerts":

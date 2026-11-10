@@ -1,7 +1,7 @@
 # AxiomDynamics — Physics-First Predictive Maintenance (Demo)
 
-A small web app for freight-rail predictive maintenance built on three
-named physical models instead of black-box ML or fixed alarm thresholds:
+A small web app for freight-rail predictive maintenance built on named
+physical models instead of black-box ML or fixed alarm thresholds:
 
 1. **Thermodynamics** — wheel-bearing temperature rate-of-change, flagged
    with a rolling z-score against each axle's own recent baseline, instead
@@ -29,22 +29,35 @@ named physical models instead of black-box ML or fixed alarm thresholds:
    dashboard, built on real cited derailment cost data (see "ROI research"
    below) blended with clearly-labeled modeling assumptions where no
    public figure exists.
-7. **Human reviewer disposition** — each Ghost Warrant has a real
-   disposition workflow (`POST /api/warrant/{advisory_id}/disposition`):
-   a named reviewer with a certification ID records Concur & Dispatch,
-   Escalate, Override/Downgrade, or Reject Sensor Hardware. This is not
-   decorative — it's what makes "a human is in the loop" an actual
-   recorded action instead of a claim in a README. (In-memory only in
-   this demo; resets on restart.)
+
+On top of those, two mechanisms:
+
 7. **Evidence fusion → Predictive Ghost Warrants** — no single signal can
    trigger the top severity tier by itself. `backend/warrants.py` only
    escalates to **URGENT REVIEW** when at least two independent signal
    types agree; a lone signal (even a critical one) is capped at
-   **REVIEW**. Every warrant carries a SHA-256 hash of its evidence for a
-   tamper-evident audit trail, and severity tiers are named
-   INFORMATIONAL / REVIEW / URGENT REVIEW specifically so they can't be
-   mistaken for an operational alarm level — this system never issues a
-   stop-train or braking instruction.
+   **REVIEW**. Every warrant carries a SHA-256 hash of its evidence, and
+   severity tiers are named INFORMATIONAL / REVIEW / URGENT REVIEW
+   specifically so they can't be mistaken for an operational alarm level —
+   this system never issues a stop-train or braking instruction.
+8. **Human reviewer disposition** — each Ghost Warrant has a real
+   disposition workflow (`POST /api/warrant/{advisory_id}/disposition`):
+   a named reviewer with a certification ID records Concur & Dispatch,
+   Escalate, Override/Downgrade, or Reject Sensor Hardware, with an
+   optional note. This is not decorative — it's what makes "a human is in
+   the loop" an actual recorded action instead of a claim in a README.
+
+   The ledger is **append-only**. A second decision on the same advisory
+   does not overwrite the first: it is inserted as a new record whose
+   `supersedes_id` points at the record it corrects, and both survive
+   with their own timestamps. `UPDATE` and `DELETE` are refused by
+   database triggers, and every record carries a SHA-256 over its content
+   and its predecessor's hash, so `store.verify_chain()` can prove the
+   history is intact and name the first record that is not. This is a
+   deliberate constraint, not an accident of implementation: the whole
+   regulatory argument rests on a record that cannot be quietly rewritten.
+   Read `backend/store.py`'s module docstring for exactly what the chain
+   does and does not prove.
 
 Every number in the dashboard traces back to an equation in
 `backend/physics.py` — read that file's docstrings for the exact formulas
@@ -131,12 +144,16 @@ and a cumulative cost reported to have exceeded $1 billion by mid-2024
 
 **What's an assumption, not a citation:** there is no published base rate
 for what fraction of missed bearing defects progress to a catastrophic
-event versus stay contained. `backend/roi.py` uses a conservative 2%
-placeholder (`P_CATASTROPHIC_GIVEN_MISSED_DEFECT`) and blends the two
-sourced tiers into one expected-cost figure. Replace that probability —
-and the inspection-cost and detection-time constants, which are also
-unsourced placeholders — with your own numbers, or a pilot customer's
-real safety/cost data, before this supports an actual business case.
+event versus stay contained. `backend/roi.py` uses 2% and the A1 Excel
+model uses 0.05% (`P_CATASTROPHIC_GIVEN_MISSED_DEFECT` in the code;
+sheet 1 cell B17 in the workbook), and that 40× disagreement is an open
+item — it is the reason the workbook and the licensing annex do not
+produce the same benefit figures. Do not quote either number without
+reading `assets/a2-d08-arithmetic-pass-2026-11-09.md` first. Both blend
+the two sourced tiers into one expected-cost figure. The inspection-cost
+and detection-time constants are also unsourced placeholders. Replace
+them with your own numbers, or a pilot customer's real safety/cost data,
+before this supports an actual business case.
 
 ## One important caveat on the kinematics module
 
@@ -159,16 +176,21 @@ frontend/
   index.html, style.css, app.js   dashboard UI, vanilla JS canvas charts
 tests/
   test_physics.py   correctness tests for every formula
-  run_tests.py      stdlib-only test runner (use this if pytest isn't installed)
+  test_store.py     append-only and hash-chain tests for the ledger
+  run_tests.py      stdlib-only test runner; discovers test_*.py
 ```
 
 ## Running the tests
 
 ```bash
-python3 tests/run_tests.py     # no pytest needed
+python3 tests/run_tests.py     # no pytest needed; discovers every test_*.py
 # or, if you have pytest:
 pytest tests/
 ```
+
+38 tests currently: 21 for the physics formulas, 17 for the disposition
+ledger. The ledger tests are adversarial by design — each one tries to destroy
+an earlier decision and asserts that the attempt fails or is detected.
 
 ## API routes
 
@@ -179,11 +201,17 @@ pytest tests/
 - `GET /api/unit/{id}/kinematics` — coasting profile for that axle's car
 - `GET /api/roi` — fleet-wide executive KPI summary (mission-ready %, net
   estimated benefit, mean-time-to-detect, open reviews)
-- `POST /api/warrant/{advisory_id}/disposition` — record a reviewer's
-  disposition (`{"reviewer_name", "cert_id", "disposition"}`, where
-  disposition is one of `concur_dispatch`, `escalate`,
-  `override_downgrade`, `reject_sensor`). Persisted in `axiom.db`
-  (SQLite, stdlib `sqlite3`, survives a restart).
+- `POST /api/warrant/{advisory_id}/disposition` — append a reviewer's
+  disposition (`{"reviewer_name", "cert_id", "disposition", "note"?}`,
+  where disposition is one of `concur_dispatch`, `escalate`,
+  `override_downgrade`, `reject_sensor`). Returns the new `record_id`,
+  the `supersedes_id` it corrects (or null), and the record's hash.
+  Persisted in `axiom.db` (SQLite, stdlib `sqlite3`, survives a restart).
+- `GET /api/warrant/{advisory_id}/disposition` — the full decision trail
+  for one advisory, oldest first, with `chain_ok` reporting whether the
+  hash chain verifies.
+- `GET /api/ledger/verify` — recompute the whole disposition chain and
+  report `{ok, rows, broken_at_id, reason}`.
 
 ## Deploying to Render (free tier)
 
@@ -226,9 +254,12 @@ had spun down from inactivity — that's normal, not a bug).
 tier.** Free-tier instances have an ephemeral filesystem: it spins down
 after inactivity and loses any local file changes, including `axiom.db`.
 Dispositions you record will survive until the instance sleeps, then
-reset. This is fine for a demo; for a real pilot, upgrade to a paid Render
-plan with a persistent disk, or point `AXIOM_DB_PATH` at a managed
-database instead of local SQLite.
+reset. Note that this is a *durability* limit, not an append-only one: the
+schema still refuses in-place edits while it exists, but losing the file
+loses the whole ledger. For a real pilot, upgrade to a paid Render plan
+with a persistent disk, or point `AXIOM_DB_PATH` at a managed database —
+and replicate off-box, because a single copy is a single point of loss
+(D09 §4.4).
 
 ## Running it in Docker (air-gapped edge box story)
 
@@ -256,10 +287,12 @@ please run the build yourself and let me know if anything needs fixing.
 
 Good next steps, roughly in order of how much new ground they cover:
 - Swap `simulate.py` for a real data loader (CSV/serial/MQTT from an actual
-  wayside detector or onboard sensor).
-- Add a persistence layer (SQLite is enough to start) so alert history
-  survives a restart.
-- Dockerize `backend/` for the "immutable container on an edge box" story —
-  the stdlib-only design means the image can be minimal (no pip layer).
-- Add authentication if this ever leaves a single trusted machine.
+  wayside detector or onboard sensor). **This is the largest known gap** —
+  there is no inbound ingest route at all, so every demo number
+  demonstrates the method rather than a customer's data.
+- Sign the disposition export and replicate it off-box, so the ledger can
+  be proven intact without trusting the host that holds it (D09 §4.4).
+- Add authentication if this ever leaves a single trusted machine — and
+  the signed certification registry (AD-2) behind it, which is what turns
+  a recorded reviewer name into a verified identity.
 

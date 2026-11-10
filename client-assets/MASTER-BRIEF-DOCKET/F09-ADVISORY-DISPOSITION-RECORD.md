@@ -107,7 +107,7 @@ ________________________________________________________________
 ☐ I am the person named in Part 3, and I reviewed this advisory myself.
 ☐ I did not consult AxiomDynamics personnel for an **operating recommendation**. *(We would have declined — D06 §1.4.)*
 ☐ My decision was made under the Customer's own operating rules and authorities.
-☐ I understand this record is **intended to be append-only** — corrections are made by a new record referencing this one, never by editing. *(As of this form's version, the write path still allows overwrite; see Part 7, disclosure 1.)*
+☐ I understand this record is **append-only** — a correction creates a new record that references this one, and this record is never edited or deleted. *(Implemented 2026-11-09; the database refuses `UPDATE` and `DELETE` on the ledger. See Part 7, disclosure 1, for what this does and does not prove.)*
 
 ---
 
@@ -122,7 +122,7 @@ ________________________________________________________________
 
 > **Two disclosures on this block, stated plainly rather than implied.**
 >
-> **1. The append-only claim is not yet implemented.** The current write path overwrites a record if one exists for the same advisory (B01 §7, blocking gap #2; D09 §4.4). Until the ledger is rebuilt as insert-only, this form describes the *required* behaviour, and the ledger is a record rather than an audit trail. **Do not represent it as tamper-evident until that is fixed.**
+> **1. The append-only claim is implemented as of 2026-11-09.** Each disposition is written as a new row; a correction records a `supersedes_id` pointing at the row it corrects, and the earlier row keeps its own content and timestamp. `UPDATE` and `DELETE` against the ledger are refused by the database itself, and every row carries a SHA-256 over its content and its predecessor's hash. What that proves is bounded: it proves the record cannot be altered through the application or by ordinary database access, and that an alteration made by bypassing those guards is detectable. It does **not** prove the record was replicated off-box or cryptographically signed — both remain open (D09 §4.4).
 >
 > **2. A hash is not a signature.** The SHA-256 field demonstrates that the record has not changed since it was written. It does **not** prove who wrote it, because the Platform's authentication is local accounts rather than cryptographically registered credentials (AD-2 not yet built). A hash proves integrity, not identity. Anyone relying on this record in a legal proceeding should understand the difference.
 
@@ -162,4 +162,4 @@ ________________________________________________________________
 
 ---
 
-*Form F09. Uncontrolled when printed. Append-only by design; current implementation overwrites — see Part 7.*
+*Form F09. Uncontrolled when printed. Append-only — enforced by the database and hash-chained; signed export pending. See Part 7.*

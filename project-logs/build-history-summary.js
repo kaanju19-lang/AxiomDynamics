@@ -584,8 +584,8 @@ doc.push(table(
 ));
 doc.push(P("F00 sits above these as the register and policy, and carries the seven documentation rules. Three records carry evidentiary weight: F02 establishes the Commissioning Date and the configuration the customer certified; F09 records what a human decided and when, and is what answers \"did someone look at this?\" after an incident; F03 proves scope moved deliberately rather than by drift. F11 and F09 together are what hold the liability boundary — F11 records what was observed and what was declined, F09 records that a qualified human made the operating call."));
 doc.push(callout(
-  "The gap that sits inside F09",
-  "F09 describes an append-only disposition record. The shipped write path overwrites: an upsert keyed on advisory_id. Until that is rebuilt, the evidentiary claim in the docket is ahead of the code, and F09 says so in its own Part 7. It is disclosed in D09 §4.4 and B01 §7 item 2. Do not represent F09 as append-only until it is.",
+  "The gap that sat inside F09, and how it closed",
+  "This document was first written on 2026-11-09 while F09 described an append-only record that the code did not yet produce \u2014 the write path was an upsert keyed on advisory_id, so a second decision silently destroyed the first. That was disclosed in six places rather than hidden, which was right, but it meant the docket's most legally significant record claimed more than the code did. Later the same day the ledger was rebuilt: insert-only, corrections by reference, database triggers refusing UPDATE and DELETE, and a SHA-256 chain across rows. F09's Part 7 now states what the chain proves and what it does not. The gap did not vanish; it narrowed to signed, off-box export.",
 ));
 
 // ================================================================ PART IV
@@ -737,7 +737,7 @@ doc.push(table(
   ["Gap", "Disclosed in", "Consequence while open"],
   [
     ["No detector ingest path at all", "B01 §7 #5 · B02 §2 · B03 status", "Every demonstration number demonstrates the method, not the customer's data. The largest gap in the docket."],
-    ["Disposition ledger overwrites rather than appends", "B01 §7 #2 · D09 §4.4 · F09 Part 7", "The ledger is a record, not an audit trail. Do not represent it as tamper-evident."],
+    ["Signed, off-box export of the ledger", "B01 §4.5 · B01 §7 #8 · D09 §4.4 · F09 Part 7", "Append-only and hash-chained, but not signed and not replicated: someone with write access to the database file could rewrite and rehash, and a lost disk loses the ledger."],
     ["Certification registry is local accounts, no cryptographic verification", "B01 §7 #1 · D09 §4.4 · F08 Part 1", "A reviewer can self-assert a cert ID. Manual control via F08 is the substitute."],
     ["No SBOM artefact in releases", "D09 §4.4 · §7.2", "Customer cannot independently verify the dependency chain. Target Q1 2027."],
     ["No hash pinning of dependencies", "D09 §4.4", "A compromised package index could serve malware. Target Q1 2027."],
@@ -806,7 +806,7 @@ doc.push(table(
   [
     ["backend/", "physics.py (the six models), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (cost model), store.py (SQLite dispositions), main.py (stdlib HTTP server and routes)", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
-    ["tests/", "test_physics.py (21 tests), run_tests.py (stdlib runner)", "Code"],
+    ["tests/", "test_physics.py (21 formula tests), test_store.py (17 ledger tests), run_tests.py (stdlib runner, discovers test_*.py)", "Code"],
     ["client-assets/MASTER-BRIEF-DOCKET/", "The 38-artifact docket: A1–A2, B01–B05, C01–C02, D00–D14, F00–F13 (36 Markdown + xlsx + html)", "Client-facing"],
     ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass and its check script", "Internal — never forwardable"],
     ["project-logs/", "CURRENT-STATE, README, chat-1/2/3 summaries and carry-forwards, transcripts with raw jsonl", "Internal"],
@@ -865,11 +865,11 @@ doc.push(H2("Current status at a glance"));
 doc.push(table(
   ["Area", "State", "Note"],
   [
-    ["Physics engine and tests", "Complete, 21/21 passing", "Deterministic; no learned parameters"],
+    ["Physics engine and tests", "Complete, 38/38 passing", "21 formula tests + 17 ledger tests; deterministic, no learned parameters"],
     ["Demonstration application", "Runs", "Synthetic data only"],
     ["Client docket", "38 artifacts built, 0 outstanding in the index", "Not yet counsel-reviewed"],
     ["Detector ingest", "Not built", "The largest gap; disclosed in three places"],
-    ["Append-only ledger", "Not built", "Write path overwrites; disclosed"],
+    ["Append-only ledger", "Built 2026-11-09", "Insert-only, triggers, SHA-256 chain, 17 tests"],
     ["Signed certification registry", "Not built", "F08 is the manual substitute"],
     ["SBOM, hash pinning, signed releases", "Not built", "Q1–Q2 2027 targets; disclosed"],
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
