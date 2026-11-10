@@ -8,7 +8,7 @@ Conversation records for the project.
 |---|---|---|
 | `2026-11-09-chat-2.md` | 302 (134 user, 168 assistant) | chat-2, first line to the point of extraction |
 | `2026-11-09-chat-3.md` | 641 | chat-3, first line to the signed ledger export and its transcript step |
-| `raw/2026-11-09-chat-2.jsonl` | 780 events | the unprocessed chat-2 log, 1.6 MB |
+| `raw/2026-11-09-chat-2.jsonl` | 791 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
 | `raw/2026-11-10-chat-3-snapshot.jsonl` | 5,032 events | the chat-3 log, 17.1 MB, valid JSONL |
 

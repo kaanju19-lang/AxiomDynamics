@@ -251,9 +251,9 @@ flowchart TB
 
 It is not a claim that the platform detects bearing failures. **It computes a physics-derived condition estimate and presents it to a qualified person** (D12 §1). It is not a claim that any particular proportion of defects will be found (D02 §7.2, D12 §8). It is not a safety appliance, a WDBD, an alarm system of record, or a substitute for any required inspection (D12 §§2–3).
 
-And it is not a picture of the finished product. **Ten items in B01 §7 stand between this diagram and the one we would draw for a production deployment.** Three of them — append-only ledger, registered identity, signed export — are the ones that make the record defensible. We draw them dotted here because drawing them solid would be the single most effective way to mislead a customer while writing nothing false.
+And it is not a picture of the finished product. **Twelve items in B01 §7 stand between this diagram and the one we would draw for a production deployment.** Two of them — registered identity (item 1) and export signing-key provenance (item 11) — are the ones that make the record attributable, and both depend on the same unbuilt piece: the signed certification registry. We draw them dotted here because drawing them solid would be the single most effective way to mislead a customer while writing nothing false.
 
-**And one of them is larger than the other nine. The ingest path (§2) is not built at all** — the demonstration generates its own signals rather than accepting a Railroad's. A reviewer reading this map top to bottom should understand that the right-hand two-thirds is closer to production than the left-hand third is. **The ledger needs rebuilding; the front door does not yet exist.**
+**And one of them is larger than the other eleven. The ingest path (§2) is not built at all** — the demonstration generates its own signals rather than accepting a Railroad's. A reviewer reading this map top to bottom should understand that the right-hand two-thirds is closer to production than the left-hand third is. **The ledger is built and its export is signed and independently verifiable; the front door does not yet exist.**
 
 ---
 

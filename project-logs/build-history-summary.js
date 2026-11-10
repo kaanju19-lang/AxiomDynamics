@@ -355,7 +355,7 @@ doc.push(callout(
 ));
 
 // ---- Stage 1
-doc.push(H2("Stage 1 — The commercial model (2026-11-08, 08:22–12:25)"));
+doc.push(H2("Stage 1 — The commercial model (2026-11-08, 08:22–15:03)"));
 doc.push(P("Commits: 2b7aa6c, f1f705e, dd3c1d5, c995c76, 549f36d, 668e5eb, 0dda8d3."));
 doc.push(P("Once the demonstration existed, the next question was what to charge for it. This stage produced the entire commercial structure, and it did so through three corrections that are the most instructive part of the history."));
 doc.push(H3("1a — The first cost model, and the weakness found inside it (2b7aa6c, f1f705e)"));
@@ -389,14 +389,14 @@ doc.push(H2("Stage 3 — The technical annexes (2026-11-08, 16:00–16:22)"));
 doc.push(P("Commits: 77d4cf5 (B01, B04, B05), 903f1ae (library reconciliation)."));
 doc.push(H3("B01, B04, B05 — written against production, not the demo"));
 doc.push(P("The three technical documents were written in one pass, and their most important property is stated in B01's own opening: \"Written against: the production architecture, not the demonstration build. §7 lists every point where the two currently differ. Nothing in this document should be treated as describing the demo.\""));
-doc.push(P("That decision — to describe the intended production system and separately enumerate every gap to it — is what makes the rest of the docket honest. It produced B01 §7, a ten-item gap table that includes the project's largest known defect (item 5: no inbound sensor route exists), and it forced B04 and B05 to be written by inspecting the code rather than the marketing."));
+doc.push(P("That decision — to describe the intended production system and separately enumerate every gap to it — is what makes the rest of the docket honest. It produced B01 §7, a gap table that began at ten items and has since grown to twelve as new gaps were disclosed, including the project's largest known defect (item 5: no inbound sensor route exists), and it forced B04 and B05 to be written by inspecting the code rather than the marketing."));
 doc.push(P("The three documents settled three architectural decisions, later recorded as AD-1 to AD-3 in B01:"));
 doc.push(table(
   ["Decision", "Content", "Consequence"],
   [
     ["AD-1", "Fully on-premise edge, zero outbound network. No licence server, telemetry, update callback or third-party cloud. Ever.", "The air-gap claim becomes truthful. It costs the vendor remote diagnostics and all product telemetry."],
     ["AD-2", "Reviewer identity via local accounts plus a signed certification registry, administered by the Railroad.", "No dependency on railroad directory services; no path to pivot into their directory. Costs a second credential set."],
-    ["AD-3", "The disposition ledger is append-only: superseded, never overwritten, never deleted.", "The regulatory argument rests on this. The shipped code does not implement it yet."],
+    ["AD-3", "The disposition ledger is append-only: superseded, never overwritten, never deleted.", "The regulatory argument rests on this. The code did not implement it when this table was written; it has since 2026-11-09. See Stage 7.3."],
   ],
   { width: [1, 5, 4], size: 16 },
 ));
@@ -413,7 +413,7 @@ doc.push(callout(
 // ---- Stage 4
 doc.push(H2("Stage 4 — Contract drafting (2026-11-08, 16:50–20:38)"));
 doc.push(P("Commits: a4d4fff (IP strategy), d05501f (D14), e8a08fc (D13), 7c47aa6 (D12, D11, D02), 96e058c (D07, C01, C02), b9aa4a8 (D05, D06, D09)."));
-doc.push(P("This is the largest drafting stage: nine documents across six commits, in a deliberate order. The order itself is the design — the documents that constrain everything else were written first."));
+doc.push(P("This is the largest drafting stage: eleven client-facing documents plus the internal IP strategy, across six commits, in a deliberate order. The order itself is the design — the documents that constrain everything else were written first."));
 doc.push(H3("The drafting sequence, and why"));
 doc.push(table(
   ["Order", "Document", "Why it came at this point"],
@@ -440,7 +440,7 @@ doc.push(callout(
 doc.push(H2("Stage 5 — Closing the docket (2026-11-09, 16:09–16:32)"));
 doc.push(P("Commits: cf2e6ba (Q7 — the largest single commit), 33ccc7e, de9b245."));
 doc.push(H3("Q7 — the forms register and the remaining instruments"));
-doc.push(P("cf2e6ba is the largest commit in the project: 35 files, 3,900 insertions. It built F00–F13 (the fourteen executable forms), A2 (the rate card), D03 (the MSA), D04 (the five SOW templates), D01 (the preface and checklist), and D10 (the component register) — then ran a two-pass consistency audit across the whole set."));
+doc.push(P("cf2e6ba is the largest commit in the project: 35 files, 3,900 insertions. It built F00–F13 (the register and policy, plus thirteen executable forms), A2 (the rate card), D03 (the MSA), D04 (the five SOW templates), D01 (the preface and checklist), and D10 (the component register) — then ran a two-pass consistency audit across the whole set."));
 doc.push(P("Two things from that commit deserve permanent record. The first is A2's role: it became the single authority on price, governing every other document. The second is F00 Rule 7, which is a documentation principle rather than a form:"));
 doc.push(callout(
   "F00 Rule 7 — a blank and a decision are different things",
@@ -448,29 +448,36 @@ doc.push(callout(
 ));
 doc.push(P("Rule 7 also names the prohibited pattern: never write a clause that points to a field no document actually contains. That rule was written because D07 §14.3 had done exactly that — it sent dispute venue to \"[the courts / arbitration seat] stated in the Order signature block\", and no Order template has such a field. The clause read as complete to anyone who did not go and check, and there was nothing to check. This defect is fixed in chat-2 (Part IV)."));
 doc.push(H3("B02 and B03, and the correction that followed"));
-doc.push(P("33ccc7e added the flow map and the one-page executive infographic, and reconciled build status. de9b245 followed eleven minutes later with a correction that is the most important single commit in the project's quality history: \"Correct B02/B03: disclose that no detector ingest path exists.\""));
+doc.push(P("33ccc7e added the flow map and the one-page executive infographic, and reconciled build status. de9b245 followed twelve minutes later with a correction that is the most important single commit in the project's quality history: \"Correct B02/B03: disclose that no detector ingest path exists.\""));
 doc.push(P("The diagram had drawn a flow from wayside detector to edge inference. No endpoint accepted a Railroad payload. The signals came from the physics equations on synthetic traces. The docket's largest known gap had been drawn as a built capability — and it was found by checking the diagram against the code, not by reading the diagram."));
 doc.push(P("That correction is now the standing discipline of the project: verify against the file, then write. Every later stage cites it, and the transcript of chat-2 records the assistant's own summary of why it matters — \"it looked right, so nobody checked whether it was true.\""));
 
 // ---- Stage 6
-doc.push(H2("Stage 6 — Recovering the loss, and the rules that came out of it (2026-11-09, 21:16–22:02)"));
-doc.push(P("Stage 6 is process rather than product, and it is the stage that makes every later stage recoverable. It is covered in Part IV and Part V; what belongs here is the chronology. Commits f58b07c through b946678 rebuilt chat-1's lost work (F00 Rule 7, D07 §14, Q6), installed the write-in-repo standing instruction, built the push helper, and committed the chat-2 transcript with its raw log — which is why the conversation now survives its session."));
-doc.push(P("It closes with ed78962 and b946678: the A2/D08 arithmetic pass, which recomputed every figure in both money documents from its stated source equation. 78 of 78 computed figures agreed. No arithmetic error exists in either. Two *claims* did not reproduce, and both are carried into Part VII as Findings 1 and 2 — an owner decision, priced in the next stage."));
+doc.push(H2("Stage 6 — Recovering the loss, and the rules that came out of it (2026-11-09, 21:16–21:49)"));
+doc.push(P("Stage 6 is process rather than product, and it is the stage that makes every later stage recoverable. It is covered in Part IV and Part V; what belongs here is the chronology. Commits f58b07c through 05b161d rebuilt chat-1's lost work (F00 Rule 7, D07 §14, Q6), installed the write-in-repo standing instruction, built the push helper, and committed the chat-2 transcript and its raw log — which is why the conversation now survives its session. It ends where chat-2 did."));
 
 // ---- Stage 7
-doc.push(H2("Stage 7 — chat-3: three builds, one decision paper, and two audits (2026-11-09 22:18 – 2026-11-10 06:58)"));
-doc.push(P("Three build phases and one analysis phase, in this order: the build history document itself; the append-only disposition ledger; the A2/D08 decision paper; and the signed ledger export. Two of the four were materially changed by an independent audit after they were written, and in both cases the audit found something I had not thought of."));
+doc.push(H2("Stage 7 — chat-3: three builds, two analysis passes, and two audits (2026-11-09 22:01 – 2026-11-10 06:58)"));
+doc.push(P("Chat-3 opened by verifying the handoff against the repository rather than trusting it, and found that four commits the carry-forward named as unpushed were already in origin/main, while the work actually waiting was different. That is the Stage 5 discipline applied one layer up, and it is the right way to read the rest of this stage: every conclusion below was reached by opening a file, not by recollection."));
+doc.push(P("Then came three builds — the build history document itself, the append-only disposition ledger and the signed ledger export — and two analysis passes, the A2/D08 arithmetic check and the decision paper that prices its findings. The session closed by extracting its own transcript. The decision paper and the export were both materially changed by an independent audit after they were written, and in both cases the audit found something I had not thought of — including one case where the checker agreed with the mistake because I had written the checker too. The arithmetic pass was not audited and did not need repair; it is the one phase here that survived unamended."));
 
-doc.push(H3("7.1 — The append-only disposition ledger (commit 209efe6)"));
-doc.push(P("Chosen first because it was the one open code control needing no commercial decision from the owner, and because the docket's most legally significant record was overstating what the code did. backend/store.py used advisory_id as PRIMARY KEY with INSERT ... ON CONFLICT DO UPDATE, so a second disposition on the same advisory overwrote the first — its reviewer, its note and its recorded_at all gone. F09 described an append-only record; the code produced one row that could be rewritten. Six documents disclosed the gap."));
+doc.push(H3("7.1 — The A2/D08 arithmetic pass (commits ed78962, b946678)"));
+doc.push(P("The highest-value item in the handoff and untouched since cf2e6ba. assets/a2-d08-arithmetic-pass.py recomputes every figure in A2 and D08 from its stated source equation and exits non-zero on any mismatch. 78 of 78 computed figures agreed, so no arithmetic error exists in either document. Two claims did not reproduce — the two carried into Part VII as Findings 1 and 2 — and both were left open because fixing them means choosing which model governs, which is an owner decision rather than an editorial one."));
+doc.push(P("The pass also fixed two real defects in the A1 workbook builder: a sheet-5 note attributed a 2% escalation rate to a cell that has held 0.05% since the correction, and the script saved to a path inside the destroyed chat-1 sandbox, so running it raised FileNotFoundError. The committed workbook was deliberately not regenerated — doing so would have baked both open findings into a new file before the model question was settled."));
+
+doc.push(H3("7.2 — The build history document (commit a3ba43f)"));
+doc.push(P("Requested by the owner because chat-1's conversation no longer exists and the build needed a readable record of itself. 29 pages when written, 32 after the revision recorded below; eight parts plus an appendix, generated from the repository by project-logs/build-history-summary.js so it can be rebuilt after a change. Layout was verified by rendering to PDF and reading the pages, which found two defects: every numbered list shared one continuous sequence, and the Word TOC field rendered empty in a converter that does not update fields."));
+
+doc.push(H3("7.3 — The append-only disposition ledger (commit 209efe6)"));
+doc.push(P("Chosen next because it was the one open code control needing no commercial decision from the owner, and because the docket's most legally significant record was overstating what the code did. backend/store.py used advisory_id as PRIMARY KEY with INSERT ... ON CONFLICT DO UPDATE, so a second disposition on the same advisory overwrote the first — its reviewer, its note and its recorded_at all gone. F09 described an append-only record; the code produced one row that could be rewritten. Six documents disclosed the gap."));
 doc.push(P("The rebuild: insert-only writes, with a correction expressed as a new row carrying supersedes_id; BEFORE UPDATE and BEFORE DELETE triggers that RAISE(ABORT), so the guarantee lives in the schema rather than in application convention; a per-row SHA-256 chain (prev_hash plus record_hash) and verify_chain() naming the first row that fails; and BEGIN IMMEDIATE on writes so two concurrent appends cannot both read the same prev_hash and fork the chain. Migration from the v1 table runs inside init_db(), preserving the surviving decision and its original timestamp without fabricating lost history."));
-doc.push(P("Two defects were found while closing it. tests/run_tests.py was loading only test_physics.py, so the new 17-test module would never have run in CI — it now discovers every test_*.py. And the root README opened \"three named physical models\" then listed seven, had two items numbered 7., and described the 2% catastrophic-escalation placeholder as current."));
+doc.push(P("Two defects were found while closing it. tests/run_tests.py was loading only test_physics.py, so the new 17-test module would never have run in CI — it now discovers every test_ file. And the root README opened \"three named physical models\" then listed seven, had two items numbered 7., and described the 2% catastrophic-escalation placeholder as current."));
 
-doc.push(H3("7.2 — The A2/D08 decision paper (commit b23d0c7)"));
+doc.push(H3("7.4 — The A2/D08 decision paper (commit b23d0c7)"));
 doc.push(P("No product code changed. assets/a2-d08-model-decision-2026-11-09.md plus its checker price both answers so the owner's decision is a comparison rather than more research. Three findings the arithmetic pass did not have: the 2.0×/4.1× anchors are recoverable on a third cost basis (pilot plus three full years at list, no conversion credit) at p ≈ 0.0412%, which makes Finding 1 a disclosure defect rather than a fabrication — but p is not unique, so it stays open; D08 contradicts itself, pricing a prevented failure at ~$993,000 in §4 and $8.6M–$11.4M in §5, with §4's figure within 0.7% of A1's; and backend/roi.py is 29× from A1 per missed defect, of which probability accounts for 20.5×."));
 doc.push(P("The audit found four errors in the paper, including one where I had labelled a figure as roi.py's output when roi.py takes warrants rather than axles and the number was never computable. The corrected comparison is per defect, and it is a larger gap than the one I had written."));
 
-doc.push(H3("7.3 — The signed ledger export (commit d9c83d4)"));
+doc.push(H3("7.5 — The signed ledger export (commit d9c83d4)"));
 doc.push(P("backend/ledger_export.py writes an HMAC-SHA256-signed bundle — manifest, records, signature — and tools/verify_ledger_export.py verifies it without importing anything from backend/, from an empty directory under -I. A recipient needs the bundle, the key and a Python standard library. Bundles chain through previous_export_hash; keygen refuses to clobber a key and forces mode 0600."));
 doc.push(P("HMAC rather than Ed25519, and the reason is a constraint rather than a preference: the standard library has no asymmetric primitive, requirements.txt is numpy-only by design for air-gapped installs, and hand-rolling a curve in a product that tells CISOs it does not hand-roll crypto would be worse than the gap. The two limits — a symmetric signature cannot name the signer, and cannot prove when it was made — are given their own section in B01 §4.5a rather than a footnote."));
 doc.push(callout(
@@ -480,7 +487,7 @@ doc.push(callout(
 ));
 doc.push(P("Verification: 42 export tests, full suite 80. The erasure attack re-run against the fixed standalone tool exits 1 with no_truncation. Live end-to-end: real server, three dispositions including a genuine supersede, exported, verified from a different directory under -I."));
 
-doc.push(H3("7.4 — The transcript"));
+doc.push(H3("7.6 — The transcript"));
 doc.push(P("Re-snapshotted at 5,032 events (17.1 MB) and rebuilt the readable extract at 641 turns, of which ten are the owner's. The mid-session snapshot was byte-for-byte a prefix of the new one, verified line by line, so it was deleted rather than kept as 13 MB of duplicate. The extractor is now committed at project-logs/extract_transcript.py instead of a shell heredoc, with the trap written into it: the role is the top-level `type` field, not message[\"role\"], and reading the wrong one yields zero turns and no error."));
 
 // ================================================================ PART III
@@ -527,10 +534,10 @@ docBlock("A2", "Rate Card & Band Definitions", "Built, and authoritative on pric
 doc.push(H2("B — Build blueprint, for the Railroad's IT"));
 docBlock("B01", "System Blueprint & Architecture", "Built",
   "The component inventory, data flow, failure modes and scale envelope — written against production architecture, not the demo.",
-  "Holds AD-1 to AD-3, the ten-item production gap table (§7), and the costs of the architectural choices (§8) stated plainly because the railroad's IT team will find them anyway. Its opening sentence is a warning to every later reader: nothing in it describes the demo.");
+  "Holds AD-1 to AD-3, the production gap table (§7, twelve items), and the costs of the architectural choices (§8) stated plainly because the railroad's IT team will find them anyway. Its opening sentence is a warning to every later reader: nothing in it describes the demo.");
 docBlock("B02", "Flow Map", "Built (.md) — corrected at de9b245",
   "The visual companion to B01: what enters, what is computed, where a human intervenes, what is recorded, what leaves.",
-  "Solid lines mean shipped; dotted mean designed and not built. §2's ingest path is the one that was drawn wrong and corrected. §9 closes with the most useful sentence in the document: the ledger needs rebuilding, but the front door does not yet exist.");
+  "Solid lines mean shipped; dotted mean designed and not built. §2's ingest path is the one that was drawn wrong and corrected. §9 closed with the most useful sentence in the document — that the ledger needed rebuilding and the front door did not yet exist. Both clauses have since been rewritten there: the ledger was built on 2026-11-09, and the front door is still absent.");
 docBlock("B03", "Executive Infographic", "Built (.html)",
   "One page for executives who will not read B01.",
   "Encodes the platform/human boundary as a deliberate break in the drawn line, and carries a status block disclosing the absent ingest path.");
@@ -539,7 +546,7 @@ docBlock("B04", "Technology Stack Disclosure", "Built, verified against the repo
   "Names exactly one non-stdlib runtime dependency (numpy, BSD-3-Clause) and explains why no web framework exists: to demonstrate that a predictive-maintenance platform does not require a software supply chain to operate. §7 names four supply-chain gaps — no pinning, no hash verification, no SBOM, no signed artefacts — and states that none blocks a demo and all four block production.");
 docBlock("B05", "Data Flow & Data Residency", "Built, verified against code",
   "The document a railroad's CISO reads first.",
-  "Answers the air-gap question with what was actually checked rather than what is promised, and sets a rule: any future outbound call must be disclosed in B05, D06 and D09 before shipment. §7 is deliberately uncomfortable — four controls architecturally present, three not yet built, one dependent on the railroad.");
+  "Answers the air-gap question with what was actually checked rather than what is promised, and sets a rule: any future outbound call must be disclosed in B05, D06 and D09 before shipment. §7 is deliberately uncomfortable — five controls present, two not yet built, one dependent on the railroad. The ledger moved from commitment to present on 2026-11-09.");
 
 doc.push(H2("C — Deployment and people"));
 docBlock("C01", "DIY Self-Deployment SOP", "Built",
@@ -576,7 +583,7 @@ docBlock("D08", "Master Licensing & Liability", "Built — a commercial annex, n
   "D08 explains; D07 and D02 are what a customer executes, and where they differ they govern and D08 is corrected. Its most valuable content is the honesty about pricing history: it records that earlier flat tiers ($450K / $950K / $1.8M) failed on both counts — the entry tier returned only 1.5×, and scaling from 500 to 1,000 axles dropped ROI from 1.9× to 1.8× — and it flags the current rates as a pricing hypothesis validated only against modelled return, not against a real procurement conversation.");
 docBlock("D09", "Data Processing & Security Addendum", "Built",
   "The security schedule: residency, controls, incident notification, retention, subprocessor register, audit rights.",
-  "72-hour supplier-to-railroad notification and 24-hour railroad-to-supplier for discovered vulnerabilities, with a 30-day root-cause analysis. §4.4 lists the five known gaps with remediation targets. §7.2 and §7.3 were added because a control disclosed only in a remediation table is not disclosed — see Part IV.");
+  "72-hour supplier-to-railroad notification and 24-hour railroad-to-supplier for discovered vulnerabilities, with a 30-day root-cause analysis. §4.4 lists six known gaps with remediation targets. §7.2 and §7.3 were added because a control disclosed only in a remediation table is not disclosed — see Part IV.");
 docBlock("D10", "Subprocessor & Third-Party Component Register", "Built",
   "Zero subprocessors; one runtime dependency. The artefact the railroad can rely on today in the absence of an SBOM.",
   "Incorporated by reference in D02 §11, D07 §3.4, D13 §8 and B04 §7 — it now exists, which was previously a dangling reference.");
@@ -594,7 +601,7 @@ docBlock("D14", "Operating Model & Liability Boundary", "Built",
   "Separates operational liability, largely removed by responsible self-install, from product liability, which is retained regardless. §8, representational discipline, is the most important section: it governs what the company may say about outcomes, and it is the section a support engineer's language is measured against.");
 
 doc.push(H2("F — The executable forms"));
-doc.push(P("Contracts say what the rules are; forms are how the rules are applied one event at a time. Every form has exactly one purpose, one signatory, and a stated consequence for silence. The fourteen, with their trigger and default:"));
+doc.push(P("Contracts say what the rules are; forms are how the rules are applied one event at a time. Every form has exactly one purpose, one signatory, and a stated consequence for silence. The thirteen executable forms, with their trigger and default — F00 is the register and policy above them, not a form:"));
 doc.push(table(
   ["ID", "Form", "Used when", "Signatory", "Default if unsigned"],
   [
@@ -678,7 +685,7 @@ doc.push(P("The D09 signed-release gap. Signing previously appeared only as a §
 doc.push(H2("Verification performed in chat-2"));
 doc.push(P("Citational: every D-reference in Q6 and every section reference in the rebuilt sections was resolved to a real heading. Two errors were found this way and corrected — D06 §2.4 corrected to §7.4, and D03 §12 corrected to §9. Count consistency: no document still said \"six rules\". Duplicate-heading scan across all 36 docket documents: clean. Scope: Q6 confirmed absent from client-assets/. Diff inspected with --ignore-cr-at-eol: 536 real insertions against 7 real deletions, the larger raw numbers being CRLF conversion rather than content."));
 doc.push(H2("The transcript rule, and its limit"));
-doc.push(P("Chat-2 found its own session log still on disk at .claude/projects/session/ — 780 events, 1.6 MB — extracted 256 readable turns and committed both the readable version and the raw .jsonl as ee9800c. That is now the standing rule, recorded in project-logs/transcripts/README.md and in persistent memory. Chat-3 repeated it at close: 5,032 events, 641 extracted turns, raw log committed (53ad93a), with the extractor itself committed so the procedure is reproducible rather than remembered."));
+doc.push(P("Chat-2 found its own session log still on disk at .claude/projects/session/ — 791 events, 1.6 MB — extracted 302 readable turns and committed both the readable version and the raw .jsonl as ee9800c. That is now the standing rule, recorded in project-logs/transcripts/README.md and in persistent memory. Chat-3 repeated it at close: 5,032 events, 641 extracted turns, raw log committed (53ad93a), with the extractor itself committed so the procedure is reproducible rather than remembered."));
 doc.push(P("The honest limit, stated in the same README: this protects chat-2 onward. Chat-1 is a real loss and no amount of procedure brings it back."));
 
 // ================================================================ PART VI
@@ -732,7 +739,7 @@ doc.push(table(
   ],
   { width: [3.4, 5.2, 1.4], size: 15 },
 ));
-doc.push(P("The export build record §5.1 is the most useful page in the set. It walks the erasure attack step by step and shows that every individual check was correct — which is why 33 tests passed. The lesson recorded there and in persistent memory is that a suite written by the author of a mechanism tests the author's model of the threat, not the threat."));
+doc.push(P("The export build record §5.1 is the most useful page in the set. It walks the erasure attack step by step and shows that every individual check was correct — which is why the first version's own test suite passed — 33 tests at that point, none of which attempted the attack, because I had not thought of it. The lesson recorded there and in persistent memory is that a suite written by the author of a mechanism tests the author's model of the threat, not the threat."));
 
 // ================================================================ PART VII
 doc.push(H1("Part VII — Open items and unresolved findings"));
@@ -754,7 +761,7 @@ doc.push(table(
 ));
 doc.push(P("Neither basis produces 2.0× at 500 and 4.1× at 10,000. On the two cost bases that already exist in the repository, the shipped model does not reproduce the anchors. The direction of the claim is correct — return does improve monotonically with fleet size on either basis — but the two anchor values are not derivable from the model as presented."));
 doc.push(P("The decision paper then found a third basis that does reproduce them, and this is the correction worth carrying. On pilot cost plus three full years at list price with no conversion credit, the cost ratio the anchors demand — cost at 10,000 axles over cost at 500 = 9.756 — is a property of the pricing, not of the benefit model, so a single value of the catastrophic-escalation probability fits both endpoints. Against three years of benefit that value is p = 0.0714%, producing 2.00× and 4.06×; against four years of benefit it is 0.0412%, which also fits. Finding 1 is therefore a disclosure defect: an unstated frame, not an invention. But the parameter is not uniquely determined, because the benefit horizon is stated nowhere — and that is exactly why it stays open. The anchors cannot ship as written until a frame is stated that a customer can see."));
-doc.push(P("This was left open deliberately. The sentences carrying these numbers are also the document's defence against a flat-tier cliff objection, and D08 already labels them a pricing hypothesis validated only against modelled return. Restating them at 1.77/3.36 on A1's basis is defensible; so is stating the frame. That is a commercial decision about what the first real conversation opens with, and it changes a client-facing sentence in two documents — so it should be decided, not quietly edited. Both answers are costed in the decision paper, §6–§7."));
+doc.push(P("This was left open deliberately. The sentences carrying these numbers are also the document's defence against a flat-tier cliff objection, and D08 already labels them a pricing hypothesis validated only against modelled return. Restating them at 1.77×/3.36× on the A2/D08 cost basis — which is the basis the rate card itself prices on — is defensible; so is stating the frame. That is a commercial decision about what the first real conversation opens with, and it changes a client-facing sentence in two documents — so it should be decided, not quietly edited. Both answers are costed in the decision paper, §6–§7."));
 
 doc.push(H2("2. Finding 2 — D08's modelled benefits exceed what A1 produces, and the cause is now identified"));
 doc.push(P("D08 §5 says a 500-axle customer sees $6–8M of avoided damage in the pilot year and $14–20M over four years; §6 says $40–60M over six years with a 20×–30× return. A1 at 500 axles with its default assumptions produces $696,675 net annual benefit. The ratio is between 5× and 14× across the three periods."));
@@ -763,7 +770,7 @@ doc.push(table(
   ["Location", "Probability", "Expected cost per missed defect"],
   [
     ["backend/roi.py — P_CATASTROPHIC_GIVEN_MISSED_DEFECT", "2%", "$29,065,000"],
-    ["A1 workbook, sheet 1 cell B17", "0.05%", "$1,224,625 on the $500k typical-cost base, $9,745,375 on the $9.25M contained base"],
+    ["A1 workbook, sheet 1 cell B17", "0.05%", "$999,750 on the $500k typical-cost base, $9,745,375 on the $9.25M contained base"],
   ],
   { width: [3.4, 1.6, 5], size: 16 },
 ));
@@ -838,7 +845,7 @@ doc.push(callout(
 ));
 
 doc.push(H2("Push"));
-doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, with three commits ahead of it: 893096e, d9c83d4 and 53ad93a. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
+doc.push(P("The command environment cannot reach GitHub — git push and fetch fail with HTTP 403 from the proxy. Commits land locally in C:\\Users\\RGV\\AxiomDynamics and the owner pushes with PUSH-TO-GITHUB.bat. At the moment this revision was written the local ref for origin/main stood at bb99cdd, with four commits ahead of it: 893096e, d9c83d4, 53ad93a and the log commit that carries this revision. Confirm with git log --oneline origin/main..HEAD rather than with this sentence, because a local remote-tracking ref is not evidence of what the remote holds."));
 
 doc.push(H2("The decisions waiting, in order of consequence"));
 doc.push(...numbered("numE", [
@@ -855,7 +862,7 @@ doc.push(H1("Appendix A — Repository map"));
 doc.push(table(
   ["Path", "Contents", "Class"],
   [
-    ["backend/", "physics.py (the six models), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (cost model), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
+    ["backend/", "physics.py (models 1–5), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (model 6, the ROI panel), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
     ["tools/", "verify_ledger_export.py — standalone export verifier, imports nothing from backend/", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
     ["tests/", "test_physics.py (21 formula tests), test_store.py (17 ledger tests), test_export.py (42 export tests), run_tests.py (stdlib runner, discovers test_*.py)", "Code"],
@@ -942,7 +949,7 @@ doc.push(table(
     ["Company formation", "Not done", "Texas LLC recommended, $300 filing"],
     ["Commercial numbers", "Two open findings, now priced", "A1 and D08 disagree; an owner decision, options costed in assets/"],
     ["D07 §14.5 venue", "Open counsel decision", "Blocks first execution"],
-    ["Push state", "Three commits ahead of the local remote ref", "Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
+    ["Push state", "Four commits ahead of the local remote ref", "Verify with git log origin/main..HEAD; the command environment cannot reach GitHub"],
   ],
   { width: [3.2, 3.2, 3.6], size: 16 },
 ));
@@ -961,7 +968,7 @@ doc.push(new Paragraph({
 const document = new Document({
   creator: "AxiomDynamics",
   title: "AxiomDynamics — Build History & Working Summary",
-  description: "Stage-by-stage account of the AxiomDynamics build, 2026-11-08 to 2026-11-09.",
+  description: "Stage-by-stage account of the AxiomDynamics build, 2026-11-08 to 2026-11-10.",
   styles: {
     default: {
       document: {

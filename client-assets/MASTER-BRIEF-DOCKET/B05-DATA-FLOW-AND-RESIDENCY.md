@@ -77,11 +77,11 @@ Per **D07 §11** (which incorporates **D13 §3**) and **D09 §2**:
 | No third-party code beyond numpy | Present (see B04) |
 | No outbound egress | Present — the strongest control in the set |
 | Authenticated reviewer identity | **Required, not yet built** (B01 §7 item 1) |
-| Append-only audit ledger | **Required, not yet built** (B01 §7 item 2) |
+| Append-only audit ledger | **Built 2026-11-09** — insert-only, hash-chained, signed export (B01 §7 items 2 and 8). Signer attribution still open (item 11) |
 | TLS on the serving port | **Railroad-standard dependent** (B01 §7 item 10) |
 | Signed update packages | **Required, not yet built** (D06) |
 
-This table is deliberately uncomfortable. **Four controls are architectural and present; three are commitments we have not yet built; one depends on the Railroad.** Presenting the four as if they covered the other four is exactly the misrepresentation this docket exists to prevent.
+This table is deliberately uncomfortable. **Five controls are present; two are commitments we have not yet built; one depends on the Railroad.** Presenting the five as if they covered the other three is exactly the misrepresentation this docket exists to prevent. The ledger moved from commitment to present on 2026-11-09, and the table moved with it — a status table that lags its own subject is the same defect in a different place.
 
 ---
 
