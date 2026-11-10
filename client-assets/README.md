@@ -16,10 +16,8 @@ One deliverable: the **Master Brief Docket**. A uniform contract-and-architectur
 
 ```
 client-assets/
-└── MASTER-BRIEF-DOCKET/
-    ├── D00-DOCKET-INDEX.md            docket map, precedence rules, gap analysis
-    ├── A1-ROI-MODEL/                  Excel business case + build script
-    └── D08-MASTER-LICENSING-AND-LIABILITY.md
+└── MASTER-BRIEF-DOCKET/          38 artifacts: A1–A2, B01–B05, C01–C02,
+                                  D00–D14, F00–F13, plus the index
 ```
 
 Docket parts: commercial model (A), build blueprint for the Railroad's IT (B), deployment and certification (C), legal contract stack (D).
@@ -29,15 +27,13 @@ Docket parts: commercial model (A), build blueprint for the Railroad's IT (B), d
 | Path | Contents |
 |---|---|
 | `market-intel/carrier-dossiers/` | BNSF; UP/NS; CN/CPKC network dossiers |
-| `external-pilot-cost-structure-and-licensing-model.md` | Internal copy of the commercial model |
+| `external-pilot-cost-structure-and-licensing-model.md` | **Superseded 2026-11-10** — the original commercial-model draft, kept as a record of how the structure was first conceived. Do not quote its figures; it carries the withdrawn 2.0x/4.1x anchors and the retracted 16x/12x–50x claims. Use A2 for price and D08 for terms. |
 
 ## Current build state
 
-**Built:** ROI model (A1), licensing model (D08, commercial grade — needs conversion to contract language), docket index (D00).
+**The docket is complete — 38 artifacts, 37 docket IDs** (A–D and F series). `MASTER-BRIEF-DOCKET/D00-DOCKET-INDEX.md` Part IV is the authority on status; this file is not, and has been out of date before.
 
-**Highest value next:** NDA (D11), tech stack disclosure (B04), master pilot agreement (D02).
-
-**Deliberately not built:** the earlier `04-pilot-proposal` narrative — superseded by D02 as a legal instrument.
+**What is not complete is the build behind it.** The known gaps between the docket and the code are tracked in D00 Part VI. The largest is that there is no detector ingest path: every demonstration signal is generated from the physics equations on synthetic traces.
 
 ## Standing constraints
 

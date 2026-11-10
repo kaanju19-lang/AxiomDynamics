@@ -135,15 +135,53 @@ for axles, base, cap in ((500, 300_000, 99_000),
     check(f"Base licence at {axles:,} axles", licence(axles), base)
 
 print("\n=== D08 §4 worked example, 1,000 axles ===")
-check("3% of $1,390,000 prevented cost", 0.03 * 1_390_000, 41_700)
-check("Payable (below the $181,500 cap)", min(0.03 * 1_390_000, 0.33 * licence(1_000)), 41_700)
-check("Total invoice", licence(1_000) + 41_700, 591_700)
+# Derived, not chosen: 1.4 missed defects per 1,000 axles at A1's $999,750.
+PREVENTED_1K = 1.4 * COST_PER_MISSED
+check("Prevented cost, 1.4 x A1 B22", PREVENTED_1K, 1_399_650)
+check("3% of prevented cost", 0.03 * PREVENTED_1K, 41_989.50)
+check("Payable (below the $181,500 cap)", min(0.03 * PREVENTED_1K, 0.33 * licence(1_000)), 41_989.50)
+check("Total invoice", licence(1_000) + 0.03 * PREVENTED_1K, 591_989.50)
+# The withdrawn round-number version, kept so the size of the drift is on record.
+check("withdrawn $1,390,000 was this far below the model", PREVENTED_1K - 1_390_000, 9_650)
 
-print("\n=== D08 §5 modelled returns ===")
-check("Pilot return, low bound (6M / 370k)", 6_000_000 / PILOT_TOTAL, 16.2, tol=0.1)
-check("Pilot return, high bound (8M / 370k)", 8_000_000 / PILOT_TOTAL, 21.6, tol=0.1)
-check("Four-year return, low (14M / 1.18M)", 14_000_000 / 1_180_000, 11.9, tol=0.1)
-check("Four-year return, high (20M / 1.18M)", 20_000_000 / 1_180_000, 16.9, tol=0.1)
+print("\n=== D08 §5 modelled returns (restated 2026-11-10 on A1) ===")
+# A1's own arithmetic: 0.7 missed defects per 500 axles caught, each valued at
+# A1 B22 = (1-0.0005)*500,000 + 0.0005*1,000,000,000, less 2.1 triggered
+# inspections at $1,500 -- i.e. $1,393.35 net per axle per year.
+A1_B22 = (1 - P_CAT) * TYPICAL_FAILURE_COST + P_CAT * CATASTROPHIC_FAILURE_COST
+
+
+def a1_annual(axles):
+    return (axles / 500) * (0.7 * A1_B22 - 2.1 * 1_500)
+
+
+PILOT_AXLES = 200                 # D08 §2 scopes the pilot at 100-200 axles
+BEN_PILOT = a1_annual(PILOT_AXLES)
+BEN_PROD = a1_annual(500)
+
+check("A1 B22 expected cost per missed defect", A1_B22, 999_750)
+check("A1 net annual benefit at 500 axles", BEN_PROD, 696_675)
+check("A1 net annual benefit at 200 axles (pilot)", BEN_PILOT, 278_670)
+check("A1 net benefit per axle per year", a1_annual(500) / 500, 1_393.35, tol=0.05)
+check("Pilot return, SAME fleet as §2 (0.75x)", BEN_PILOT / PILOT_TOTAL, 0.75, tol=0.005)
+check("Pilot return at 100 axles (0.38x)", a1_annual(100) / PILOT_TOTAL, 0.38, tol=0.005)
+# D08 §5: pilot at 200 axles, production at 500.
+BEN_4YR = BEN_PILOT + 3 * BEN_PROD
+BEN_6YR = BEN_PILOT + 5 * BEN_PROD
+check("Four-year benefit (§5 table)", BEN_4YR, 2_368_695)
+check("Four-year return (§5, 2.01x)", BEN_4YR / 1_180_000, 2.01, tol=0.005)
+check("Six-year benefit (§6 table)", BEN_6YR, 3_762_045)
+check("Six-year return (§6, 2.06x)", BEN_6YR / 1_825_750, 2.06, tol=0.005)
+# §4 and §5 must value a prevented failure the same way. §4 states $1,390,000
+# against 1.4 defects per 1,000 axles = $992,857; A1's B22 is $999,750.
+check("§4 per-failure value, 1.4 defects per 1,000 axles", 1_390_000 / 1.4, 992_857, tol=1)
+check("§4 as a share of A1 B22 (0.7% apart)", (1_390_000 / 1.4) / A1_B22, 0.993, tol=0.001)
+# The pilot does NOT pay for itself at its own scoped fleet size. If a future
+# edit makes it do so, either §2's scope or A1's inputs changed, and the claim
+# in §5 that "the pilot does not pay for itself" would become false.
+assert BEN_PILOT < PILOT_TOTAL, \
+    "D08 §5 states the pilot does not pay for itself; at 200 axles A1 must not cover $370,000"
+print("PASS  pilot benefit at §2's own fleet size is below the pilot fee (0.75x)")
 
 print("\n=== D08 §6 CapEx/OpEx cumulative ===")
 cum = 0
@@ -161,12 +199,21 @@ check("Y5 at max +5%", y5, 315_000)
 check("Y6 at max +5%", y6, 330_750)
 check("Cumulative through Y5", 1_180_000 + y5, 1_495_000)
 check("Cumulative through Y6", 1_180_000 + y5 + y6, 1_825_750)
-check("Six-year total stated as ~$1.83M", (1_180_000 + y5 + y6) / 1_000_000, 1.83, tol=0.005)
+check("Six-year customer commitment (§6)", 1_180_000 + y5 + y6, 1_825_750)
 
-print("\n=== D08 §6 'modelled ROI 20x-30x' over six years ===")
+print("\n=== D08 §6 six-year modelled benefit and return (restated 2026-11-10) ===")
 six_yr = 1_180_000 + y5 + y6
-check("Six-year return, low (40M / total)", 40_000_000 / six_yr, 21.9, tol=0.1)
-check("Six-year return, high (60M / total)", 60_000_000 / six_yr, 32.9, tol=0.1)
+check("Six-year benefit, pilot at 200 + 5 yrs at 500", BEN_6YR, 3_762_045)
+check("Cumulative benefit through year 5", BEN_PILOT + 4 * BEN_PROD, 3_065_370)
+check("Six-year return (2.06x)", BEN_6YR / six_yr, 2.06, tol=0.005)
+# Two effects nearly cancel: the fee escalates from Year 4, which drags the
+# multiple down, while one weak pilot year diluted across more production years
+# lifts it. The multiple rises, but only slightly -- not a growth story.
+assert BEN_6YR / six_yr > BEN_4YR / 1_180_000, \
+    "six-year multiple should exceed four-year: one weak pilot year diluted across more production years"
+assert BEN_6YR / six_yr - BEN_4YR / 1_180_000 < 0.10, \
+    "six-year multiple should exceed the four-year one only marginally: fee escalation offsets the gain"
+print("PASS  six-year multiple exceeds four-year only marginally (pilot dilution vs fee escalation)")
 
 print("\n=== D08 §6 / D06 §6 thirteen-site, 2,000-axle quote ===")
 check("Annual licence at 2,000 axles", licence(2_000), 1_050_000)
@@ -176,15 +223,21 @@ check("D06 quarterly platform fee", (licence(2_000) + 12 * SITE_FEE) / 4, 397_50
 check("D06 5% credit on quarterly fee", 0.05 * 397_500, 19_875)
 
 print("\n=== A1 as-built (the workbook on disk) — the numbers the instrument actually produces ===")
-# The built workbook computes, at 500 axles / 1 site / default assumptions:
-check("A1 net annual benefit at 500 axles", 696_675, 696_675)
-check("A1 three-year net benefit", 3 * 696_675, 2_090_025)
-check("A1 three-year cost at 500 axles", 926_989.50, 926_989.50, tol=1)
-check("A1 three-year ROI", 2_090_025 / 926_989.50, 2.2546, tol=0.001)
+# Sheet 4 now charges A2 §5.1's full $370,000 pilot (licence 180k + implementation
+# 65k + training/validation/support 125k), not the old $285,000 that omitted two
+# A2 lines. Sheet 5's three-year cost is therefore 370,000 + 2 x 320,994.75.
+check("A1 three-year net benefit", 3 * a1_annual(500), 2_090_025)
+A1_3YR_COST = 370_000 + 2 * (300_000 + 20_994.75)
+check("A1 three-year cost, pilot 370k + 2 production years", A1_3YR_COST, 1_011_989.50, tol=1)
+check("A1 three-year ROI", 3 * a1_annual(500) / A1_3YR_COST, 2.0653, tol=0.001)
+check("A1 year-2 cost per monitored axle", (300_000 + 20_994.75) / 500, 641.99, tol=0.01)
+check("A1 pilot payback, months", 370_000 / a1_annual(500) * 12, 6.37, tol=0.01)
 
-print("\n=== FINDING 1: A2 §3.2 / D08 §3 modelled-return claim does not reproduce ===")
-# A2 says "approximately 2.0x at 500 axles, rising to about 4.1x at 10,000".
-# D08 §3 repeats both. Recompute on the only two cost bases that exist.
+print("\n=== FINDING 1 — CLOSED 2026-11-10. A2 §3.2 / D08 §3 anchors restated on A1 ===")
+# The documents previously claimed "approximately 2.0x at 500 axles, rising to
+# about 4.1x at 10,000". Neither basis reproduces that pair, which is what made
+# it a finding. The owner decided A1 governs; both documents now state the
+# A2-basis column below.
 
 def benefit_3yr(axles):
     detected = (axles / 500) * DEFECTS_CAUGHT
@@ -207,17 +260,36 @@ for axles in (500, 1_000, 2_000, 5_000, 10_000):
     print(f"      {axles:>6,} axles  benefit ${benefit_3yr(axles):>12,.0f}   "
           f"A2-basis {benefit_3yr(axles)/cost_a2_basis(axles):>5.2f}x   "
           f"A1-basis {benefit_3yr(axles)/cost_a1_basis(axles):>5.2f}x")
-print("      A2/D08 claim: 2.0x at 500, 4.1x at 10,000. "
-      "Neither basis reaches 4.1x; no parameter set in the repo reproduces both.")
-print("      -> recorded as an open item, not silently corrected (see A2 §3.2 and the pass record).")
+check("Anchor 1, A2 basis at 500 axles (A2 §3.2, D08 §3)",
+      benefit_3yr(500) / cost_a2_basis(500), 1.77, tol=0.005)
+check("Anchor 2, A2 basis at 10,000 axles (A2 §3.2, D08 §3)",
+      benefit_3yr(10_000) / cost_a2_basis(10_000), 3.36, tol=0.005)
+# The same pair on a basis that ALSO disallows the conversion credit. A2 §3.2
+# states these as the fallback, so they must stay true too.
+def cost_list_no_credit(axles):
+    return PILOT_TOTAL + 3 * licence(axles)
 
-print("\n=== FINDING 2: D08 §5 / §6 modelled benefits exceed what A1 produces ===")
-print(f"      A1 annual benefit at 500 axles      ${696_675:>12,}")
-print(f"      D08 §5 states pilot year $6M-$8M    ratio {6e6/696_675:>5.1f}x - {8e6/696_675:>5.1f}x")
-print(f"      D08 §5 states four years $14M-$20M  ratio {14e6/(4*696_675):>5.1f}x - {20e6/(4*696_675):>5.1f}x")
-print(f"      D08 §6 states six years $40M-$60M   ratio {40e6/(6*696_675):>5.1f}x - {60e6/(6*696_675):>5.1f}x")
-print("      Any per-defect valuation supporting D08's figures runs well above A1's $999,750.")
-print("      -> recorded as an open item requiring an owner decision on which model governs.")
+check("A2 §3.2 fallback at 500, no conversion credit (1.65x)",
+      benefit_3yr(500) / cost_list_no_credit(500), 1.65, tol=0.005)
+check("A2 §3.2 fallback at 10,000, no conversion credit (3.34x)",
+      benefit_3yr(10_000) / cost_list_no_credit(10_000), 3.34, tol=0.005)
+print("      The withdrawn 2.0x/4.1x pair is not reproducible on any basis in this repo.")
+print("      -> CLOSED: replaced by the pair checked above, which the documents state.")
+
+print("\n=== FINDING 2 — CLOSED 2026-11-10. D08 §5/§6 restated on A1 ===")
+# The withdrawn figures, kept so the size of the correction stays on record.
+print(f"      A1 annual benefit at 500 axles        ${696_675:>12,}")
+print(f"      withdrawn: §5 pilot year $6M-$8M      ratio {6e6/696_675:>5.1f}x - {8e6/696_675:>5.1f}x")
+print(f"      withdrawn: §5 four years $14M-$20M    ratio {14e6/(4*696_675):>5.1f}x - {20e6/(4*696_675):>5.1f}x")
+print(f"      withdrawn: §6 six years $40M-$60M     ratio {40e6/(6*696_675):>5.1f}x - {60e6/(6*696_675):>5.1f}x")
+# The restated figures, ASSERTED against the prose -- not printed as fact. An
+# earlier version of this block printed stale 500-axles-every-year values under
+# the word "restated" and checked nothing; both were $418,005 high, exactly one
+# pilot-year benefit (696,675 - 278,670).
+check("restated: §5 pilot year (200 axles)", BEN_PILOT, 278_670)
+check("restated: §5 four years", BEN_4YR, 2_368_695)
+check("restated: §6 six years", BEN_6YR, 3_762_045)
+print("      -> CLOSED: the three checks immediately above verify §5 and §6.")
 
 print("\n" + "=" * 78)
 if FAILURES:
@@ -226,5 +298,5 @@ if FAILURES:
         print(f"  - {label}: computed {computed:,.2f}, document says {stated:,.2f}")
     raise SystemExit(1)
 print(f"All {CHECKS} checks passed.")
-print(f"Plus 2 open findings recorded above (not arithmetic errors — models that disagree).")
+print("Findings 1 and 2 are CLOSED as of 2026-11-10; both are checked above, not merely recorded.")
 

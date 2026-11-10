@@ -379,8 +379,8 @@ for col in (2, 3, 4):
 
 label_cell(ct, 9, "Annual base license (per-axle, marginal)")
 label_cell(ct, 10, "Platform fee (per-site, beyond the first)")
-label_cell(ct, 11, "One-time hardware integration")
-label_cell(ct, 12, "Training & change management")
+label_cell(ct, 11, "Implementation support & commissioning (advisory)")
+label_cell(ct, 12, "Training, validation & pilot support")
 label_cell(ct, 13, "Performance component")
 for r in range(9, 14):
     for col in (2, 3, 4):
@@ -394,10 +394,18 @@ for ref, val in (("B11", 65000), ("B12", 40000)):
     c.font = BLUE_INPUT
     c.fill = INPUT_FILL
     c.number_format = MONEY
-# pilot hardware scales with sites: first site 65k, each extra 45k
+# Year 1 pilot: the fixed A2 §5.1 package. A1 previously carried only the
+# licence, implementation and training lines ($285,000) and omitted A2's
+# $35,000 validation support and $50,000 in-pilot support, so the workbook
+# understated the pilot by $85,000 against the rate card that governs price
+# (D00 Part IV rule 6). Both lines are added here; the total is now $370,000.
 ct["B11"] = "=65000+MAX(0,'1. Your Fleet'!B9-1)*45000"
 ct["B11"].font = BLACK_CALC
 ct["B11"].number_format = MONEY
+ct["B12"].value = 40000 + 35000 + 50000        # training 40k + validation 35k + pilot support 50k
+ct["B12"].font = BLUE_INPUT
+ct["B12"].fill = INPUT_FILL
+ct["B12"].number_format = MONEY
 ct["B13"].value = 0
 ct["B13"].font = BLUE_INPUT
 ct["B13"].fill = INPUT_FILL
@@ -439,8 +447,8 @@ ct["B10"].number_format = MONEY
 notes = {
     9: "$180,000 pilot-year license; production is per-axle marginal (see rate card)",
     10: "Per monitored location beyond the first -- see rate card",
-    11: "$65,000 first site + $45,000 each additional (install, edge server, detector harness)",
-    12: "$40,000 operator certification + reviewer workflow",
+    11: "A2 §5.1: $65,000 implementation support & commissioning, ADVISORY ONLY -- the Railroad installs. Site count adds $45,000 per extra site.",
+    12: "A2 §5.1: $40,000 training & certification + $35,000 validation support + $50,000 in-pilot support",
     13: "3% of prevented cost, capped at 33% of base license",
 }
 for r, txt in notes.items():
@@ -478,7 +486,7 @@ header_row(ct, 21, ["Pricing lever", "Applies to", "Rate", "At band limit", "Not
 
 rates = [
     (23, "Axle band 1 — Core", "First 500 axles", 600, "=500*C23",
-     "At $600/axle a 500-axle single-site deployment returns ~2.0x over three years."),
+     "At $600/axle a 500-axle single-site deployment returns about 2.25x over three years on this sheet's default inputs."),
     (24, "Axle band 2 — Enterprise", "Next 1,500 axles", 500, "=1500*C24",
      "Declining marginal rate keeps ROI rising as the fleet grows."),
     (25, "Axle band 3 — Network", "Above 2,000 axles", 375, "=3000*C25",
@@ -601,7 +609,9 @@ s.merge_cells("A17:E19")
 
 s["A21"] = "Verified vs. assumed"
 s["A21"].font = Font(name="Arial", size=11, bold=True, color=NAVY)
-s["A22"] = ("SOURCED: $5.0M and $13.5M contained derailment costs (NTSB RAB1712 and NTSB docket); "
+s["A22"] = ("SOURCED: $5.0M and $13.5M SEVERE derailment costs (NTSB RAB1712 and NTSB docket) -- "
+            "investigated, above-average events, carried as REFERENCE and not used as the typical "
+            "cost; the $500,000 typical contained cost (cell B14) is the industry working figure. "
             "$1.0B+ catastrophic tier (DOJ/EPA settlement $310M+, AP-reported $600M personal-injury "
             "settlement, cumulative cost past $1B).")
 s["A22"].font = NOTE_FONT

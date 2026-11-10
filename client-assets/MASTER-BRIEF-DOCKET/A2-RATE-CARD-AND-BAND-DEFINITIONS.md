@@ -63,7 +63,9 @@ This schedule is that one place. It states:
 
 A flat tier structure charges a single rate for the whole axle count. That produces a cliff: a customer with 501 axles pays the 500–2,000 rate on **all 501**, so doubling their fleet more than doubles their bill, and their return on the platform gets **worse** as they expand.
 
-That is the opposite of what a fleet-scale economics product should do. Marginal bands mean the rate falls as volume rises, the customer's modelled return improves monotonically with fleet size — approximately 2.0x at 500 axles, rising to about 4.1x at 10,000 — and expansion is rewarded rather than punished.
+That is the opposite of what a fleet-scale economics product should do. Marginal bands mean the rate falls as volume rises, the customer's modelled return improves monotonically with fleet size — **1.77x at 500 axles, rising to 3.36x at 10,000** — and expansion is rewarded rather than punished.
+
+**The basis of those figures is stated here rather than left to inference:** net three-year benefit computed from the A1 model at its own defaults — a **0.05%** probability that a missed defect escalates to a catastrophic event, a **$500,000 typical** contained derailment cost, and the sourced $1,000,000,000 catastrophic cost — measured against the four-year fee commitment at list price **net of the §9 conversion credit** ($1,180,000 at 500 axles, which is the §9 four-year total exactly). **The pilot year is charged in full and credited with no benefit at all**, which is the reason this figure is lower than the one in D08 §5: that section credits the pilot year with the modest benefit a 200-axle pilot actually produces, so it lands slightly higher (2.01x at 500 axles) on the same inputs. Neither number is wrong; they answer different questions. **On a basis that also disallows the conversion credit the figures are 1.65x and 3.34x** — quote whichever basis the conversation actually assumes, and never mix the two in one table. Recompute from A1 if any of those three inputs changes.
 
 The customer will understand this the moment it is explained, and it is worth explaining, because a procurement analyst who spots what looks like a cliff will assume it is a negotiating tactic. It is not; it is a band structure, and the arithmetic in §3.3 shows it.
 
@@ -259,7 +261,7 @@ Included in every active licence, pilot or production:
 
 ## 9. Rollover arithmetic — worked example
 
-A customer completes a 12-month pilot at one site, 500 axles, and converts within 90 days.
+A customer completes a 12-month pilot at one site, then converts within 90 days and scales to **500 axles** in production. **The pilot itself runs at the 100–200 axles D02 and D08 §2 scope it at** — the 500-axle figure below is the production fleet it converts to, and the pilot fee is axle-independent, so the conversion arithmetic is the same either way.
 
 | Line | Amount |
 |---|---:|

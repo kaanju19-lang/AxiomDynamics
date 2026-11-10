@@ -139,24 +139,54 @@ def test_zscore_sweep_quiet_on_flat_signal():
     assert len(alerts) == 0
 
 
-def test_roi_expected_cost_blends_sourced_contained_and_catastrophic_tiers():
+def test_roi_mttd_matches_a1_workbook():
     """
-    backend/roi.py's EXPECTED_COST_PER_MISSED_DEFECT_USD should be a
-    probability-weighted blend of the two SOURCED cost tiers (contained
-    bearing-failure derailment, $5.0M-$13.5M per NTSB records; catastrophic
-    hazmat-release event, ~$1.0B per the East Palestine settlements) --
-    not an arbitrary flat number.
+    The dashboard's detection-time figures must match A1 sheet 2 row 5 (4.8 h
+    legacy, 1.5 h AxiomDynamics). An earlier version of roi.py used 0.57 h and
+    therefore advertised a 88% improvement where the workbook supports 69% --
+    the same class of defect as the 29x cost overstatement: a number that looked
+    better than the instrument that was supposed to produce it.
     """
     from backend import roi
 
-    expected = (
-        (1 - roi.P_CATASTROPHIC_GIVEN_MISSED_DEFECT) * roi.CONTAINED_FAILURE_COST_USD
-        + roi.P_CATASTROPHIC_GIVEN_MISSED_DEFECT * roi.CATASTROPHIC_FAILURE_COST_USD
-    )
-    assert math.isclose(roi.EXPECTED_COST_PER_MISSED_DEFECT_USD, expected, rel_tol=1e-9)
-    # Sanity bounds: must sit between the contained midpoint and the
-    # catastrophic figure, since it's a weighted average of the two.
-    assert roi.CONTAINED_FAILURE_COST_USD < roi.EXPECTED_COST_PER_MISSED_DEFECT_USD < roi.CATASTROPHIC_FAILURE_COST_USD
+    assert roi.LEGACY_MEAN_TIME_TO_DETECT_HOURS == 4.8, "A1 sheet 2 row 5"
+    assert roi.AXIOM_MEAN_TIME_TO_DETECT_HOURS == 1.5, "A1 sheet 2 row 5"
+    improvement = 100 * (1 - 1.5 / 4.8)
+    assert roi.AXIOM_MEAN_TIME_TO_DETECT_HOURS < roi.LEGACY_MEAN_TIME_TO_DETECT_HOURS
+    assert 68.0 < improvement < 69.5, "1.5 h against 4.8 h is 68.75%, not 88%"
+
+
+def test_roi_expected_cost_matches_a1_workbook():
+    """
+    backend/roi.py's expected cost per missed defect must equal the A1
+    workbook's B22 to the dollar: (1 - 0.0005) * 500,000 + 0.0005 * 1e9.
+
+    This asserts the VALUE, not a formula rebuilt from the same constants.
+    An earlier version of this test reconstructed `expected` from
+    roi.P_CATASTROPHIC_GIVEN_MISSED_DEFECT and roi.TYPICAL_DERAILMENT_COST_USD
+    and compared it to roi.EXPECTED_COST_PER_MISSED_DEFECT_USD -- which is a
+    tautology: it passes whatever those constants are. Setting the probability
+    back to 2% restored the 29x overstatement and the suite still reported 112
+    passed, 0 failed. The literals below are the guard.
+    """
+    from backend import roi
+
+    # A1 sheet 1: B17 = 0.05%, B14 = $500,000, B18 = $1,000,000,000.
+    assert roi.P_CATASTROPHIC_GIVEN_MISSED_DEFECT == 0.0005, \
+        "A1 B17 is 0.05%; a different value puts the dashboard out of step with the workbook"
+    assert roi.TYPICAL_DERAILMENT_COST_USD == 500_000, "A1 B14 is $500,000"
+    assert roi.CATASTROPHIC_FAILURE_COST_USD == 1_000_000_000, "A1 B18 is $1.0B"
+    assert roi.EXPECTED_COST_PER_MISSED_DEFECT_USD == 999_750.0, \
+        "A1 B22 is $999,750; anything else is the 29x defect returning"
+
+    # The severe benchmarks are reference data and must not be mistaken for typical.
+    assert roi.SEVERE_FAILURE_COST_LOW_USD == 5_000_000
+    assert roi.SEVERE_FAILURE_COST_HIGH_USD == 13_500_000
+    assert roi.TYPICAL_DERAILMENT_COST_USD < roi.SEVERE_FAILURE_COST_LOW_USD
+    # And the expected value must sit below the severe pair: blending a severe
+    # benchmark in as a typical is what produced $29,065,000.
+    assert roi.EXPECTED_COST_PER_MISSED_DEFECT_USD < roi.SEVERE_FAILURE_COST_LOW_USD
+    assert roi.EXPECTED_COST_PER_MISSED_DEFECT_USD < roi.CATASTROPHIC_FAILURE_COST_USD
 
 
 def test_same_axle_differential_normal_when_close():

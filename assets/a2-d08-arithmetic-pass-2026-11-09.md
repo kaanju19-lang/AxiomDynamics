@@ -25,6 +25,17 @@ the rest of the docket uses. They are recorded below as open items and were
 **not** silently rewritten, because correcting them means choosing which model
 governs, and that is an owner decision.
 
+> **BOTH FINDINGS CLOSED 2026-11-10, and this record is otherwise unchanged.**
+> The owner delegated the decision; **A1 now governs**, expressed as Option D in
+> `assets/a2-d08-model-decision-2026-11-09.md`. A2 §3.2, D08 §3, §5 and §6 were
+> restated and `backend/roi.py` corrected the same day. **The figures in the two
+> sections below are the pre-decision values, deliberately left standing** — this
+> document records what was found on 2026-11-09, and rewriting it to match the fix
+> would destroy the only account of what the defect looked like before it was
+> closed. The script now runs **89 checks** and asserts both findings closed
+> against the restated documents; it no longer reports them as open. See
+> `project-logs/CURRENT-STATE.md`, "Model decision".
+
 ---
 
 ## What was checked and confirmed

@@ -1,8 +1,8 @@
 # AxiomDynamics — Current State
 
 **Last updated:** 2026-11-10 (chat-4 in progress — ledger replication series
-built and twice audited; B01 §7 item 12, D09 §4.4–4.5.4 and C01 §E2 updated).
-Next session: read `chat-4/CARRY-FORWARD.md`, then this file.
+built and twice audited; the A1/D08 model decision taken and both documents plus
+`roi.py` restated). Next session: read `chat-4/CARRY-FORWARD.md`, then this file.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -56,40 +56,21 @@ The validation chain — schema, timestamp, plausibility — is designed and not
 
 ## Open items, in priority order
 
-1. **Two A2/D08 model findings — need an owner decision, now priced.** The
-   arithmetic pass of 2026-11-09 found **no arithmetic errors** in either document
-   (78 of 78 figures recompute correctly). It did find that two *claims* do not
-   reproduce from the shipped model. **Read
-   `assets/a2-d08-model-decision-2026-11-09.md` first** — it costs both answers,
-   corrects two points below, and is the shorter read. Checks:
-   `python3 -I assets/a2-d08-arithmetic-pass.py` (78) and
-   `python3 -I assets/a2-d08-model-decision.py` (65).
-   - **Finding 1.** A2 §3.2 and D08 §3 claim ~2.0x return at 500 axles rising to
-     ~4.1x at 10,000. *The decision paper refines this:* the anchors **are**
-     recoverable on a pilot-plus-three-years cost basis at p ≈ 0.04%–0.07%, so
-     this is a disclosure defect — an unstated frame — not an invention. They
-     still cannot ship, because no frame is stated and the parameter is disclosed
-     nowhere.
-   - **Finding 2.** D08 §5–§6 modelled benefits ($6–8M pilot year, $14–20M
-     four-year, $40–60M six-year) run 5x–14x above A1. *The decision paper adds:*
-     D08 also contradicts **itself** — §4 prices a prevented failure at ~$993,000,
-     §5 at $8.6M–$11.4M — and `backend/roi.py` values a missed defect at **29×**
-     A1's figure (2% probability *and* a $9.25M contained cost, against A1's
-     0.05% and $500,000).
-   - **Recommended:** A1 governs (0.05%, $500,000), anchors restated to
-     1.77x/3.36x, D08 §5–§6 restated from A1, `roi.py` corrected. Option B and the
-     case against are in §6–§7 of the decision paper.
+1. **A1 workbook regeneration — the last step of the model decision, not yet done.**
+   The model question was decided on 2026-11-10 (see "Model decision" below) and
+   A2 §3.2, D08 §3, §5 and §6 and `backend/roi.py` were all restated. The workbook
+   itself is still the pre-decision file and **now disagrees with the prose in one
+   place**: A1 sheet 4 carries a $285,000 pilot fee while A2 §5.1 charges $370,000,
+   and A1 has no conversion-credit line. Regenerating it is task 4 and is safe now
+   that the model no longer moves. Until it is regenerated, treat the .xlsx as a
+   working instrument whose pilot-year rows are stale, and quote A2 for price.
 2. **D07 §14.5 — governing law and venue.** An open counsel decision, correctly
    labelled as open as of chat-2 (previously a blank pointing at an Order field
    that does not exist). Must be closed by signed addendum before first execution.
-3. **A1 workbook regeneration.** Deliberately not regenerated during the
-   arithmetic pass, because doing so would bake both open findings into a new
-   file before the model question is settled. The builder is now fixed (see
-   below) and will regenerate on demand once findings 1 and 2 are decided.
-4. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
+3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
    dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
-5. **Ledger signer attribution and off-box carriage** — the signed export landed
-   2026-11-10, and the **series build landed the same day** (see below), so the
+4. **Ledger signer attribution and off-box carriage** — the signed export landed
+   2026-11-09, and the **series build landed 2026-11-10** (see below), so the
    Platform now produces the D09 §4.5.4 cadence itself. What remains: the HMAC
    signature is symmetric, so it cannot name the signer; it cannot prove when it
    was made; a ledger wiped before the first bundle in a series is invisible to
@@ -97,6 +78,45 @@ The validation chain — schema, timestamp, plausibility — is designed and not
    deliberate, because D09 §3.2 promises no outbound network, so carriage is the
    Railroad's physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items
    11–12. Closing attribution is an **AD-2 dependency**, not more export code.
+
+## Model decision — A1 governs, decided 2026-11-10 (chat-4)
+
+The owner delegated the choice ("you decide"). **A1 governs the commercial
+numbers, expressed as Option D in `assets/a2-d08-model-decision-2026-11-09.md`**:
+0.05% escalation probability, $500,000 typical contained cost, $1.0B catastrophic.
+
+What changed in the docket, all on 2026-11-10:
+
+- **A2 §3.2 and D08 §3** anchors restated from the withdrawn 2.0x/4.1x to
+  **1.77x at 500 axles, 3.36x at 10,000**, with the cost basis stated in the text
+  instead of left to inference. The pilot year is charged in full and credited with
+  no benefit in that calculation — the conservative frame.
+- **D08 §5 restated** from A1: pilot year at the **200 axles §2 actually scopes**
+  ($278,670 modelled benefit, **0.75x** the $370,000 fee — the pilot does not pay
+  for itself and the document now says so); production years at 500 axles
+  ($696,675/yr); four-year return **2.01x**.
+- **D08 §6 restated**: six-year return **2.06x**. Close to flat against the
+  four-year figure, because fee escalation from Year 4 offsets the dilution of one
+  weak pilot year across more production years. It does **not** fall.
+- **`backend/roi.py`** corrected: `P_CATASTROPHIC_GIVEN_MISSED_DEFECT` 2% → 0.05%,
+  and the per-missed-defect value now blends the **$500,000 typical** cost rather
+  than the $9.25M midpoint of the two NTSB severe benchmarks. Expected cost per
+  missed defect is now **$999,750**, identical to A1's B22; the 29x overstatement is
+  gone. The severe benchmarks survive as `SEVERE_FAILURE_COST_*`, explicitly
+  reference-only, and the dataclass field renamed `severe_cost_range_usd` so no
+  reader mistakes them for the typical case again.
+- Checkers updated rather than left certifying stale text: the arithmetic pass is
+  now **89 checks** and reports both findings **closed and checked**, not merely
+  recorded. The decision paper's **65 checks** still reproduce (it documents the
+  withdrawn figures, which is its job).
+
+**Two things a future reader will otherwise trip over.** First, A2 §3.2 says 1.77x
+at 500 axles and D08 §5 says 2.01x — different questions on the same inputs (A2
+charges the pilot with no benefit; D08 credits the 200-axle pilot with its actual
+benefit). A2 §3.2 now states that difference explicitly. Second, **D08 §2 scopes the
+pilot at 100–200 axles**, so any pilot-year benefit computed at 500 was contradicting
+the document's own scope. That defect was mine, introduced in the first restatement
+and caught before commit.
 
 ## Ledger replication series — built 2026-11-10 (chat-4)
 

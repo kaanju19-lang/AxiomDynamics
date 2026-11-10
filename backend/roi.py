@@ -22,16 +22,18 @@ category it's in.
 SOURCED FIGURES -- bearing/wheelset-failure-related derailment cost
 ---------------------------------------------------------------------
 
-Tier 1 -- CONTAINED bearing/wheelset failure (no hazmat release):
+Tier 1 -- SEVERE contained bearing/wheelset failure (no hazmat release):
   - BNSF bearing-related derailment: $5,000,000 reported damage.
     Source: NTSB, https://www.ntsb.gov/investigations/accidentreports/reports/rab1712.pdf
   - Separate BNSF derailment: $13,500,000 reported damage, EXPLICITLY
     excluding lading and environmental remediation costs.
     Source: NTSB docket, https://data.ntsb.gov/Docket/Document/docBLOB?FileExtension=.PDF&FileName=BNSF%20Equipment%20Incident%20Report-Redacted.PDF&ID=40457595
-  These two figures bracket the "contained" tier used below ($5M-$13.5M).
-  No published, standardized FRA-wide average derailment cost exists --
-  FRA tracks accident counts/causes, not a normalized dollar average --
-  so this range, not a single average, is what the model uses.
+  These two figures bracket the SEVERE tier -- investigated, above-average
+  events, kept below as reference data only. No published, standardized
+  FRA-wide average derailment cost exists -- FRA tracks accident counts and
+  causes, not a normalized dollar average -- so the TYPICAL figure the model
+  actually uses is the A1 workbook's B14 industry working figure of
+  $500,000, and the severe pair is carried for sensitivity work.
 
 Tier 2 -- CATASTROPHIC failure with hazmat release (East Palestine, OH,
 Feb 3 2023, Norfolk Southern train 32N -- a wheel bearing failure, the
@@ -52,10 +54,19 @@ MODELING ASSUMPTIONS (replace before real use)
   - P_CATASTROPHIC_GIVEN_MISSED_DEFECT: no public base rate exists for
     "what fraction of missed/undetected bearing defects progress to a
     catastrophic hazmat-release event vs. stay a contained derailment."
-    Set conservatively low here (2%) -- East Palestine-scale events are
-    rare tail outcomes, not the typical case, but the downside is so
-    large it still dominates expected cost. REPLACE with your own risk
-    estimate or your pilot customer's safety data if you have one.
+    Set to 0.05% -- the SAME value as the A1 workbook's cell B17, so the
+    dashboard and the ROI model cannot disagree. An earlier version of this
+    module used 2%, which A1's own note calls physically impossible (2% per
+    missed defect would imply dozens of billion-dollar events annually
+    nationwide). REPLACE with your own risk estimate or your pilot
+    customer's safety data if you have one.
+  - TYPICAL_DERAILMENT_COST_USD: $500,000, matching A1 cell B14 -- track
+    repair, equipment damage and service disruption on a contained bearing
+    set-out. An earlier version used the $9.25M midpoint of the NTSB severe
+    benchmarks as the TYPICAL cost, which is what made this module value a
+    missed defect at 29x the workbook's figure. The severe benchmarks
+    ($5M/$13.5M, A1 B15/B16) are kept below as reference data only; they are
+    investigated, above-average events and must not be used as a typical.
   - COST_PROACTIVE_INSPECTION_USD / COST_UNCORROBORATED_FALSE_ALARM_USD:
     illustrative placeholders for what it costs to act on a warrant --
     use your own maintenance/inspection cost data.
@@ -68,11 +79,17 @@ from dataclasses import dataclass
 from typing import List
 
 # ---------------------------------------------------------------------------
-# SOURCED: contained-failure cost range (see citations above)
+# SOURCED: severe-case benchmarks, REFERENCE ONLY (see citations above).
+# A1 workbook cells B15/B16. Investigated, above-average events -- kept for
+# sensitivity work and explicitly NOT used as a typical cost.
 # ---------------------------------------------------------------------------
-CONTAINED_FAILURE_COST_LOW_USD = 5_000_000
-CONTAINED_FAILURE_COST_HIGH_USD = 13_500_000
-CONTAINED_FAILURE_COST_USD = (CONTAINED_FAILURE_COST_LOW_USD + CONTAINED_FAILURE_COST_HIGH_USD) / 2  # midpoint, $9.25M
+SEVERE_FAILURE_COST_LOW_USD = 5_000_000
+SEVERE_FAILURE_COST_HIGH_USD = 13_500_000
+
+# ---------------------------------------------------------------------------
+# TYPICAL contained-failure cost, matching A1 cell B14.
+# ---------------------------------------------------------------------------
+TYPICAL_DERAILMENT_COST_USD = 500_000
 
 # ---------------------------------------------------------------------------
 # SOURCED: catastrophic-failure cost (East Palestine, OH, Feb 3 2023)
@@ -81,16 +98,22 @@ CATASTROPHIC_FAILURE_COST_USD = 1_000_000_000  # cumulative cost reported at NS,
 
 # ---------------------------------------------------------------------------
 # ASSUMPTION: probability a missed defect goes catastrophic rather than
-# contained. NOT a published base rate -- see note above. Replace with a
-# real risk estimate before using this for an actual business case.
+# contained. NOT a published base rate -- see note above. Matches A1 B17 so
+# the two models agree. Replace with a real risk estimate before using this
+# for an actual business case.
 # ---------------------------------------------------------------------------
-P_CATASTROPHIC_GIVEN_MISSED_DEFECT = 0.02
+P_CATASTROPHIC_GIVEN_MISSED_DEFECT = 0.0005
 
 # Expected cost of ONE missed/undetected bearing defect that this system
-# would have corroborated and flagged -- a probability-weighted blend of
-# the two sourced tiers above, not a single invented number.
+# would have corroborated and flagged -- a probability-weighted blend of a
+# TYPICAL contained derailment and the sourced catastrophic tier, on the same
+# basis as A1's own evaluation. Using the TYPICAL cost here, not the severe
+# benchmark, is what keeps this module's per-defect figure consistent with the
+# workbook: the severe benchmarks describe investigated above-average events,
+# and blending one of those in as if it were typical overstated the value of a
+# missed defect by 29x.
 EXPECTED_COST_PER_MISSED_DEFECT_USD = (
-    (1 - P_CATASTROPHIC_GIVEN_MISSED_DEFECT) * CONTAINED_FAILURE_COST_USD
+    (1 - P_CATASTROPHIC_GIVEN_MISSED_DEFECT) * TYPICAL_DERAILMENT_COST_USD
     + P_CATASTROPHIC_GIVEN_MISSED_DEFECT * CATASTROPHIC_FAILURE_COST_USD
 )
 
@@ -104,7 +127,10 @@ COST_PROACTIVE_INSPECTION_USD = 4_500          # cost of a planned inspection tr
 # ASSUMPTION: detection-time comparison (illustrative, not measured)
 # ---------------------------------------------------------------------------
 LEGACY_MEAN_TIME_TO_DETECT_HOURS = 4.8
-AXIOM_MEAN_TIME_TO_DETECT_HOURS = 0.57
+# 1.5 h matches A1 sheet 2 row 5, so the dashboard cannot advertise a larger
+# improvement than the workbook supports. An earlier version of this module used
+# 0.57 h, which reported an 88% improvement against A1's 69% on the same claim.
+AXIOM_MEAN_TIME_TO_DETECT_HOURS = 1.5
 
 
 @dataclass
@@ -121,7 +147,8 @@ class ROISummary:
     legacy_mttd_hours: float
     axiom_mttd_hours: float
     mttd_improvement_pct: float
-    contained_cost_range_usd: tuple
+    typical_contained_cost_usd: float
+    severe_cost_range_usd: tuple
     catastrophic_cost_usd: float
     catastrophic_probability_assumption: float
     assumptions_note: str
@@ -173,18 +200,23 @@ def compute_roi_summary(warrants: List) -> ROISummary:
         legacy_mttd_hours=LEGACY_MEAN_TIME_TO_DETECT_HOURS,
         axiom_mttd_hours=AXIOM_MEAN_TIME_TO_DETECT_HOURS,
         mttd_improvement_pct=mttd_improvement_pct,
-        contained_cost_range_usd=(CONTAINED_FAILURE_COST_LOW_USD, CONTAINED_FAILURE_COST_HIGH_USD),
+        severe_cost_range_usd=(SEVERE_FAILURE_COST_LOW_USD, SEVERE_FAILURE_COST_HIGH_USD),
+        typical_contained_cost_usd=TYPICAL_DERAILMENT_COST_USD,
         catastrophic_cost_usd=CATASTROPHIC_FAILURE_COST_USD,
         catastrophic_probability_assumption=P_CATASTROPHIC_GIVEN_MISSED_DEFECT,
         sourced_note=(
-            "Contained-failure range ($5.0M-$13.5M) and catastrophic cost ($1.0B) are real, "
-            "cited bearing-failure-related derailment costs (NTSB; DOJ/EPA on the Feb 3, 2023 "
-            "East Palestine, OH derailment). See backend/roi.py docstring for full citations."
+            "The $500,000 typical contained cost is the A1 workbook's B14 industry working "
+            "figure. The severe benchmarks ($5.0M-$13.5M, A1 B15/B16) and the catastrophic "
+            "cost ($1.0B) are real, cited bearing-failure-related derailment costs (NTSB; "
+            "DOJ/EPA on the Feb 3, 2023 East Palestine, OH derailment), but the severe "
+            "benchmarks describe investigated, above-average events and are reference data "
+            "only. See backend/roi.py docstring for full citations."
         ),
         assumptions_note=(
-            f"The {P_CATASTROPHIC_GIVEN_MISSED_DEFECT:.0%} catastrophic-outcome probability, "
+            f"The {P_CATASTROPHIC_GIVEN_MISSED_DEFECT:.2%} catastrophic-outcome probability, "
             "inspection costs, and detection-time figures are modeling ASSUMPTIONS, not published "
             "statistics -- no public base rate exists for how often a missed bearing defect goes "
-            "catastrophic. Replace these with your own risk/cost data in backend/roi.py."
+            "catastrophic. The probability matches the A1 workbook's B17 so the two models "
+            "agree. Replace these with your own risk/cost data in backend/roi.py."
         ),
     )

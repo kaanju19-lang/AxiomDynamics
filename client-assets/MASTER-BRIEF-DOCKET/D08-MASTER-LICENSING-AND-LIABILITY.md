@@ -104,7 +104,7 @@ Once the pilot documents ROI, the railroad scales to a division or the full flee
 > ($450K / $950K / $1.8M) and they failed on both counts: the entry tier returned only 1.5x, and
 > scaling from 500 to 1,000 axles actually dropped ROI from 1.9x to 1.8x.
 >
-> These rates are a **pricing hypothesis validated only against modelled return, not against a real procurement conversation**. They are set so modelled return improves monotonically with fleet size — 2.0x at 500 axles rising to 4.1x at 10,000. **A2 is the authoritative rate card and governs every figure in this section**; where the two differ, A2 wins. Treat the hypothesis flag as an instruction for the first real conversation, not as permission to quote a different price.
+> These rates are a **pricing hypothesis validated only against modelled return, not against a real procurement conversation**. They are set so modelled return improves monotonically with fleet size — **1.77x at 500 axles rising to 3.36x at 10,000** on the basis stated in A2 §3.2 (A1's 0.05% escalation probability, $500,000 typical contained cost, three years of benefit against four years of fee). **A2 is the authoritative rate card and governs every figure in this section**; where the two differ, A2 wins. Treat the hypothesis flag as an instruction for the first real conversation, not as permission to quote a different price.
 
 ### 3.1 The second pricing axis — monitored sites
 
@@ -162,7 +162,7 @@ The defining departure from SaaS: a fixed base license, **plus an optional perfo
 
 - When a defect flagged by AxiomDynamics is corroborated by the customer's root-cause analysis as a prevented failure, the railroad pays **3% of the prevented-failure cost avoidance** as an additional licensing fee, **capped at 33% of the annual base license**.
 - The cap is essential. Uncapped, 3% of gross prevented cost runs to several times the base license and makes the structure incoherent. With the cap, the component adds **at most 33% of the base licence** — $99,000 at 500 axles, $181,500 at 1,000, $346,500 at 2,000. **Meaningful upside, strictly bounded.** An earlier draft said "$150K–$300K on a typical mid-size deployment," which is unreachable at the 1,000-axle base it describes: 33% of $550,000 is $181,500, so the top of the stated range exceeds the cap the sentence above it imposes.
-- Worked example at 1,000 axles: base $550,000; corroborated prevented cost $1,390,000; 3% = **$41,700**; cap is $181,500, so the full $41,700 is payable; total **$591,700**. (An earlier draft said $41.8K — 3% of $1.39M is $41.7K; the rounding was in the wrong direction and the cap arithmetic is exact.)
+- Worked example at 1,000 axles: base $550,000; corroborated prevented cost **$1,399,650** — 1.4 missed defects per 1,000 axles at A1's $999,750 expected cost, which is the same valuation §5 uses; 3% = **$41,989.50**; cap is $181,500, so the full amount is payable; total **$591,989.50**. (An earlier draft used a round $1,390,000, which produced $41,700 and a $591,700 total — **$289.50 light**, because $1,390,000 is $9,650 below the model's own output. Round numbers chosen for the example are how a document drifts from its model; the figure is now derived, not chosen. The cap arithmetic was always exact; the input was not.)
 - **Operability condition (A2 §4A):** the Order must state who corroborates, what evidence is required, how a prevented failure is valued, the reconciliation cadence, and the cap. Absent all five, the component is not operable and must not be included in the Order.
 
 **Why the structure holds**
@@ -178,10 +178,15 @@ The defining departure from SaaS: a fixed base license, **plus an optional perfo
 
 > **These are modelled scenarios, not forecasts, and not commitments.** Each figure depends on the customer's own derailment history, fleet composition, and detector coverage. They exist to show the shape of the economics — that the model improves with scale — not to predict an outcome. **A1 (`A1-ROI-MODEL/`) is the instrument that produces real numbers from a customer's real inputs**, and every assumption in it is exposed as an editable cell for exactly this reason.
 
-**Year 1 (Pilot): $370K investment**
+> **Every benefit figure below is A1's output at A1's own defaults.** That is the same model, the same 0.05% escalation probability and the same $500,000 typical contained cost that §4 uses to price a prevented failure at about $993,000 — so §4 and §5 now value the same event the same way. If any input in A1 changes, these numbers change with it and this section must be recomputed. **The derivation is shown so a reader can check it rather than take it.**
 
-- Modelled scenario, assuming the customer's historical claim rate applies: avoided damage of roughly $6M–$8M, i.e. **a modelled return of roughly sixteen to twenty-two times the pilot fee**. Note the deliberate wording — **"16x" is banned elsewhere in this document because there it meant detection lead time**, which we cannot substantiate. Two different quantities cannot share one shorthand in one document, or the banned one gets resurrected by accident.
-- **The pilot does not promise this outcome.** The pilot measures what actually happens on the customer's data (D02 §8). If the modelled return does not materialise, the correct commercial decision is not to convert.
+**How the annual benefit is computed.** A1 sheet 2 puts detected defects at 2.1 per 500 axles per year and the incremental defect capture over legacy detection at 0.7 per 500 axles per year. Each defect caught that would otherwise have been missed is valued at A1's $999,750 expected cost (§4 above derives its worked example from exactly this figure), against the cost of the 2.1 inspections the detection triggers at $1,500 each. That is **$1,393.35 of net benefit per axle per year**: at 500 axles **$696,675**, at the 200-axle pilot **$278,670**.
+
+**Year 1 (Pilot, 200 axles): $370,000 investment, modelled benefit $278,670**
+
+- That is **0.75x the pilot fee. The pilot does not pay for itself, and this document will not pretend it does.** It is a twelve-month evaluation that buys a measured false-positive rate, a measured lead time on the customer's own data, and the evidence on which a conversion decision is made (D02 §8). Its value is the decision it informs, not the losses it prevents in year one.
+- This is stated at 200 axles because §2 scopes the pilot at 100–200. At 100 axles the modelled benefit is $139,335 — still further from the fee.
+- **The pilot does not promise even this outcome.** If the modelled return does not materialise, the correct commercial decision is not to convert.
 
 **Year 2 (Production — Tier 1, 500 axles, 1 site): $300,000 base**
 
@@ -192,18 +197,20 @@ The defining departure from SaaS: a fixed base license, **plus an optional perfo
 
 **Three-year production total after conversion: $810,000** (A2 §9). Against $370,000 of pilot fees, the four-year customer commitment is **$1,180,000**.
 
-| Year | Net fee | Basis |
-|---|---:|---|
-| Pilot | $370,000 | A2 §5.1 |
-| Production Y1 | $210,000 | $300,000 − $90,000 credit |
-| Production Y2 | $300,000 | Locked, 0% (D05 §3.2) |
-| Production Y3 | $300,000 | Locked, 0% (D05 §3.2) |
-| **Four-year total** | **$1,180,000** | |
+| Year | Fleet | Net fee | Modelled benefit | Basis |
+|---|---:|---:|---:|---|
+| Pilot | 200 axles | $370,000 | $278,670 | A2 §5.1; A1 at 200 axles |
+| Production Y1 | 500 axles | $210,000 | $696,675 | $300,000 − $90,000 credit; A1 at 500 |
+| Production Y2 | 500 axles | $300,000 | $696,675 | Locked, 0% (D05 §3.2) |
+| Production Y3 | 500 axles | $300,000 | $696,675 | Locked, 0% (D05 §3.2) |
+| **Four-year total** | | **$1,180,000** | **$2,368,695** | |
 
-- Modelled prevented damage, using the customer's own historical rates: $14M–$20M over the same four years
-- Modelled four-year return: **12x–17x** ($14M–$20M against $1,180,000) — a return on the *four-year commitment*, computed in A1 from the customer's own inputs, not a per-scope figure and not a detection claim. See §3.1's note on why a per-row ROI column was removed from the corridor table: **this one is defensible because it is one model with one set of stated inputs; that one was not.**
+- Modelled four-year return: **2.01x** ($2,368,695 against $1,180,000) — a return on the *four-year commitment*, computed in A1 from the customer's own inputs once they are entered, not a per-scope figure and not a detection claim. See §3.1's note on why a per-row ROI column was removed from the corridor table: **this one is defensible because it is one model with one set of stated inputs; that one was not.**
+- **The return is carried by the production years, not the pilot.** The pilot is a cost of finding out; the licence is where the value is. A customer who reads only the pilot-year figure has read the least flattering year in the table, and that is the year they should be shown first.
 
 > **These are modelled scenarios from A1, not forecasts and not commitments.** The ROI multiple depends entirely on the customer's derailment and defect history, the value they place on a prevented event, and their claim rate. **Do not present a multiple to a customer as an expected outcome.** Present the method, the inputs, and the sensitivity — and let their own numbers produce their own figure. A modeled multiple quoted as a promise is the fastest way to convert a good faith evaluation into a dispute.
+
+> **Reconciliation with §4.** An earlier draft of this section modelled $6M–$8M of avoided damage in the pilot year and $14M–$20M over four years, against a §4 that priced a prevented failure at about $993,000. Both cannot be right: A1's own defect arithmetic yields about $1,393 per axle per year of net benefit, so 500 axles supports roughly $700,000 a year, not $6M–$8M. §5 has been restated on A1 so that the benefit in this section and the performance fee in §4 are computed from one valuation. The earlier figures implied an annual benefit roughly nine to eleven times the model's own, and no input in A1 produces them.
 
 **Year 3+ (Steady state — Tier 1)**
 
@@ -227,21 +234,20 @@ The Railroad supplies, owns, and installs its own edge hardware and detector inf
 
 **The customer's own hardware cost** — an edge server and networking at the pilot site — is theirs to procure and is not in this table. Reference specification: 4 cores, 8 GB RAM, 100 GB disk, Ubuntu 22.04 LTS or equivalent (F01 §3.4). At current commodity prices that is a low four-figure server, and stating it separately is more honest than folding it into a vendor line and calling it CapEx.
 
-**Extending to five years**, at the locked rate through Year 3 and up to a 5% increase from Year 4 (A2 §8):
+**Extending to six years**, at the locked rate through Year 3 and up to a 5% increase from Year 4 (A2 §8):
 
-| Year | Fee | Cumulative |
-|---|---:|---:|
-| 1 (pilot) | $370,000 | $370,000 |
-| 2 (production Y1) | $210,000 | $580,000 |
-| 3 (production Y2) | $300,000 | $880,000 |
-| 4 (production Y3) | $300,000 | $1,180,000 |
-| 5 (Year 4, max +5%) | $315,000 | $1,495,000 |
-| 6 (Year 5, max +5%) | $330,750 | $1,825,750 |
+| Year | Fleet | Fee | Cumulative fee | Modelled benefit | Cumulative benefit |
+|---|---:|---:|---:|---:|---:|
+| 1 (pilot) | 200 | $370,000 | $370,000 | $278,670 | $278,670 |
+| 2 (production Y1) | 500 | $210,000 | $580,000 | $696,675 | $975,345 |
+| 3 (production Y2) | 500 | $300,000 | $880,000 | $696,675 | $1,672,020 |
+| 4 (production Y3) | 500 | $300,000 | $1,180,000 | $696,675 | $2,368,695 |
+| 5 (Year 4, max +5%) | 500 | $315,000 | $1,495,000 | $696,675 | $3,065,370 |
+| 6 (Year 5, max +5%) | 500 | $330,750 | $1,825,750 | $696,675 | $3,762,045 |
 
-**Six-year customer commitment: ~$1.83M** at one site, 500 axles.
+**Six-year customer commitment: $1,825,750** at one site, against **$3,762,045 of modelled benefit — a modelled return of 2.06x.**
 
-- **Modelled prevented damage over the same period:** $40M–$60M *in A1's modelled scenario*
-- **Modelled ROI: 20x–30x**
+- **Modelled benefit is A1's figure at each year's fleet, held flat once at 500 axles.** A1 is linear in axles and years and does not escalate benefit, so neither does this table. Two effects nearly cancel over six years: the fee escalates from Year 4 under A2 §8, which drags the multiple down, while the weak 200-axle pilot year is diluted across more production years, which lifts it. The net movement is from 2.01x at four years to 2.06x at six — **close to flat, and it should be read as flat.** A vendor showing a steeper six-year curve than this would be assuming benefit growth that A1 does not model.
 
 > **"Documented" was the wrong word and has been removed.** Nothing is documented before it happens. These are modelled projections built on published NTSB and industry cost data with the customer's own fleet inputs. **A1 produces the customer's figure from the customer's data; this document must never be used to present one.** See §5 note.
 

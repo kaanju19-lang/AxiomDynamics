@@ -1,6 +1,32 @@
 # AxiomDynamics — External Pilot Cost Structure & YoY Licensing Model
 
-**Positioning:** This is not a SaaS product. AxiomDynamics is an engineering-discipline, agentic (non-LLM) predictive maintenance platform sold against multi-million-dollar CapEx/OpEx exposure. Licensing is tied to **operational assets monitored** and **documented outcomes prevented** — not to user seats.
+> **SUPERSEDED — 2026-11-10. Do not quote any figure in this document.**
+>
+> This is the original internal working draft of the commercial model. It is kept
+> because it records how the structure was first conceived, not because its numbers
+> are current. **Every figure below predates the A1/D08 model decision of
+> 2026-11-10, and several were explicitly retracted in the docket:**
+>
+> - The **2.0x at 500 / 4.1x at 10,000** anchors (§2) do not reproduce from any
+>   shipped model. The docket now states **1.77x / 3.36x**, per A2 §3.2.
+> - The **$6M–$8M pilot year, $14M–$20M three years, $40M–$60M five years** benefit
+>   figures (§4–§5) run 5x–14x above what A1 produces. D08 §5–§6 now restate from
+>   A1: $278,670 in the pilot year, $2,368,695 over four years.
+> - The claim that dispositions **"reduce federal and state reporting exposure"**
+>   (§4) is **wrong** and was removed from the docket. The Platform does not alter
+>   any regulatory obligation (D12 §3, §5).
+> - The **"18–48 hours / 16x earlier"** detection claim and the **"12x–50x ROI"**
+>   pilot claim (§6 pitch) are retracted. D02 §7.2 and D12 §8 disclaim detection
+>   assurance expressly.
+> - The **"6–12 months"** pilot term is wrong; D02 §1 fixes it at twelve months.
+> - The **$65,000 "wayside hardware integration"** line implied we supply hardware.
+>   We sell none — the Railroad installs (D14 §3, A2 §7.1).
+>
+> **For any current figure use `client-assets/MASTER-BRIEF-DOCKET/A2` (price) and
+> D08 (terms).** This file's remaining value is as a record of the original
+> reasoning, and this banner is what makes reading it safe.
+
+**Positioning (as originally drafted — see banner above):** This is not a SaaS product. AxiomDynamics is an engineering-discipline, agentic (non-LLM) predictive maintenance platform sold against multi-million-dollar CapEx/OpEx exposure. Licensing is tied to **operational assets monitored** and **documented outcomes prevented** — not to user seats.
 
 ---
 
