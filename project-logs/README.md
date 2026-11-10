@@ -15,7 +15,7 @@ project-logs/
 │   └── CARRY-FORWARD.md    the handoff document for chat-2
 ├── chat-2/
 │   └── SUMMARY.md          running record of chat-2
-└── transcripts/            (see "A gap in the record", below)
+└── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
 ```
 
 ## Order of authority
@@ -31,25 +31,25 @@ Three layers, and they are not equal:
 If any summary in this folder contradicts a document in the docket, **the docket
 governs and the summary is corrected.**
 
-## A gap in the record, stated plainly
+## The record, and the gap in it
 
-Chat-1 produced readable transcripts of the three original conversations —
-2,527 turns across `2026-11-08-847804b3.md`, `2026-11-08-d4e7e999.md` and
-`2026-11-08-2c574bc2.md` — extracted from the raw session logs.
+`transcripts/` holds the conversation logs. **`2026-11-09-chat-2.md` and its raw
+`.jsonl` are here** — chat-2 was extracted and committed at the end of its
+session, raw log included, and that is now the rule for every session.
 
-**Those files are gone.** They were written into a sandbox whose storage was
-destroyed when that session ended, and the raw logs they were derived from went
-with it. They never reached the GitHub repository. They cannot be recovered.
+**Chat-1 is lost.** It covered 2,527 turns across three raw session logs from
+2026-11-08 04:24 to 2026-11-10 03:00. Chat-1 extracted readable transcripts from
+them — `2026-11-08-847804b3.md`, `2026-11-08-d4e7e999.md`, `2026-11-08-2c574bc2.md`
+— but wrote them into a sandbox whose storage was destroyed when the session
+ended. They never reached this repository, and the raw logs went with them.
 
-What survives is `chat-1/SUMMARY.md`, which is a distillation — a judgement about
-what mattered, not the conversation. **Treat it as a summary and not as a
-record**, which means: if a decision's origin matters and the summary does not
-answer it, the summary cannot be made to. That information is not here.
+There is no copy anywhere. What survives is `chat-1/SUMMARY.md`, which is a
+distillation — a judgement about what mattered, not the conversation.
 
-The lesson that made this README exist is the same one, at a small scale: work
-that exists only in one place is one failure away from not existing. From chat-2
-forward, anything worth keeping is committed to the repository in the same pass
-that produces it.
+**The lesson, stated where it will be read:** work that exists in one volatile
+place is one failure away from not existing. From chat-2 forward every session is
+extracted and committed in the same pass that produces the work, and the raw log
+is committed with it.
 
 ## Standing instructions
 
