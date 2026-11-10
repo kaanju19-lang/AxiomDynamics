@@ -144,9 +144,9 @@ absent. A green suite of 108 preceded all of it.
 
 The standing rule is that a phase is not finished until its assets and its
 conversation are in this repository. Chat-4's raw log was extracted at close:
-3,348 events, 6.6 MB, into
+4,322 events, 9.9 MB, into
 `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl`, with the
-readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 425 turns
+readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 535 turns
 of which **four are the owner's**.
 
 **A defect in the extractor was fixed in this pass.** `extract_transcript.py`
