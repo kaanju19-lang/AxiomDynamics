@@ -22,6 +22,8 @@ project-logs/
 ├── chat-3/
 │   └── SUMMARY.md          running record of chat-3
 └── transcripts/            chat-2 onward, readable + raw jsonl (chat-1 is lost)
+    ├── 2026-11-09-chat-2.md   readable extract
+    ├── 2026-11-09-chat-3.md   readable extract
     └── raw/                the source logs, committed with each transcript
 ```
 
