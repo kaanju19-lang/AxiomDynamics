@@ -1,9 +1,9 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-09 (chat-2)
+**Last updated:** 2026-11-09 (chat-2, all work pushed)
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
-**Top commit on `origin/main` as of chat-2 start:** `de9b245`
+**Top commit on `origin/main`:** `2ec168b` — confirmed on GitHub 2026-11-09. Everything is pushed; nothing is outstanding.
 
 ---
 
@@ -49,14 +49,21 @@ The validation chain — schema, timestamp, plausibility — is designed and not
 4. **Disposition ledger** — currently overwrites rather than appends. The
    evidentiary claim in F09 is ahead of the code until AD-3 lands (Q2 2027).
 
-## Git state, and a trap to avoid
+## Git state
 
-The sandbox's `origin/main` ref is **stale** — it was set at clone time and never
-updated. Running `git log origin/main..HEAD` *inside the sandbox* therefore
-reports commits as unpushed that GitHub already has.
+The sandbox **cannot reach GitHub** — `git push` and `git fetch` both fail with
+HTTP 403 from the proxy. Its `origin/main` ref therefore only advances when the
+owner pushes and the sandbox is told the result. Do not trust it as evidence of
+remote state without checking the commits page.
+
+**Pushing is done by the owner**, with `PUSH-TO-GITHUB.bat` in the repo root. It
+prints the commits waiting to go up and verifies afterwards.
+
+**As of 2026-11-09, everything is pushed.** GitHub's top commit is `2ec168b`,
+confirmed by the owner against the commits page.
 
 **The host repo at `C:\Users\RGV\AxiomDynamics` is authoritative for push state.**
-Verify with `git fetch` from the host, or by opening the commits page.
+Verify by opening the commits page.
 
 ## What was lost in the chat-1 → chat-2 transition
 
