@@ -85,3 +85,21 @@ Recorded here so nobody goes looking for it:
 - Keep the same concept throughout — consistency of framing across every document.
 - Internal analysis goes in `assets/`, never `client-assets/`.
 - Verify against the file before writing the claim.
+
+## Why chat-1's work was lost — the mechanism
+
+Not a deletion. The work was never on the owner's machine.
+
+Chat-1 built the repo inside a temporary sandbox container. To get anything out
+it bundled the repo, embedded the bundle in a `.bat`, and the owner ran it once —
+which is how `de9b245` reached GitHub. **Everything chat-1 did after that push
+stayed in the container**, including the F00 Rule 7 work, the D07 §14 rewrite, Q6
+and the transcripts. The bundle was never remade. When the session ended the
+container was destroyed and took all of it.
+
+The failure was treating "committed" as "safe." Inside that container it only
+meant "saved somewhere that is about to be emptied."
+
+**The rule that follows:** there is no automatic export. A commit in the sandbox
+is not durable until it is in `C:\Users\RGV\AxiomDynamics` and pushed. Never tell
+the owner work is saved without saying where it physically is.
