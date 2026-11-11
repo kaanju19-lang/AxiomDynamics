@@ -601,3 +601,83 @@ td svg {
   }
 }
 
+
+/* --- Session bar (AD-2: authenticated disposition entry) --- */
+#session-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.session-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+#signin-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#signin-form input {
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  font-size: 13px;
+  min-width: 140px;
+}
+
+#signin-form button,
+#signout-btn {
+  padding: 6px 14px;
+  border: 1px solid #0ea5e9;
+  border-radius: 5px;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#signout-btn {
+  background: #fff;
+  color: #0ea5e9;
+}
+
+.session-status {
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+.session-note {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #64748b;
+}
+
+#session-who {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.disposition-who {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.disposition-who.signed-in { color: #047857; }
+.disposition-who.signed-out { color: #b91c1c; }

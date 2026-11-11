@@ -24,7 +24,7 @@ from urllib.parse import urlparse, parse_qs
 
 import numpy as np
 
-from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest
+from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest, accounts
 from .warrants import SignalEvidence, build_warrant
 
 store.init_db()
@@ -317,18 +317,124 @@ def route_roi(_query):
     return summary
 
 
-def route_post_disposition(advisory_id, body):
-    reviewer_name = (body.get("reviewer_name") or "").strip()
-    cert_id = (body.get("cert_id") or "").strip()
+def _bearer_token(headers) -> str:
+    """
+    Pull the bearer token out of an Authorization header, or return "".
+
+    Exact scheme match, case-insensitive, one space: `Bearer <token>`. Anything
+    else — a bare token, `Basic`, two spaces, a trailing comma — returns "", and
+    the caller sees "no credential" rather than a half-parsed identity.
+    """
+    raw = headers.get("Authorization") or ""
+    parts = raw.split(" ")
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return ""
+    return parts[1].strip()
+
+
+def route_post_session(body):
+    """
+    Sign in. `POST /api/session` with a username and passphrase; the reply body is
+    the only time the bearer token is ever visible.
+
+    The underlying `accounts.authenticate` deliberately does not distinguish "no
+    such user" from "wrong passphrase", and this route must not reintroduce the
+    distinction by translating the two differently.
+    """
+    username = (body.get("username") or "").strip()
+    passphrase = body.get("passphrase") or ""
+    if not username or not passphrase:
+        return {"error": "a username and passphrase are required"}, 400
+    try:
+        session = accounts.issue_session(store.DB_PATH, username, passphrase)
+    except ValueError as exc:
+        return {"error": str(exc)}, 401
+    return {
+        "ok": True,
+        "token": session["token"],
+        "expires_at": session["expires_at"],
+        "reviewer_name": session["reviewer_name"],
+        "cert_id": session["cert_id"],
+    }, 200
+
+
+def route_delete_session(headers):
+    """Sign out. Revokes the presented token; an unknown token is a 401, not a 500."""
+    token = _bearer_token(headers)
+    if not token:
+        return {"error": "no session token presented"}, 401
+    try:
+        accounts.revoke_session(store.DB_PATH, token)
+    except ValueError as exc:
+        return {"error": str(exc)}, 401
+    return {"ok": True}, 200
+
+
+def route_post_disposition(advisory_id, body, headers=None):
+    """
+    Record a disposition. **The caller must present a live session token.**
+
+    This is AD-2's entry half. The identity on the row is taken from the session
+    and from nowhere else; `reviewer_name` and `cert_id` are not read from the
+    body at all. A body that carries either one is *refused* rather than silently
+    ignored, because an integrator whose field is quietly dropped will believe it
+    was honoured and will ship code that names the wrong reviewer for a year.
+
+    A bearer token over plain HTTP is a shared secret on the wire — B01 §7 item
+    10. This route makes the name on a row a fact about the credential that wrote
+    it; it does not make the transport private.
+    """
+    mode = accounts.auth_mode(store.DB_PATH)
+    if mode == accounts.AUTH_NONE:
+        return {
+            "error": "disposition entry is closed: no reviewer account exists on "
+                     "this deployment. An administrator must enroll a reviewer "
+                     "bound to a live certification before any decision can be "
+                     "recorded.",
+            "auth_mode": mode,
+        }, 503
+
+    token = _bearer_token(headers or {})
+    if not token:
+        return {
+            "error": "authentication required: send 'Authorization: Bearer "
+                     "<token>' from POST /api/session",
+            "auth_mode": mode,
+        }, 401
+    try:
+        session = accounts.resolve_session(store.DB_PATH, token)
+    except ValueError as exc:
+        return {"error": str(exc), "auth_mode": mode}, 401
+
+    for forbidden in ("reviewer_name", "cert_id"):
+        if forbidden in body:
+            return {
+                "error": "the %r field is not accepted: the reviewer identity is "
+                         "taken from the signed-in session, and a body that tries "
+                         "to set it is refused rather than ignored. Sign in as "
+                         "the reviewer who made this decision." % forbidden,
+                "auth_mode": mode,
+            }, 400
+
     disposition = body.get("disposition")
     note = (body.get("note") or "").strip()
-    if not reviewer_name or not cert_id or disposition not in VALID_DISPOSITIONS:
-        return {"error": "reviewer_name, cert_id, and a valid disposition are required"}, 400
+    if disposition not in VALID_DISPOSITIONS:
+        return {"error": "a valid disposition is required"}, 400
     if len(note) > 500:
         return {"error": "note must be 500 characters or fewer"}, 400
 
-    # Appends. An earlier decision on this advisory is superseded, not replaced.
-    rec = store.save_disposition(advisory_id, reviewer_name, cert_id, disposition, note)
+    reviewer_name = session["reviewer_name"]
+    cert_id = session["cert_id"]
+
+    # The certificate is re-checked inside the ledger's write lock. resolve_session
+    # already checked it, but a revocation landing between resolve and INSERT is
+    # the same race that made attest() re-read under its lock; here the guard runs
+    # in save_disposition's transaction so there is no window between the check
+    # and the append.
+    rec = store.save_disposition(
+        advisory_id, reviewer_name, cert_id, disposition, note,
+        guard=lambda: accounts.cert_is_live(store.DB_PATH, cert_id,
+                                            session["key_id"]))
     return {
         "ok": True,
         "advisory_id": advisory_id,
@@ -337,6 +443,8 @@ def route_post_disposition(advisory_id, body):
         "supersedes_id": rec["supersedes_id"],
         "recorded_at": rec["recorded_at"],
         "record_hash": rec["record_hash"],
+        "reviewer_name": reviewer_name,
+        "cert_id": cert_id,
     }, 200
 
 
@@ -484,6 +592,21 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:  # pragma: no cover - defensive, keeps server alive
             self._send_json({"error": str(exc)}, status=500)
 
+    def do_DELETE(self):
+        # Sign-out. Kept on DELETE rather than a POST to the same path so that
+        # "POST /api/session" (sign in) and "DELETE /api/session" (sign out) are
+        # different methods and cannot be confused for each other. They were,
+        # briefly: the sign-out branch sat above the sign-in branch in do_POST
+        # and every sign-in returned a sign-out. Found by the HTTP test.
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path == "/api/session":
+                body, status = route_delete_session(self.headers)
+                return self._send_json(body, status=status)
+            return self._send_json({"error": "unknown route"}, status=404)
+        except Exception as exc:  # pragma: no cover
+            self._send_json({"error": str(exc)}, status=500)
+
     def do_POST(self):
         parsed = urlparse(self.path)
         path = parsed.path
@@ -519,11 +642,29 @@ class Handler(BaseHTTPRequestHandler):
                          "advisory_emitted": False}, status=422)
                 result, status = route_post_ingest(body)
                 return self._send_json(result, status=status)
+            if path == "/api/session":
+                length = int(self.headers.get("Content-Length", 0) or 0)
+                if length > 8 * 1024:
+                    return self._send_json(
+                        {"error": "sign-in body exceeds the 8 KiB limit"}, status=413)
+                raw = self.rfile.read(length) if length else b"{}"
+                try:
+                    body = json.loads(raw.decode("utf-8") or "{}")
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    return self._send_json(
+                        {"error": "sign-in body is not valid JSON"}, status=400)
+                result, status = route_post_session(body)
+                return self._send_json(result, status=status)
             if len(parts) == 5 and parts[1] == "api" and parts[2] == "warrant" and parts[4] == "disposition":
                 length = int(self.headers.get("Content-Length", 0))
                 raw = self.rfile.read(length) if length else b"{}"
                 body = json.loads(raw.decode("utf-8") or "{}")
-                result, status = route_post_disposition(parts[3], body)
+                if not isinstance(body, dict):
+                    return self._send_json(
+                        {"error": "a disposition body must be a JSON object"},
+                        status=400)
+                result, status = route_post_disposition(parts[3], body,
+                                                        self.headers)
                 return self._send_json(result, status=status)
             return self._send_json({"error": "unknown route"}, status=404)
         except Exception as exc:  # pragma: no cover

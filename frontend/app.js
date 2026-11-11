@@ -265,10 +265,48 @@ const DISPOSITION_OPTIONS = [
   ["reject_sensor", "Reject Sensor Hardware"],
 ];
 
+// --- Session state (AD-2) ---
+// Held in a module variable and deliberately *not* in localStorage or
+// sessionStorage. A bearer token in web storage survives a tab close and is
+// readable by any script that ever runs on this origin; on an air-gapped box the
+// reviewer will sign in once per shift, which is the correct cost.
+let SESSION = null; // { token, reviewer_name, cert_id, expires_at }
+
+const AUTH_MODE_NOTE =
+  "Disposition entry requires a reviewer account. No account exists on this " +
+  "deployment, so entry is closed. An administrator must enroll a reviewer " +
+  "bound to a live certification (tools/seed_demo_account.py).";
+
+function authHeaders() {
+  return SESSION ? { "Authorization": "Bearer " + SESSION.token } : {};
+}
+
+function clearSession() {
+  SESSION = null;
+}
+
+async function signIn(username, passphrase) {
+  const r = await fetch("/api/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: username, passphrase: passphrase }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  SESSION = data;
+  return data;
+}
+
+async function signOut() {
+  if (!SESSION) return;
+  try {
+    await fetch("/api/session", { method: "DELETE", headers: authHeaders() });
+  } catch (_) { /* signing out locally still must succeed */ }
+  clearSession();
+}
+
 function buildDispositionForm(w) {
   const form = el("form", { class: "disposition-form" });
-  const nameInput = el("input", { type: "text", placeholder: "Reviewer name", required: "required" });
-  const certInput = el("input", { type: "text", placeholder: "Certification ID", required: "required" });
   const select = el("select", {});
   for (const [val, label] of DISPOSITION_OPTIONS) {
     select.appendChild(el("option", { value: val, text: label }));
@@ -278,13 +316,29 @@ function buildDispositionForm(w) {
   });
   const submit = el("button", { type: "submit", text: "Record Disposition" });
   const status = el("span", { class: "disposition-status" });
+  const who = el("span", { class: "disposition-who" });
 
-  form.appendChild(nameInput);
-  form.appendChild(certInput);
+  // The reviewer name and certification ID are no longer inputs. They come from
+  // the signed-in session, and the server refuses a body that tries to set them.
+  // A text box here would be a lie about what the row will say.
+  form.appendChild(who);
   form.appendChild(select);
   form.appendChild(noteInput);
   form.appendChild(submit);
   form.appendChild(status);
+
+  function renderIdentity() {
+    if (SESSION) {
+      who.textContent = `${SESSION.reviewer_name} (${SESSION.cert_id})`;
+      who.className = "disposition-who signed-in";
+      submit.disabled = false;
+    } else {
+      who.textContent = "Not signed in — no decision can be recorded.";
+      who.className = "disposition-who signed-out";
+      submit.disabled = true;
+    }
+  }
+  renderIdentity();
 
   // Existing decisions are shown, not hidden. A reviewer recording a second
   // disposition should be able to see what they are superseding.
@@ -322,18 +376,27 @@ function buildDispositionForm(w) {
 
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    if (!SESSION) {
+      status.textContent = "Sign in before recording a decision.";
+      return;
+    }
     status.textContent = "Saving...";
     try {
       const r = await fetch(`/api/warrant/${w.advisory_id}/disposition`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+        // No reviewer_name, no cert_id: the server takes both from the token and
+        // refuses the request if either key appears here.
         body: JSON.stringify({
-          reviewer_name: nameInput.value,
-          cert_id: certInput.value,
           disposition: select.value,
           note: noteInput.value,
         }),
       });
+      if (r.status === 401) {
+        clearSession();
+        renderIdentity();
+        throw new Error((await r.json()).error || "session expired");
+      }
       if (!r.ok) throw new Error((await r.json()).error || `HTTP ${r.status}`);
       const saved = await r.json();
       status.textContent = saved.supersedes_id
@@ -487,7 +550,62 @@ async function loadROI() {
   noteEl.appendChild(el("div", { text: `Assumptions: ${roi.assumptions_note}`, style: "margin-top:4px" }));
 }
 
+// --- Session UI ---
+// Wires the sign-in bar in index.html. Kept out of buildDispositionForm because
+// there is one session per page and one sign-in bar, not one per warrant.
+function renderSessionBar() {
+  const outBox = document.getElementById("session-signed-out");
+  const inBox = document.getElementById("session-signed-in");
+  if (!outBox || !inBox) return;
+  if (SESSION) {
+    outBox.hidden = true;
+    inBox.hidden = false;
+    document.getElementById("session-who").textContent =
+      `${SESSION.reviewer_name} (${SESSION.cert_id})`;
+    document.getElementById("session-expiry").textContent =
+      `session expires ${SESSION.expires_at}`;
+  } else {
+    outBox.hidden = false;
+    inBox.hidden = true;
+  }
+}
+
+function wireSessionBar() {
+  const form = document.getElementById("signin-form");
+  const status = document.getElementById("signin-status");
+  const btn = document.getElementById("signout-btn");
+
+  if (form) {
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const u = document.getElementById("signin-username").value;
+      const p = document.getElementById("signin-passphrase").value;
+      status.textContent = "Signing in...";
+      try {
+        await signIn(u, p);
+        document.getElementById("signin-passphrase").value = "";
+        status.textContent = "";
+        renderSessionBar();
+        await loadAlerts(); // the per-warrant forms read SESSION when they render
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    });
+  }
+
+  if (btn) {
+    btn.addEventListener("click", async () => {
+      await signOut();
+      renderSessionBar();
+      await loadAlerts();
+    });
+  }
+
+  renderSessionBar();
+}
+
 async function init() {
+  wireSessionBar();
   await Promise.all([loadROI(), loadFleet(), loadAlerts()]);
 }
 

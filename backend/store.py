@@ -221,7 +221,8 @@ def _migrate_v1(conn, legacy: str):
 # Writes — insert only
 # ---------------------------------------------------------------------------
 def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
-                     disposition: str, note: str = "") -> Dict[str, object]:
+                     disposition: str, note: str = "",
+                     guard=None) -> Dict[str, object]:
     """
     Append a disposition. Never updates.
 
@@ -231,8 +232,19 @@ def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
 
     Runs under BEGIN IMMEDIATE so two concurrent appends cannot both read the
     same `prev_hash` and fork the chain.
+
+    `guard`, when supplied, is called **inside that transaction, before the
+    INSERT**. It may raise to abort the append; whatever it raises propagates and
+    the transaction rolls back. This exists for the AD-2 entry check: the caller
+    verifies the reviewer's certification is still live, and a revocation landing
+    between that check and this INSERT would otherwise record a decision under a
+    certificate that no longer exists. The ledger's own write lock is the only
+    place where "still live" and "still unwritten" can be true at the same
+    instant — so the re-check belongs here rather than in the route.
     """
     with _connect_atomic() as conn:
+        if guard is not None:
+            guard()
         prev = conn.execute(
             "SELECT record_hash FROM dispositions ORDER BY id DESC LIMIT 1"
         ).fetchone()

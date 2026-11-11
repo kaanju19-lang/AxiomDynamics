@@ -16,6 +16,30 @@
 </header>
 
 <main>
+  <section id="session-bar">
+    <div id="session-signed-out">
+      <span class="session-label">Reviewer sign-in</span>
+      <form id="signin-form">
+        <input id="signin-username" type="text" placeholder="Username"
+               autocomplete="username" required />
+        <input id="signin-passphrase" type="password" placeholder="Passphrase"
+               autocomplete="current-password" required />
+        <button type="submit">Sign in</button>
+      </form>
+      <span id="signin-status" class="session-status"></span>
+      <p class="session-note">
+        Decisions are recorded under the signed-in reviewer's certification.
+        Reading the fleet and the warrants does not require sign-in.
+      </p>
+    </div>
+    <div id="session-signed-in" hidden>
+      <span class="session-label">Signed in as</span>
+      <span id="session-who"></span>
+      <span id="session-expiry" class="session-status"></span>
+      <button id="signout-btn" type="button">Sign out</button>
+    </div>
+  </section>
+
   <div id="kpi-strip"></div>
   <div id="kpi-note"></div>
 
