@@ -7,6 +7,12 @@ services:
     name: axiomdynamics-demo
     runtime: python
     plan: free
+    # NOT --require-hashes, deliberately. This file deploys the public demo from
+    # the public repo over the public internet; it is not a release path and
+    # nothing it serves is a release artefact. Hash pinning applies to what the
+    # Railroad receives — the Dockerfile image and the signed archive built by
+    # tools/sign_release.py — because those are the things a substituted
+    # dependency could reach a customer through. D09 §7.3.
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python -m backend.main"
     envVars:
