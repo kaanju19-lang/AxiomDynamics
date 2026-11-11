@@ -11,14 +11,14 @@ Conversation records for the project.
 | `2026-11-10-chat-4.md` | 704 (7 user, 697 assistant) | chat-4, first line to the closing request |
 | `2026-11-11-chat-5.md` | 705 (4 user, 701 assistant) | chat-5, first line to the closing request |
 | `2026-11-11-chat-7-part1.md` | 45 (1 user, 44 assistant) | chat-7 first attempt; aborted 15:37 UTC on a billing error after `b02196f` |
-| `2026-11-11-chat-7-part2.md` | 255 (4 user, 251 assistant) | chat-7 completed; ingest auth, key directory, mutation findings |
+| `2026-11-11-chat-7-part2.md` | 264 (4 user, 260 assistant) | chat-7 completed; ingest auth, key directory, mutation findings |
 | `raw/2026-11-09-chat-2.jsonl` | 791 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
 | `raw/2026-11-10-chat-3-snapshot.jsonl` | 6,372 events | the chat-3 log at close, 26 MB, valid JSONL |
 | `raw/2026-11-10-chat-4-snapshot.jsonl` | 5,667 events | the chat-4 log at close, 12 MB, valid JSONL |
 | `raw/2026-11-11-chat-5-snapshot.jsonl` | 5,420 lines | the chat-5 log at close, 11.0 MB, valid JSONL |
 | `raw/2026-11-11-chat-7-part1-snapshot.jsonl` | 369 lines | chat-7 part 1 at close, 1.0 MB, byte-identical to source |
-| `raw/2026-11-11-chat-7-part2-snapshot.jsonl` | 1,952 lines | chat-7 part 2 at close, 3.7 MB, exact prefix of the live log |
+| `raw/2026-11-11-chat-7-part2-snapshot.jsonl` | 2,010 lines | chat-7 part 2 at close, 3.7 MB, exact prefix of the live log |
 
 The `.md` is the readable version: every user and assistant turn in order. Tool
 calls are recorded inline so you can see what was run; tool *output* — command
