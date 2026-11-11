@@ -9,12 +9,12 @@ Conversation records for the project.
 | `2026-11-09-chat-2.md` | 302 (134 user, 168 assistant) | chat-2, first line to the point of extraction |
 | `2026-11-09-chat-3.md` | 799 (11 user, 788 assistant) | chat-3, first line to the closing request |
 | `2026-11-10-chat-4.md` | 704 (7 user, 697 assistant) | chat-4, first line to the closing request |
-| `2026-11-11-chat-5.md` | 692 (4 user, 688 assistant) | chat-5, first line to the closing request |
+| `2026-11-11-chat-5.md` | 705 (4 user, 701 assistant) | chat-5, first line to the closing request |
 | `raw/2026-11-09-chat-2.jsonl` | 791 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
 | `raw/2026-11-10-chat-3-snapshot.jsonl` | 6,372 events | the chat-3 log at close, 26 MB, valid JSONL |
 | `raw/2026-11-10-chat-4-snapshot.jsonl` | 5,667 events | the chat-4 log at close, 12 MB, valid JSONL |
-| `raw/2026-11-11-chat-5-snapshot.jsonl` | 5,258 lines | the chat-5 log at close, 10.9 MB, valid JSONL |
+| `raw/2026-11-11-chat-5-snapshot.jsonl` | 5,420 lines | the chat-5 log at close, 11.0 MB, valid JSONL |
 
 The `.md` is the readable version: every user and assistant turn in order. Tool
 calls are recorded inline so you can see what was run; tool *output* — command
