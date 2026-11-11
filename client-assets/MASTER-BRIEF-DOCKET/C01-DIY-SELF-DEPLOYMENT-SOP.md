@@ -489,7 +489,7 @@ python3 -m backend.ledger_replication inspect \
 
 **The Platform does not carry the series off the box.** D09 §3.2 promises no outbound network, so there is nothing to configure and nothing that transmits: the series accumulates in `--series-dir` on the platform host. Copying it to backup media is your step under D09 §3.3, and it is the step that stops a lost disk from losing the ledger. If `inspect` reports a gap or an unrecorded bundle, do not delete anything — preserve the directory and treat it under D09 §4.5.6.
 
-**No HTTP route performs this.** Export is deliberately an operator command on the box, because the server has no authentication yet (B01 §4.5a). Do not expose one until AD-2 exists.
+**No HTTP route performs this.** Export is deliberately an operator command on the box, because the server has no **administrator** credential (B01 §4.5a) — reviewer sessions and collector tokens were added on 2026-11-11, but neither is the right principal for a full ledger export. Do not expose a route until an authenticated administrator session means something.
 
 ### E3. Log file inspection
 

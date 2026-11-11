@@ -446,7 +446,7 @@
     <h2>Three gaps remain, and two of them are ours to close. They are listed here, not in an appendix.</h2>
     <dl>
       <dt>Detector ingest</dt>
-      <dd>Built 2026-11-11. A payload is validated against a schema, a timestamp and physical plausibility, and either accepted, held as suspect without scoring, or refused with a named reason and logged. Two parts are open: the schema is ours and must be replaced with yours, and the endpoint has no authentication, so it sits on a trusted segment until reviewer credentials land.</dd>
+      <dd>Built 2026-11-11. A payload is validated against a schema, a timestamp and physical plausibility, and either accepted, held as suspect without scoring, or refused with a named reason and logged. Two parts are open: the schema is ours and must be replaced with yours, and a collector credential proves a token was presented, not who is behind it. The endpoint is now gated — a collector is enrolled by name, presents a bearer token, and an unauthenticated POST writes nothing — so its exposure is a credential question rather than an open door.</dd>
       <dt>Append-only ledger</dt>
       <dd>Built 2026-11-09, hardened 2026-11-11. Rows are insert-only, corrections are new rows that supersede, and the database itself aborts an update, a delete, or a replace over an existing row. A SHA-256 chain crosses every row. Tamper-evident, not tamper-proof: write access to the file is a different threat, addressed by export and key custody.</dd>
       <dt>Registered identity</dt>

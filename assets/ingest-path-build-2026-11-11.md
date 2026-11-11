@@ -100,11 +100,14 @@ one to keep.
    than as code precisely so replacing it is a bounded change to one dict and its
    gate — but it *is* a change, and until it happens every payload this accepts is
    a payload shaped by us.
-2. **There is no authentication on the endpoint.** Any client that can reach the
-   port can write to the ingest log and, once scoring is wired, influence it. An
-   unauthenticated ingest route is a data-poisoning route. This is the same gap as
-   B01 §7 item 1 and is why the route belongs on a trusted segment behind the
-   Railroad's own collector until AD-2 lands.
+2. **~~There is no authentication on the endpoint.~~ CLOSED same day, later
+   build.** When this record was written, any client that could reach the port
+   could write to the ingest log and, once scoring was wired, influence it — the
+   data-poisoning gap. `backend/ingest_auth.py` closed it: a collector is enrolled
+   by name, receives a 32-byte bearer token once, and the gate runs **before the
+   body is read** so an unauthenticated POST writes nothing. See
+   `assets/ingest-auth-build-2026-11-11.md`. What survives from this paragraph is
+   the reasoning: an unauthenticated ingest route *is* a data-poisoning route.
 3. **Nothing downstream is wired to ingested readings.** An accepted payload is
    validated, logged and would be scorable; the demonstration fleet still ranks
    synthetic traces. **No demonstration number moves because of this build.**

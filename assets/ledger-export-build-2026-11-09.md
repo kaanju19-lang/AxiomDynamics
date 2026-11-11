@@ -90,7 +90,7 @@ Plus three narrower fixes the same audit produced: `empty_bundle_justified` (an 
 
 ## 6. What was deliberately not built
 
-**No HTTP export route.** The server has no authentication (AD-2 unbuilt). An unauthenticated `GET /api/ledger/export` returning every disposition with reviewer name and cert ID would widen the data-handling surface in the act of closing an integrity gap. Export is an operator CLI action on the box; C01 §E2a documents it as a commissioning step. It becomes a route when an authenticated administrator session means something.
+**No HTTP export route.** At the time of writing the server had no authentication (AD-2 unbuilt); reviewer entry and collector ingest were both gated on 2026-11-11, but there is still no HTTP export route and the reasoning below is unchanged. An unauthenticated `GET /api/ledger/export` returning every disposition with reviewer name and cert ID would widen the data-handling surface in the act of closing an integrity gap. Export is an operator CLI action on the box; C01 §E2a documents it as a commissioning step. It becomes a route when an authenticated administrator session means something.
 
 **No automatic replication.** Not implementable as a library function — it is a second host, a scheduler and a receipt. Recorded as B01 §7 item 12 and D09 §4.4, target Q2 2027. The export gives replication something worth replicating; it does not perform it.
 
