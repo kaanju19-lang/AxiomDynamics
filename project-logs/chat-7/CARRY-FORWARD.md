@@ -1,9 +1,10 @@
 # Chat-7 — Carry-Forward
 
-**State at rollover:** HEAD `472899a`. Suite **346 passed, 0 failed**. 5 commits
-unpushed. Chat-7 built the two remaining AD-2 halves (ingest gating and the
-signed key directory) and a mutation driver that found four gaps in its own
-test coverage.
+**State at rollover:** suite **346 passed, 0 failed**. Commits after
+chat-7 are unpushed — count them with `git log --oneline origin/main..HEAD`,
+because any hash written in this file is stale the moment it is committed.
+Chat-7 built the two remaining AD-2 halves (ingest gating and the signed key
+directory) and a mutation driver that found four gaps in its own test coverage.
 
 ---
 
@@ -119,7 +120,8 @@ not applied** — Q1–Q2 2027 targets.
 
 ## Push required
 
-6 commits unpushed (`826fabd`, `1b76ba7`, `1f25f9a`, `b829af4`, `2fa4bc4`,
-`472899a`).
-Run `PUSH-TO-GITHUB.bat`. The sandbox cannot reach GitHub —
-`git push` and `git fetch` both fail HTTP 403 from the proxy.
+`git log --oneline origin/main..HEAD` is the only answer that counts. The local
+ref stood at `6b98660` when chat-7 closed; the transcript and build-history
+commits land on top of it. Run `PUSH-TO-GITHUB.bat`. The sandbox cannot reach
+GitHub — `git push` and `git fetch` both fail HTTP 403 from the proxy, so a
+local `origin/main` is not proof of what the remote holds.
