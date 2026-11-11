@@ -34,11 +34,12 @@ project-logs/
     └── raw/                the source logs, committed with each transcript
 ```
 
-**Start with the build history if you are new to this project.** It is 34 pages
+**Start with the build history if you are new to this project.** It is 37 pages
 covering the product, every build stage and its corrections, the full docket, the
 loss of chat-1's work, the internal strategy, and the open items — written to be
-read cold, without the conversation it describes. Revised 2026-11-10 at chat-4's
-close to carry Stage 8, the model decision, and the closure of both findings.
+read cold, without the conversation it describes. Revised 2026-11-11 at chat-5's
+close to carry Stage 9: the ledger audit, the ingest path, the supply-chain tools,
+and attribution.
 
 ## Order of authority
 

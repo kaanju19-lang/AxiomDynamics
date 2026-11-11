@@ -42,6 +42,28 @@ def text_of(content):
     return "\n\n".join(p for p in parts if p.strip())
 
 
+def tool_result_text(content):
+    """Text of any tool_result blocks that carry a real user answer.
+
+    `AskUserQuestion` hands the answer back as a tool_result, and the tool text
+    is `The user answered: "<question>"="<answer>" ...`. That is the operator's
+    own words — the one class of user input that never arrives as a `user`
+    event — so dropping it loses turns the transcript exists to preserve. Only
+    that prefix is honoured; every other tool result is output, not speech.
+    """
+    out = []
+    for block in content or []:
+        if not (isinstance(block, dict) and block.get("type") == "tool_result"):
+            continue
+        raw = block.get("content")
+        if isinstance(raw, list):
+            raw = " ".join(b.get("text", "") for b in raw
+                           if isinstance(b, dict) and b.get("type") == "text")
+        if isinstance(raw, str) and raw.lstrip().startswith("The user answered:"):
+            out.append(" ".join(raw.split()))
+    return out
+
+
 def tool_calls(content):
     out = []
     for block in content or []:
@@ -95,6 +117,13 @@ def main(src, out_md, out_raw):
                 seen_msgs.add(mid)
             content = msg.get("content")
             text = text_of(content)
+            if role == "user" and not text.strip():
+                # An AskUserQuestion answer arrives as a tool_result, not as user
+                # prose. Recover it so the transcript carries what the operator
+                # actually decided, not just that a tool ran.
+                answered = tool_result_text(content)
+                if answered:
+                    text = "\n\n".join(answered)
             calls = []
             for name, bid, label in tool_calls(content):
                 if bid and bid in seen_blocks:
