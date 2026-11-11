@@ -51,7 +51,7 @@
 | Review timestamp | |
 | Time between advisory and review | ______ (hours) |
 
-> **The certificate number is verified against the registry before the disposition is recorded.** Today this is a manual check against Form F08; when the signed certification registry is implemented (AD-2), it becomes automatic. Until then, the manual check is the control — do not skip it because it is manual.
+> **The certificate number is verified against the registry before the disposition is recorded.** Today this is a manual check against Form F08; since 2026-11-11 the Platform can also carry an attestation from a registered reviewer key inside the exported record (AD-2, partly built — B01 §7 item 1), but **entry is not yet gated on one**, so the manual check is still the control. An attestation, where present, lets a recipient verify which registered key vouched for the row; it does not prove the person at the keyboard was the certified reviewer. Do not skip the manual check because it is manual.
 
 ---
 

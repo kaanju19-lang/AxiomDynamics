@@ -153,7 +153,7 @@ D08 §4 describes a performance component: **3% of the cost of a prevented failu
 |---|---:|---|---|
 | **Pilot licence** (12 months, one site) | **$180,000** | Platform licence for one site, documentation, update packages during the term | Additional sites; production use |
 | **Implementation support & commissioning assistance** | **$65,000** | Remote advisory support during the Railroad's installation; readiness review; commissioning checklist walkthrough | Installation labour; on-site attendance (see §5.3) |
-| **Training materials & certification programme** | **$40,000** | Curriculum, assessment instruments, **manual certification register maintained per C02 §5**, up to 25 candidate assessments | Delivery of training itself; re-assessment of unsuccessful candidates (see §6); **software-side signed certification registry — not built (D09 §4.4, target Q2 2027)** |
+| **Training materials & certification programme** | **$40,000** | Curriculum, assessment instruments, **manual certification register maintained per C02 §5**, up to 25 candidate assessments | Delivery of training itself; re-assessment of unsuccessful candidates (see §6); **binding of registry keys to authenticated accounts — not built (D09 §4.4, target Q2 2027)**. The registry and per-reviewer keys themselves were built 2026-11-11 |
 | **Validation support** | **$35,000** | Historical data comparison, methodology review, written validation findings | Independent third-party validation |
 | **Support during pilot** | **$50,000** | Defect correction, patches, licence and certification administration, per D06 §2 | Premium/out-of-hours support; custom development |
 | **Total pilot fee** | **$370,000** | | |

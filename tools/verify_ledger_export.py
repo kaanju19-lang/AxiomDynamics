@@ -13,6 +13,8 @@ sqlite3, no network access, no database.
 
     python3 verify_ledger_export.py --bundle ledger-export.json --key-file signer.key
     python3 verify_ledger_export.py --bundle b2.json --key-file k --previous-bundle b1.json
+    python3 verify_ledger_export.py --bundle b.json --key-file k \
+        --reviewer-key 9f2c1ab0d3e47561=hoffman.key
 
 Exit code 0 means every check passed; 1 means at least one failed and the
 failures are named. `--json` prints the full result for a machine to consume.
@@ -24,13 +26,25 @@ failures are named. `--json` prints the full result for a machine to consume.
   documented field list.
 - No record inside its declared id range is missing, and the `prev_hash` chain
   links end to end inside the slice.
+- Every record carrying an `attribution` names the same reviewer and certificate
+  the record itself names, was attested no earlier than that reviewer's key was
+  registered, and was not recorded after that key was revoked.
+- With `--reviewer-key`: each attestation recomputes over the record's
+  `record_hash` under the key supplied for it. This is the check that turns
+  "a signature exists" into "this named key holder signed this row".
 - With `--previous-bundle`: this bundle extends the earlier one, and no record
   previously exported has been dropped or rewritten between them.
 
 ## What a pass does NOT prove
 
-- **Who** signed it. HMAC is symmetric: any verifier can also produce this
-  signature. Custody and key distribution are the defence; see AD-2, unbuilt.
+- **That a human being sat at the keyboard.** An attestation proves a key holder
+  did. Binding a key to a person is credential issuance and custody — a policy
+  process, not something a file can demonstrate.
+- **That the reviewer key was not shared or stolen.** Attestation is HMAC, so a
+  holder of reviewer A's key can attest as A. The registry names the key rather
+  than the person for exactly this reason; D09 §4.5 governs custody.
+- **That the bundle signer is the ledger operator.** The export signature is
+  still symmetric and unnamed; attribution is per-disposition, not per-export.
 - **When** it was signed. No external timestamping exists on an air-gapped box.
 - **That the ledger was never rewritten before export.** The exporting host
   reports its own chain status in the manifest; a tampered host can report
@@ -48,6 +62,8 @@ import sys
 
 FORMAT = "axiom-ledger-export/v1"
 GENESIS_HASH = "0" * 64
+REQUIRED_ATTRIBUTION_FIELDS = ("attestation", "attested_at", "key_id", "reviewer",
+                               "cert_id", "registered_at", "revoked_at")
 COVERED_FIELDS = (
     "advisory_id",
     "reviewer_name",
@@ -77,7 +93,7 @@ def signature_of(bundle):
     return hashlib.sha256(canonical(body)).hexdigest()
 
 
-def verify(bundle, key, previous=None):
+def verify(bundle, key, previous=None, reviewer_keys=None):
     checks = []
 
     def check(name, ok, detail=""):
@@ -190,6 +206,107 @@ def verify(bundle, key, previous=None):
           == m.get("head_hash"), "head_hash does not match the last record")
     check("genesis_hash", m.get("genesis_hash") in (None, GENESIS_HASH),
           "unexpected genesis hash %r" % (m.get("genesis_hash"),))
+
+    # --- attribution (AD-2) --------------------------------
+    # Mirrored from the exporter's own verifier rather than imported, for the
+    # same reason every other check here is: this file must run for a recipient
+    # who has nothing from the Platform. A recipient holding a reviewer key can
+    # recompute each attestation over the row's record_hash and confirm it names
+    # the reviewer the row names. Without the key, the consistency checks still
+    # run; the cryptographic one is reported as unverifiable rather than
+    # silently skipped, because "could not check" and "checked" are different.
+    #
+    # **Keep this block identical in behaviour to the exporter's.** The two
+    # verifiers disagreeing is worse than either being wrong: a bundle passes
+    # for us and fails for the recipient.
+    att_bad, att_n, unverifiable = [], 0, 0
+    keys = reviewer_keys or {}
+    for r in records:
+        a = r.get("attribution")
+        if not a:
+            continue
+        att_n += 1
+        rid = r.get("id")
+        if not isinstance(a, dict):
+            att_bad.append((rid, "attribution is not an object"))
+            continue
+        if a.get("reviewer") != r.get("reviewer_name"):
+            att_bad.append((rid, "attribution names %r but the row names %r"
+                            % (a.get("reviewer"), r.get("reviewer_name"))))
+            continue
+        if a.get("cert_id") != r.get("cert_id"):
+            att_bad.append((rid, "attribution cert_id does not match the row"))
+            continue
+        # Absence is a failure, not a skip. A truthiness guard lets a re-signed
+        # bundle disable the ordering checks by deleting the field, which a
+        # keyless recipient — the common case — cannot otherwise detect.
+        missing = [f for f in REQUIRED_ATTRIBUTION_FIELDS if f not in a]
+        if missing:
+            att_bad.append((rid, "attribution is missing required field(s) %s"
+                            % ", ".join(missing)))
+            continue
+        bad_type = [f for f in ("attestation", "attested_at", "key_id",
+                                "registered_at") if not isinstance(a[f], str)]
+        if bad_type:
+            att_bad.append((rid, "attribution field(s) %s must be strings"
+                            % ", ".join(bad_type)))
+            continue
+        if a["revoked_at"] is not None and not isinstance(a["revoked_at"], str):
+            att_bad.append((rid, "attribution field 'revoked_at' must be a "
+                                 "string or null"))
+            continue
+        # SQLite's datetime('now') is `YYYY-MM-DD HH:MM:SS`, which sorts as text
+        # exactly as it sorts in time, so lexical comparison is correct here.
+        if a["attested_at"] < a["registered_at"]:
+            att_bad.append((rid, "attestation predates the registration of its key"))
+            continue
+        if a["revoked_at"] is not None and isinstance(r.get("recorded_at"), str) \
+                and r["recorded_at"] > a["revoked_at"]:
+            att_bad.append((rid, "row was recorded after its key was revoked"))
+            continue
+        supplied = keys.get(a.get("key_id"))
+        if supplied is not None:
+            # The key map carries the reviewer the caller believes owns that key.
+            # Without this the block's own `reviewer` label is decorative: a
+            # holder of any registered reviewer key could relabel their own
+            # attestation with somebody else's name, because the HMAC covers
+            # only `record_hash`.
+            rk, known = supplied
+            if known is not None and known != a.get("reviewer"):
+                att_bad.append((rid, "key %s belongs to %r, not %r"
+                                % (a.get("key_id"), known, a.get("reviewer"))))
+                continue
+            want = hmac.new(rk, ("axiom-attestation/v1:%s" % r.get("record_hash"))
+                            .encode("utf-8"), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(str(a.get("attestation", "")), want):
+                att_bad.append((rid, "attestation does not verify under "
+                                     "reviewer key %s" % a.get("key_id")))
+        elif keys:
+            unverifiable += 1
+    check("attribution_consistent", not att_bad,
+          "; ".join("id %s: %s" % (i, w) for i, w in att_bad[:5]))
+    if keys:
+        check("attestations_verified", unverifiable == 0,
+              "%d attributed record(s) name a key the verifier was not given"
+              % unverifiable)
+    declared_att = m.get("attributed_records")
+    if declared_att is not None:
+        # A malformed count must produce a named failure, not a traceback. A
+        # recipient consuming `--json` gets nothing at all from a traceback.
+        ok_count = isinstance(declared_att, int) and not isinstance(declared_att, bool)
+        check("attribution_count", ok_count and declared_att == att_n,
+              ("manifest says %r attributed, bundle carries %d"
+               % (declared_att, att_n)) if ok_count else
+              ("manifest 'attributed_records' must be an integer, got %s"
+               % type(declared_att).__name__))
+    # `attribution_available: false` with attributed records present is a
+    # contradiction; so is `true` with none. Either way the manifest is lying
+    # about a property of its own content, which the signature cannot catch
+    # because the signer computed the claim.
+    if m.get("attribution_available") is not None:
+        check("attribution_claim", bool(m["attribution_available"]) == (att_n > 0),
+              "manifest claims attribution_available=%r but carries %d "
+              "attributed record(s)" % (m["attribution_available"], att_n))
 
     # The ledger's own end, independent of the slice: the bundle must stop
     # exactly at the row the database reported as its last.
@@ -341,6 +458,14 @@ def main(argv=None):
     p.add_argument("--key-file", required=True)
     p.add_argument("--previous-bundle", default=None,
                    help="the previous bundle you hold, to prove this one extends it")
+    p.add_argument("--reviewer-key", action="append", default=[],
+                   metavar="KEY_ID=REVIEWER:PATH",
+                   help="a reviewer key, to recompute the attestations that key made. "
+                        "Repeat for each reviewer whose decisions you hold a key for. "
+                        "KEY_ID is the 16-hex label the bundle shows; REVIEWER is the "
+                        "name the key belongs to, as recorded in your own register of "
+                        "who holds which key. The name is what stops a key holder "
+                        "relabelling their own attestation with somebody else's.")
     p.add_argument("--json", action="store_true")
     a = p.parse_args(argv)
 
@@ -349,6 +474,39 @@ def main(argv=None):
     if len(key) != 32:
         print("signing key must be exactly 32 raw bytes, got %d" % len(key), file=sys.stderr)
         return 2
+
+    reviewer_keys = {}
+    for spec in a.reviewer_key:
+        if "=" not in spec:
+            print("--reviewer-key wants KEY_ID=REVIEWER:PATH, got %r" % spec,
+                  file=sys.stderr)
+            return 2
+        kid, rest = spec.split("=", 1)
+        if ":" in rest:
+            known, path = rest.split(":", 1)
+        else:
+            # A key without a name still recomputes the HMAC; it just cannot
+            # catch a key holder relabelling an attestation, so say so.
+            known, path = None, rest
+            print("WARNING: reviewer key %s was supplied without a reviewer "
+                  "name, so a key holder relabelling their own attestation with "
+                  "another reviewer's name would not be caught. Pass "
+                  "KEY_ID=REVIEWER:PATH to close that." % kid, file=sys.stderr)
+        with open(path, "rb") as f:
+            rk = f.read()
+        if len(rk) != 32:
+            print("reviewer key %s must be exactly 32 raw bytes, got %d"
+                  % (kid, len(rk)), file=sys.stderr)
+            return 2
+        # Refuse a mislabelled key rather than report every attestation as
+        # forged. A key that does not hash to the label it was given is not that
+        # key, and "every signature is bad" is the unhelpful way to discover it.
+        if hashlib.sha256(rk).hexdigest()[:16] != kid:
+            print("the file at %s is not the key labelled %s" % (path, kid),
+                  file=sys.stderr)
+            return 2
+        reviewer_keys[kid] = (rk, known)
+
     try:
         bundle = load_strict(a.bundle)
         previous = load_strict(a.previous_bundle) if a.previous_bundle else None
@@ -356,7 +514,7 @@ def main(argv=None):
         print("REFUSED: %s" % e, file=sys.stderr)
         return 1
 
-    result = verify(bundle, key, previous)
+    result = verify(bundle, key, previous, reviewer_keys or None)
     if a.json:
         print(json.dumps(result, indent=2))
     else:

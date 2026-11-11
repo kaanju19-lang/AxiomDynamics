@@ -6,7 +6,7 @@
 
 **Governing reference:** C02 (Certification & Role-Based Assessment).
 
-> **Why this form exists:** the Platform's certification registry has no cryptographic verification today — a user can currently self-assert a certification ID (B01 §7, blocking gap #1; D09 §4.4). Until the signed registry is built, **this form is the authoritative record of who is certified.** It is signed, filed, and checked against the Platform's user list. That manual control is what substitutes for the missing technical one.
+> **Why this form exists:** a user can still self-assert a certification ID when recording a disposition (B01 §7, blocking gap #1; D09 §4.4). Since 2026-11-11 the Platform *can* record and verify a reviewer attestation against a hash-chained certification registry, but nothing at the point of entry **requires** one, so the enforcement gap is what remains. **This form stays the authoritative record of who is certified** until entry is gated on an authenticated session bound to a registry entry. It is signed, filed, and checked against the Platform's user list, and it is also the document from which a registry key is issued. That manual control is what substitutes for the missing technical one.
 
 ---
 

@@ -70,16 +70,30 @@ Railroad's data.
    labelled as open as of chat-2 (previously a blank pointing at an Order field
    that does not exist). Must be closed by signed addendum before first execution.
 2. **Ledger signer attribution and off-box carriage** — the signed export landed
-   2026-11-09 and the **series build landed 2026-11-10**, so the Platform now
-   produces the D09 §4.5.4 cadence itself. What remains: the HMAC signature is
-   symmetric, so it cannot name the signer; it cannot prove when it was made; a
-   ledger wiped before the first bundle in a series is invisible to later ones;
-   and **nothing carries the produced series off the box** — that is deliberate,
-   because D09 §3.2 promises no outbound network, so carriage is the Railroad's
-   physical step under §3.3. D09 §4.4–4.5, B01 §4.5a and §7 items 11–12.
-   Closing attribution is an **AD-2 dependency**, not more export code.
+   2026-11-09, the **series build landed 2026-11-10**, and **per-disposition
+   attribution landed 2026-11-11** (`backend/attribution.py`: append-only,
+   **hash-chained** reviewer registry, HMAC attestations over each row's
+   `record_hash` carried inside exported records, checked by both verifiers).
+   What that closes: a bundle can now say which *registered reviewer key*
+   attested a row, and a recipient can verify it. What remains: the *export*
+   signature is still symmetric, so a bundle names no export signer;
+   attribution is about a key holder, not a person, and a recipient given no
+   reviewer key cannot tell an honest attestation from a fabricated one; the
+   disposition write path still accepts a free-text name, so entry is not gated
+   on an attestation; nothing proves when a bundle was made; a ledger wiped
+   before the first bundle in a series stays invisible; and **nothing carries
+   the produced series off the box** — deliberate, because D09 §3.2 promises no
+   outbound network, so carriage is the Railroad's physical step under §3.3.
+   D09 §4.4–4.5, B01 §4.5a and §7 items 1 and 11–12. **Attribution is no longer
+   an AD-2 dependency; session-bound entry and export-key identity still are.**
+   An independent adversarial audit found nine defects in this build after the
+   suite was green — the worst of them let a registered key relabel another
+   reviewer's row and pass both verifiers. 40 mutations, 40 killed. See
+   `assets/attribution-build-2026-11-11.md`.
 3. **D09 §4.4 supply-chain gaps** — SBOM (Q1 2027), hash verification of
-   dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All disclosed.
+   dependency downloads (Q1 2027), GPG-signed releases (Q2 2027). All three now
+   have **tools built 2026-11-11**; none is **applied**, and D09 §4.4 carries the
+   three-state distinction per control.
 
 ## Model decision — A1 governs, decided 2026-11-10 (chat-4)
 

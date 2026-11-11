@@ -280,6 +280,29 @@ def build_bundle(
     chain = store.verify_chain()
     lead = backend_lead()
 
+    # Reviewer attribution (AD-2). The attestation and the registry entry that
+    # makes it nameable ride INSIDE each record rather than in a new top-level
+    # bundle field — deliberately. The bundle top level is exactly four signed
+    # parts and `bundle_no_extras` refuses anything else, so a top-level
+    # attribution block would break every verifier and loosen that check. An
+    # extra key inside a record is covered by `signature_of()` and by the
+    # bundle signature, and `row_hash()` ignores it because row_hash selects
+    # COVERED_FIELDS by name.
+    try:
+        from . import attribution as _attribution
+        attributed = _attribution.attribution_for_export(store.DB_PATH)
+        for r in records:
+            a = attributed.get(r["id"])
+            if a:
+                r["attribution"] = a
+    except Exception:
+        # A missing or unreadable registry must not block an export: losing the
+        # ability to retrieve the ledger because the attribution tables are
+        # absent would be a worse failure than an unattributed export. The
+        # manifest records that attribution was not available, inside the
+        # signature, so it cannot be dropped quietly later.
+        attributed = {}
+
     # Chain continuity is checked across the slice as well, as a second,
     # independent reading: the whole-ledger result above is the authority, but a
     # slice that does not link internally must never be signed as if it did.
@@ -313,6 +336,11 @@ def build_bundle(
         "slice_links_ok": slice_ok,
         "slice_links_reason": slice_reason,
         "previous_export_hash": previous_export_hash,
+        # Attribution availability, stated rather than inferred. A recipient
+        # counting attributed records against `attributed_records` must see the
+        # numbers agree, or know that the exporter could not read the registry.
+        "attribution_available": bool(attributed),
+        "attributed_records": sum(1 for r in records if "attribution" in r),
     }
 
     return sign({"format": FORMAT, "manifest": manifest, "records": records}, key)
@@ -344,10 +372,51 @@ def _slice_links_ok(records: List[Dict[str, object]]) -> Tuple[bool, Optional[st
 # ---------------------------------------------------------------------------
 # Verify (the in-repo verifier; the standalone one is the one that counts)
 # ---------------------------------------------------------------------------
+REQUIRED_ATTRIBUTION_FIELDS = ("attestation", "attested_at", "key_id", "reviewer",
+                               "cert_id", "registered_at", "revoked_at")
+
+
+def _attribution_ordering_bad(rid, a, r):
+    """
+    The time-order and shape checks an attribution block must satisfy.
+
+    Returned as a (rid, reason) pair rather than appended directly so the two
+    verifiers can each call it and produce the same message — the docs live in
+    two files but the sentence a recipient reads must be the same one.
+
+    **Absence is a failure, not a skip.** The first version guarded every
+    comparison with truthiness (`if a.get("revoked_at") and ...`), so deleting
+    the field disabled the check and a re-signed bundle verified clean. A
+    recipient with the reviewer key would still have caught the forgery through
+    the HMAC, but a keyless recipient would not, and the keyless recipient is
+    the common case. Found by audit 2026-11-11.
+    """
+    missing = [f for f in REQUIRED_ATTRIBUTION_FIELDS if f not in a]
+    if missing:
+        return (rid, "attribution is missing required field(s) %s"
+                % ", ".join(missing))
+    for field, value in (("attestation", a["attestation"]),
+                         ("attested_at", a["attested_at"]),
+                         ("key_id", a["key_id"]),
+                         ("registered_at", a["registered_at"])):
+        if not isinstance(value, str):
+            return (rid, "attribution field %r must be a string, got %s"
+                    % (field, type(value).__name__))
+    if a["revoked_at"] is not None and not isinstance(a["revoked_at"], str):
+        return (rid, "attribution field 'revoked_at' must be a string or null")
+    if a["attested_at"] < a["registered_at"]:
+        return (rid, "attestation predates the registration of its key")
+    if a["revoked_at"] is not None and isinstance(r.get("recorded_at"), str) \
+            and r["recorded_at"] > a["revoked_at"]:
+        return (rid, "row was recorded after its key was revoked")
+    return None
+
+
 def verify_bundle(
     bundle: Dict[str, object],
     key: bytes,
     previous_bundle: Optional[Dict[str, object]] = None,
+    reviewer_keys: Optional[Dict[str, bytes]] = None,
 ) -> Dict[str, object]:
     """
     Check a bundle. Returns
@@ -496,6 +565,110 @@ def verify_bundle(
           == m.get("head_hash"), "head_hash does not match the last record")
     check("genesis_hash", m.get("genesis_hash") in (None, store.GENESIS_HASH),
           "unexpected genesis hash %r" % (m.get("genesis_hash"),))
+
+    # --- attribution (AD-2) -----------------------------------------------
+    # What a recipient can establish from the bundle without our database:
+    #   * an attested record names the reviewer its own row names, and names
+    #     them consistently with the registry entry travelling beside it;
+    #   * the attestation does not predate the registration of its key, and the
+    #     row it attests was not recorded after that key was revoked — both
+    #     comparisons are lexical because SQLite stores `datetime('now')` as
+    #     `YYYY-MM-DD HH:MM:SS`, which sorts as text exactly as it sorts in time;
+    #   * the attestation value is consistent with the row's record_hash — which
+    #     this in-repo verifier CAN check, because it holds the reviewer key;
+    #   * the manifest's claim about how many records are attributed matches.
+    # A record with no attribution is not a failure. It is an unattributed
+    # decision, and the manifest says how many of those there are.
+    #
+    # **This block is duplicated in tools/verify_ledger_export.py on purpose**
+    # and the two must be kept identical in behaviour. The standalone verifier
+    # cannot import this module — that is the whole reason it exists — so a
+    # change here without the matching change there produces a bundle that
+    # passes for us and fails for the recipient, which is the worst possible
+    # outcome for a verification story.
+    att_bad, att_n = [], 0
+    reviewer_keys = reviewer_keys or {}
+    # `reviewer_keys` maps key_id -> (key bytes, reviewer the caller believes that
+    # key belongs to). The reviewer half matters: without it the `reviewer` field
+    # in the block is decorative, because the HMAC covers only `record_hash`. A
+    # holder of *any* registered reviewer key could then relabel their own
+    # attestation with somebody else's name, and the block's self-declared
+    # reviewer would be the only thing asserting otherwise. Found by audit
+    # 2026-11-11 — the design claimed "an attestation cannot be moved onto a row
+    # naming another reviewer", and at the identity level it could.
+    for r in records:
+        a = r.get("attribution")
+        if not a:
+            continue
+        att_n += 1
+        rid = r.get("id")
+        if not isinstance(a, dict):
+            att_bad.append((rid, "attribution is not an object"))
+            continue
+        if a.get("reviewer") != r.get("reviewer_name"):
+            att_bad.append((rid, "attribution names %r but the row names %r"
+                            % (a.get("reviewer"), r.get("reviewer_name"))))
+            continue
+        if a.get("cert_id") != r.get("cert_id"):
+            att_bad.append((rid, "attribution cert_id does not match the row"))
+            continue
+        supplied = None
+        try:
+            supplied = reviewer_keys.get(a.get("key_id"))
+        except TypeError:                      # an unhashable key_id, e.g. a list
+            att_bad.append((rid, "attribution key_id must be a string"))
+            continue
+        if supplied is not None:
+            key, known_reviewer = supplied
+            if known_reviewer is not None and known_reviewer != a.get("reviewer"):
+                att_bad.append((rid, "key %s belongs to %r, not %r — the "
+                                "attribution names a reviewer the key holder "
+                                "was not given as" % (
+                                    a.get("key_id"), known_reviewer,
+                                    a.get("reviewer"))))
+                continue
+            want = hmac.new(key, ("axiom-attestation/v1:%s" % r.get("record_hash"))
+                            .encode("utf-8"), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(str(a.get("attestation", "")), want):
+                att_bad.append((rid, "attestation does not verify under "
+                                     "reviewer key %s" % a.get("key_id")))
+        att_bad_ord = _attribution_ordering_bad(rid, a, r)
+        if att_bad_ord:
+            att_bad.append(att_bad_ord)
+    check("attribution_consistent", not att_bad,
+          "; ".join("id %s: %s" % (i, w) for i, w in att_bad[:5]))
+    # Without the key, "no failure" and "verified" are different outcomes, and
+    # reporting them as the same thing is how a verifier starts lying. When the
+    # caller supplied keys, every attributed record must have had one.
+    if reviewer_keys:
+        def _unknown_key(r):
+            a = r.get("attribution")
+            if not isinstance(a, dict):
+                return False
+            kid = a.get("key_id")
+            if not isinstance(kid, str):
+                return False          # already reported by attribution_consistent
+            return kid not in reviewer_keys
+        unattested_key = [r.get("id") for r in records if _unknown_key(r)]
+        check("attestations_verified", not unattested_key,
+              "%d attributed record(s) name a key the verifier was not given: %s"
+              % (len(unattested_key), unattested_key[:5]))
+    declared_att = m.get("attributed_records")
+    if declared_att is not None:
+        ok_count = isinstance(declared_att, int) and not isinstance(declared_att, bool)
+        check("attribution_count", ok_count and declared_att == att_n,
+              ("manifest says %r attributed, bundle carries %d"
+               % (declared_att, att_n)) if ok_count else
+              ("manifest 'attributed_records' must be an integer, got %s"
+               % type(declared_att).__name__))
+    # `attribution_available: false` with attributed records present is a
+    # contradiction; so is `true` with none. Either way the manifest is lying
+    # about a property of its own content, which the signature cannot catch
+    # because the signer computed the claim.
+    if m.get("attribution_available") is not None:
+        check("attribution_claim", bool(m["attribution_available"]) == (att_n > 0),
+              "manifest claims attribution_available=%r but carries %d "
+              "attributed record(s)" % (m["attribution_available"], att_n))
 
     # --- the ledger's own end, independent of the slice --------------------
     # `backend_head_id`/`backend_head_hash` are what the database reported as
