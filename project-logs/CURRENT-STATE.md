@@ -1,8 +1,10 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-11 (**chat-6 in progress** — AD-2 entry half:
-session-bound, authenticated disposition entry). Next session: read
-`chat-6/CARRY-FORWARD.md`, then this file.
+**Last updated:** 2026-11-11 (**chat-7 closed** — AD-2's other two halves:
+authenticated ingest and the signed key directory). Next session: read
+`chat-7/CARRY-FORWARD.md`, then this file. **Chat-8 starts by closing the four
+mutation survivors** listed there — test gaps found by
+`assets/mutation-ingest-auth.py`, not code defects.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
