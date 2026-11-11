@@ -1,12 +1,9 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-11 (**chat-7 closed and audited** — AD-2's other two
-halves, authenticated ingest and the signed key directory, plus a close-out pass
-that found five docket documents still describing the ingest route as open).
-Next session: read `chat-7/CARRY-FORWARD.md`, then this file. **Chat-8 starts by
-closing the four mutation survivors** listed there — test gaps found by
-`assets/mutation-ingest-auth.py`, not code defects. Re-confirmed at close:
-18 mutations, 14 killed, 4 alive (M2, M3, M5, M9).
+**Last updated:** 2026-11-11 (**chat-8 in progress** — chat-7's four mutation
+survivors closed; the driver now reports **18 mutations, 18 killed, 0
+survived**, suite **351**). Next session: read `CURRENT-STATE.md`, then the
+latest `chat-N/CARRY-FORWARD.md`. Account: `assets/mutation-survivors-closed-2026-11-11.md`.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -52,6 +49,39 @@ Also fixed from the hostile-input sweep: two 500s on malformed bodies
 Still open: **key custody and joiner/mover/leaver** (a written procedure), a
 **signed key directory**, and requiring an **attestation** at entry as well as a
 session. Entry proves a credential was presented; it does not prove a person.
+
+## Chat-8 phase one — the four mutation survivors are closed, 2026-11-11
+
+Commit `a4ccc0b`. **Driver: 18 mutations, 18 killed, 0 survived. Suite 346 → 351.**
+Account: `assets/mutation-survivors-closed-2026-11-11.md`.
+
+M5 and M9 were the straightforward coverage gaps the carry-forward described.
+M3 needed a case nothing had: a garbage body **plus an unknown token** — with
+the resolve failure swallowed, that is the one shape where a row reaches the
+ingest log while the status stays 401. **M2 was not the gap it was reported to
+be**; I first decided it was an equivalent mutant and was wrong, because the
+status and the row count match but the **error text does not**. The test now
+asserts the message.
+
+**Two defects in the driver itself were found by an independent audit after
+every mutation was green**, and both matter more than the tests:
+
+- An `EQUIVALENT` table I added was keyed by mutation **index**. The auditor
+  put a genuine survivor in that slot and the driver printed "equivalent" and
+  exited **0**. It would have absorbed any real survivor landing there.
+  Removed; a survivor now always prints `ALIVE`.
+- The pycache isolation was **inert**: the suite runs under `-I`, and `-I`
+  sets `sys.pycache_prefix` to `None`, discarding `PYTHONPYCACHEPREFIX`.
+  Bytecode still reached the source tree. Now `-X pycache_prefix=...`, which
+  `-I` honours — both claims verified rather than assumed.
+
+**Importing `backend.main` runs `store.init_db()`** against the repo root, so a
+test that imports it before setting `AXIOM_DB_PATH` creates an `axiom.db` there
+and dies with `disk I/O error` on this mount. `tests/test_ingest_auth.py` now
+sets it first.
+
+**`project-logs/close-gate.sh` carries chat-7's session path** and will fail
+from any other session. Fix its paths before chat-8 closes.
 
 ## What this project is
 
