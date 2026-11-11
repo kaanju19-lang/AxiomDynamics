@@ -320,6 +320,193 @@ def test_chaining_detects_a_rewrite_between_two_exports():
 
 
 # ---------------------------------------------------------------------------
+# Finding 1 (audit 2026-11-11): a rewritten history passed against a bundle
+# the recipient already held. `no_truncation` compares ids only, so rewriting
+# every record, recomputing the chain and exporting honestly left the head id
+# unchanged and every check green. This test does the whole attack end to end.
+# ---------------------------------------------------------------------------
+def _rewrite_every_row(new_disposition="cleared_no_action"):
+    """Simulate an attacker with file access and no key: drop the guards,
+    rewrite every row, recompute the chain so it is internally consistent."""
+    import sqlite3
+    con = sqlite3.connect(store.DB_PATH)
+    for t in ("dispositions_no_update", "dispositions_no_delete",
+              "dispositions_no_replace"):
+        con.execute(f"DROP TRIGGER IF EXISTS {t}")
+    rows = con.execute(
+        "SELECT id, advisory_id, reviewer_name, cert_id, recorded_at, note, "
+        "supersedes_id FROM dispositions ORDER BY id").fetchall()
+    prev = store.GENESIS_HASH
+    for (rid, adv, rev, cert, when, note, sup) in rows:
+        h = store._compute_hash({
+            "advisory_id": adv, "reviewer_name": rev, "cert_id": cert,
+            "disposition": new_disposition, "note": note,
+            "recorded_at": when, "supersedes_id": sup, "prev_hash": prev})
+        con.execute(
+            "INSERT OR REPLACE INTO dispositions (id, advisory_id, "
+            "reviewer_name, cert_id, disposition, note, recorded_at, "
+            "supersedes_id, prev_hash, record_hash) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (rid, adv, rev, cert, new_disposition, note, when, sup, prev, h))
+        prev = h
+    con.commit()
+    con.close()
+
+
+@test
+def test_a_rewritten_history_is_caught_against_the_held_bundle():
+    b1 = fresh()
+    assert b1["records"][0]["disposition"] == "concur_dispatch"
+
+    _rewrite_every_row()
+    b2 = le.build_bundle(KEY, previous_export_hash=le.signature_of(b1))
+    assert b2["records"][0]["disposition"] == "cleared_no_action"
+    assert b2["manifest"]["backend_head_id"] == b1["manifest"]["backend_head_id"], \
+        "head id must be unchanged, or this tests truncation instead"
+
+    r = le.verify_bundle(b2, KEY, previous_bundle=b1)
+    assert not r["ok"], "a rewritten history verified against the held bundle"
+    assert "history_continues" in failed(r), r["failed"]
+    # The row count did NOT fall — a rewrite preserves it. Assert that, so this
+    # test cannot pass because `no_row_deletion` happened to fire instead.
+    assert "no_row_deletion" not in failed(r), \
+        "a rewrite must be caught by the anchor, not by a row-count drop"
+
+
+@test
+def test_a_rewritten_history_is_caught_by_the_standalone_verifier_too():
+    """A recipient has the tool, not the repo. Same attack, other verifier."""
+    b1 = fresh(2)
+    _rewrite_every_row()
+    b2 = le.build_bundle(KEY, previous_export_hash=le.signature_of(b1))
+
+    d = tempfile.mkdtemp(prefix="axiom-rewrite-")
+    p1, p2, kp = (os.path.join(d, n) for n in ("b1.json", "b2.json", "key"))
+    for path, obj in ((p1, b1), (p2, b2)):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(obj, f, indent=2, sort_keys=True)
+    with open(kp, "wb") as f:
+        f.write(KEY)
+    out = subprocess.run(
+        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+         "--bundle", p2, "--key-file", kp, "--previous-bundle", p1],
+        capture_output=True, text=True, cwd=d)
+    assert out.returncode != 0, "standalone verifier accepted a rewritten history"
+    assert "history_continues" in out.stdout, out.stdout
+
+
+@test
+def test_a_deletion_from_the_middle_is_caught_by_the_row_count():
+    """Head id unchanged, one fewer row: `no_truncation` cannot see it."""
+    import sqlite3
+    b1 = fresh(3)
+    con = sqlite3.connect(store.DB_PATH)
+    for t in ("dispositions_no_update", "dispositions_no_delete",
+              "dispositions_no_replace"):
+        con.execute(f"DROP TRIGGER IF EXISTS {t}")
+    first = con.execute("SELECT record_hash FROM dispositions WHERE id=1").fetchone()[0]
+    row = con.execute(
+        "SELECT advisory_id, reviewer_name, cert_id, disposition, note, "
+        "recorded_at, supersedes_id FROM dispositions WHERE id=3").fetchone()
+    con.execute("DELETE FROM dispositions WHERE id=2")
+    adv, rev, cert, disp, note, when, sup = row
+    h = store._compute_hash({
+        "advisory_id": adv, "reviewer_name": rev, "cert_id": cert,
+        "disposition": disp, "note": note, "recorded_at": when,
+        "supersedes_id": sup, "prev_hash": first})
+    con.execute("UPDATE dispositions SET prev_hash=?, record_hash=? WHERE id=3",
+                (first, h))
+    con.commit()
+    con.close()
+
+    b2 = le.build_bundle(KEY, previous_export_hash=le.signature_of(b1))
+    assert b2["manifest"]["backend_head_id"] == 3, "head must be unchanged"
+    assert b2["manifest"]["ledger_rows"] < 3
+    # Rewrite the ANCHOR RECORD itself (id 3) so `history_continues` also fails.
+    # Without this the anchor check masks this one, and the test would pass with
+    # `no_row_deletion` deleted.
+    import sqlite3
+    con = sqlite3.connect(store.DB_PATH)
+    row3 = con.execute(
+        "SELECT advisory_id, reviewer_name, cert_id, disposition, note, "
+        "recorded_at, supersedes_id, prev_hash FROM dispositions WHERE id=3"
+    ).fetchone()
+    adv, rev, cert, disp, note, when, sup, ph = row3
+    h3 = store._compute_hash({
+        "advisory_id": adv, "reviewer_name": rev, "cert_id": cert,
+        "disposition": disp, "note": "rewritten", "recorded_at": when,
+        "supersedes_id": sup, "prev_hash": ph})
+    con.execute("UPDATE dispositions SET note='rewritten', record_hash=? WHERE id=3", (h3,))
+    con.commit()
+    con.close()
+
+    b2 = le.build_bundle(KEY, previous_export_hash=le.signature_of(b1))
+    r = le.verify_bundle(b2, KEY, previous_bundle=b1)
+    assert not r["ok"], "a mid-deletion + anchor rewrite must not verify"
+    assert "no_row_deletion" in r["failed"], r["failed"]
+
+
+@test
+def test_a_bundle_carrying_a_duplicate_json_key_is_refused():
+    """
+    `json.load` keeps the LAST of two identical keys. A bundle with
+    `"disposition": "CLEARED"` and a second `"disposition": "FLAGGED"` is read
+    one way by the verifier and another by a first-key-wins viewer, with no
+    check failing. Both CLIs must refuse the file outright.
+    """
+    b = fresh(1)
+    d = tempfile.mkdtemp(prefix="axiom-dupkey-")
+    kp, bp = os.path.join(d, "key"), os.path.join(d, "dup.json")
+    with open(kp, "wb") as f:
+        f.write(KEY)
+    body = json.dumps(b, indent=2, sort_keys=True)
+    assert '"note": "note 0"' in body, body
+    body = body.replace('"note": "note 0"',
+                        '"note": "CLEARED - nothing to see", "note": "note 0"', 1)
+    with open(bp, "w", encoding="utf-8") as f:
+        f.write(body)
+
+    for cmd in ([sys.executable, "-I",
+                 os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+                 "--bundle", bp, "--key-file", kp],
+                # The in-repo CLI is a package module, so it runs with -m from
+                # the repo root, not as a path. `-I` still isolates it.
+                [sys.executable, "-m", "backend.ledger_export",
+                 "verify", "--bundle", bp, "--key-file", kp]):
+        out = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+        assert out.returncode != 0, "a duplicate-key bundle was accepted by: " + cmd[1]
+        assert "duplicate key" in (out.stdout + out.stderr), out.stdout + out.stderr
+
+
+@test
+def test_insert_or_replace_over_an_existing_row_is_refused():
+    """
+    Finding 3 (audit 2026-11-11): `INSERT OR REPLACE` is an UPDATE that fires no
+    DELETE trigger, so the first two guards missed it and every row of a live
+    ledger could be rewritten with them installed. The schema now refuses it.
+    """
+    import sqlite3
+    fresh(2)
+    con = sqlite3.connect(store.DB_PATH)
+    before = con.execute(
+        "SELECT disposition FROM dispositions WHERE id=1").fetchone()[0]
+    try:
+        con.execute(
+            "INSERT OR REPLACE INTO dispositions (id, advisory_id, reviewer_name, "
+            "cert_id, disposition, note, recorded_at, supersedes_id, prev_hash, "
+            "record_hash) VALUES (1,'AD-2025-0000','R','C','cleared_no_action',"
+            "'x','2025-01-01','',  'a','b')")
+        con.commit()
+    except sqlite3.IntegrityError as exc:
+        assert "INSERT OR REPLACE" in str(exc), exc
+    else:
+        raise AssertionError("INSERT OR REPLACE rewrote a ledger row")
+    after = con.execute(
+        "SELECT disposition FROM dispositions WHERE id=1").fetchone()[0]
+    con.close()
+    assert before == after, "the row changed despite the refusal"
+
+
+# ---------------------------------------------------------------------------
 # ERASURE — the gap the first build shipped with, found by audit
 # ---------------------------------------------------------------------------
 @test

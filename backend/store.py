@@ -159,6 +159,24 @@ def init_db():
                 SELECT RAISE(ABORT, 'disposition ledger is append-only: DELETE is not permitted (AD-3)');
             END
         """)
+        # `INSERT OR REPLACE` is an UPDATE wearing a different hat: SQLite
+        # resolves the conflict by deleting the existing row and inserting a
+        # new one, and the implicit delete does NOT fire a DELETE trigger.
+        # Both guards above therefore miss it, and the "append-only" claim is
+        # false. Found by audit 2026-11-11 — every row of a live ledger was
+        # rewritten to a different disposition with all triggers installed.
+        #
+        # A BEFORE INSERT guard that refuses an id already present closes it:
+        # the check runs before conflict resolution, so there is nothing left
+        # for OR REPLACE to replace.
+        conn.execute("""
+            CREATE TRIGGER IF NOT EXISTS dispositions_no_replace
+            BEFORE INSERT ON dispositions
+            WHEN EXISTS (SELECT 1 FROM dispositions WHERE id = NEW.id)
+            BEGIN
+                SELECT RAISE(ABORT, 'disposition ledger is append-only: INSERT OR REPLACE over an existing row is not permitted (AD-3)');
+            END
+        """)
 
         conn.execute("PRAGMA user_version = %d" % SCHEMA_VERSION)
 

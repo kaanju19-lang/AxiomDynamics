@@ -239,6 +239,55 @@ def verify(bundle, key, previous=None):
                   "at id %r, the previous one ended at id %r. Records have been "
                   "removed." % (this_head, prev_head))
 
+        # The check that closes REWRITING, and it must match
+        # `backend/ledger_export.py` exactly — two verifiers disagreeing is worse
+        # than either being wrong. `no_truncation` compares ids, so an attacker
+        # with file access and no key can rewrite every record, recompute the
+        # chain and export honestly: same head id, every internal check green.
+        # History is immutable by construction, so bundle N+1 must still carry
+        # the record bundle N ended at, hashing to the same value.
+        # Anchor on the ledger's OWN head hash, not the slice's `head_hash` —
+        # an incremental's `head_hash` names the last record inside that slice
+        # (genesis for a zero-record week), so it cannot prove anything about
+        # the ledger. Must match `backend/ledger_export.py` exactly.
+        prev_head_hash = pm.get("backend_head_hash")
+        prev_head_id = pm.get("backend_head_id")
+        if prev_head_hash is not None and prev_head_id is not None:
+            anchor = None
+            for r in records:
+                if r.get("id") == prev_head_id:
+                    anchor = r.get("record_hash")
+                    break
+            # Only expect the anchor when this bundle's range covers it. A
+            # weekly incremental starts after the previous bundle's end by
+            # design; a full export is unbounded and re-covers everything.
+            from_id = m.get("from_id")
+            covers_anchor = (from_id is None or from_id <= prev_head_id) and bool(records)
+            if anchor is None and covers_anchor:
+                check("history_continues", False,
+                      "the previous bundle ended at record id %r, which this "
+                      "export's range covers but does not contain — continuity "
+                      "cannot be confirmed. Records have been removed." % prev_head_id)
+            elif anchor is not None:
+                check("history_continues", anchor == prev_head_hash,
+                      "record id %r was REWRITTEN after the bundle you hold was "
+                      "signed: stored hash %r, previous bundle recorded %r. The "
+                      "chain was recomputed to match, so every internal check "
+                      "passes — the rewrite is visible only against the bundle you "
+                      "already hold." % (prev_head_id, str(anchor)[:16],
+                                         str(prev_head_hash)[:16]))
+
+        # A count that fell while the head id stayed put is a deletion of
+        # middles, which `no_truncation` cannot see.
+        prev_rows = pm.get("ledger_rows")
+        this_rows = m.get("ledger_rows")
+        if prev_rows is not None and this_rows is not None:
+            check("no_row_deletion", this_rows >= prev_rows,
+                  "the ledger now holds %r rows, the bundle you hold reported %r. "
+                  "Records have been removed from the middle: the head id is "
+                  "unchanged, so truncation checks cannot see this." % (
+                      this_rows, prev_rows))
+
         # A *bounded* slice must start beyond the previous bundle's end, or it
         # re-covers records this recipient already holds. A full export is
         # unbounded (`from_id` null) and re-covers the whole ledger on purpose —
@@ -262,6 +311,30 @@ def _result(checks):
     return {"ok": not failed, "checks": checks, "failed": failed}
 
 
+def _reject_duplicate_keys(pairs):
+    """`json.load` keeps the LAST of two identical keys and silently discards the
+    first. A bundle can therefore carry `"disposition": "CLEARED"` and a second
+    `"disposition": "FLAGGED"` — the verifier checks whichever it kept, a human
+    reading the file in a first-key-wins viewer sees the other. Both parties are
+    looking at the same bytes and reading different records, with no check
+    failing. Found by audit 2026-11-11, same class as `bundle_no_extras`: the
+    parser, not the schema, decides what the bundle means.
+    """
+    seen = set()
+    for k, _ in pairs:
+        if k in seen:
+            raise ValueError("duplicate key %r in bundle JSON — a bundle must have "
+                             "exactly one of each field, because the parser and a "
+                             "human may otherwise read different values" % k)
+        seen.add(k)
+    return dict(pairs)
+
+
+def load_strict(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f, object_pairs_hook=_reject_duplicate_keys)
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Verify an AxiomDynamics ledger export bundle.")
     p.add_argument("--bundle", required=True)
@@ -276,12 +349,12 @@ def main(argv=None):
     if len(key) != 32:
         print("signing key must be exactly 32 raw bytes, got %d" % len(key), file=sys.stderr)
         return 2
-    with open(a.bundle, "r", encoding="utf-8") as f:
-        bundle = json.load(f)
-    previous = None
-    if a.previous_bundle:
-        with open(a.previous_bundle, "r", encoding="utf-8") as f:
-            previous = json.load(f)
+    try:
+        bundle = load_strict(a.bundle)
+        previous = load_strict(a.previous_bundle) if a.previous_bundle else None
+    except ValueError as e:
+        print("REFUSED: %s" % e, file=sys.stderr)
+        return 1
 
     result = verify(bundle, key, previous)
     if a.json:

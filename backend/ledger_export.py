@@ -558,6 +558,20 @@ def verify_bundle(
                   "at id %r, the previous one ended at id %r. Records have been "
                   "removed." % (this_head, prev_head))
 
+        # The check that closes REWRITING. `no_truncation` compares ids only, so
+        # an attacker with file access and no key can rewrite every record,
+        # recompute the chain, and export honestly: the ledger still ends at the
+        # same id, every internal check passes, and a recipient holding the
+        # earlier bundle is told continuity is intact. Found by audit 2026-11-11;
+        # reproduced end to end with all 18 checks green while three "flag"
+        # dispositions had become "CLEARED".
+        #
+        # History is immutable by construction: bundle N+1 must EXTEND bundle N,
+        # so the record bundle N ended at must still be byte-identical in N+1.
+        # Continuity is therefore provable without transmitting the whole
+        # ledger — only the anchor the recipient already holds.
+        _anchor_history_checks(m, records, prev_m, check)
+
         # A bounded slice must start beyond the previous bundle's end. An empty
         # incremental has no first_id and is allowed — nothing new was recorded.
         #
@@ -645,14 +659,87 @@ def _cmd_export(args) -> int:
     return 0
 
 
+def _anchor_history_checks(m, records, prev_m, check) -> None:
+    """Continuity checks that need the previous bundle. Shared by every verifier.
+
+    Kept as one function because the standalone verifier in `tools/` has to
+    reproduce this logic without importing it, and a divergence between the two
+    is worse than either being wrong: a recipient would see a failure the
+    exporter says cannot happen.
+    """
+    # The anchor is the ledger's OWN head hash, not the slice's `head_hash`.
+    # An incremental's `head_hash` names the last record inside that slice —
+    # and for a zero-record week it is the genesis value — so chaining off it
+    # would compare unrelated things and falsely reject a healthy series.
+    # `backend_head_hash` is the hash of the ledger's end regardless of slice,
+    # which is the only value that can prove the ledger was not rewritten.
+    prev_head_hash = prev_m.get("backend_head_hash")
+    prev_head_id = prev_m.get("backend_head_id")
+    if prev_head_hash is not None and prev_head_id is not None:
+        anchor = next((r.get("record_hash") for r in records
+                       if r.get("id") == prev_head_id), None)
+
+        # The anchor is only expected when this bundle's range actually covers
+        # it. A weekly incremental starts AFTER the previous bundle's end by
+        # design — requiring the anchor there would reject every healthy
+        # series, which is exactly what the first cut of this check did. A
+        # full export is unbounded and re-covers everything, so it must carry
+        # the anchor; so must any bounded slice that starts at or before it.
+        from_id = m.get("from_id")
+        covers_anchor = (from_id is None or from_id <= prev_head_id) and bool(records)
+
+        if anchor is None and not covers_anchor:
+            # Legitimately outside this bundle's range. `previous_export_link`
+            # and `no_regression` carry continuity here, and a later full
+            # export re-covers the anchor and would expose a rewrite then.
+            pass
+        elif anchor is None:
+            check("history_continues", False,
+                  "the previous bundle ended at record id %r, which this export's "
+                  "range covers but does not contain — continuity cannot be "
+                  "confirmed. Records have been removed." % prev_head_id)
+        else:
+            check("history_continues", anchor == prev_head_hash,
+                  "record id %r was REWRITTEN after the bundle you hold was signed: "
+                  "stored hash %r, previous bundle recorded %r. The chain was "
+                  "recomputed to match, so every internal check passes — the "
+                  "rewrite is visible only against the bundle you already hold." % (
+                      prev_head_id, str(anchor)[:16], str(prev_head_hash)[:16]))
+
+    prev_rows = prev_m.get("ledger_rows")
+    this_rows = m.get("ledger_rows")
+    if prev_rows is not None and this_rows is not None:
+        check("no_row_deletion", this_rows >= prev_rows,
+              "the ledger now holds %r rows, the bundle you hold reported %r. "
+              "Records have been removed from the middle: the head id is "
+              "unchanged, so truncation checks cannot see this." % (
+                  this_rows, prev_rows))
+
+
+def _reject_duplicate_keys(pairs):
+    """See `tools/verify_ledger_export.py` — the same guard, for the same reason."""
+    seen = set()
+    for k, _ in pairs:
+        if k in seen:
+            raise ValueError("duplicate key %r in bundle JSON — a bundle must have "
+                             "exactly one of each field" % k)
+        seen.add(k)
+    return dict(pairs)
+
+
+def _load_bundle(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f, object_pairs_hook=_reject_duplicate_keys)
+
+
 def _cmd_verify(args) -> int:
     key = load_key(args.key_file)
-    with open(args.bundle, "r", encoding="utf-8") as f:
-        bundle = json.load(f)
-    previous = None
-    if args.previous_bundle:
-        with open(args.previous_bundle, "r", encoding="utf-8") as f:
-            previous = json.load(f)
+    try:
+        bundle = _load_bundle(args.bundle)
+        previous = _load_bundle(args.previous_bundle) if args.previous_bundle else None
+    except ValueError as e:
+        print(f"REFUSED: {e}", file=sys.stderr)
+        return 1
     result = verify_bundle(bundle, key, previous)
     for c in result["checks"]:
         print(f"{'PASS' if c['ok'] else 'FAIL'}  {c['name']}"
