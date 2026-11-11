@@ -325,11 +325,18 @@ def test_the_http_route_maps_outcomes_to_distinct_status_codes():
     port = srv.server_address[1]
     threading.Thread(target=srv.serve_forever, daemon=True).start()
 
-    def post(payload, raw=None):
+    from backend import ingest_auth
+    _col = ingest_auth.enroll_collector(db, "http-test-collector")
+    _tok = _col["token"]
+
+    def post(payload, raw=None, token=_tok):
         body = raw if raw is not None else json.dumps(payload).encode()
+        hdrs = {"Content-Type": "application/json"}
+        if token is not None:
+            hdrs["Authorization"] = "Bearer " + token
         req = urllib.request.Request(
             "http://127.0.0.1:%d/api/ingest" % port, data=body,
-            headers={"Content-Type": "application/json"}, method="POST")
+            headers=hdrs, method="POST")
         try:
             with urllib.request.urlopen(req) as r:
                 return r.status, json.loads(r.read())
@@ -363,6 +370,71 @@ def test_the_http_route_maps_outcomes_to_distinct_status_codes():
     logged = con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
     con.close()
     assert logged == len(cases), "every request must be logged, got %d" % logged
+
+
+@test
+def test_the_http_route_refuses_a_missing_or_bad_token_and_logs_nothing():
+    """
+    The credential is checked before the body is read or logged. A caller with
+    no token, a wrong token, or a garbage body plus no token must not write a
+    row: an ingest log anyone can append to is a poisoning vector in itself.
+    """
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+
+    db = os.path.join(tempfile.mkdtemp(prefix="axiom-ingest-noauth-"), "l.db")
+    os.environ["AXIOM_DB_PATH"] = db
+    from backend import main as m
+    from backend import store, ingest_auth
+
+    old = store.DB_PATH
+    store.DB_PATH = db
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), m.Handler)
+    port = srv.server_address[1]
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def post_raw(raw, token=None):
+        hdrs = {"Content-Type": "application/json"}
+        if token is not None:
+            hdrs["Authorization"] = "Bearer " + token
+        req = urllib.request.Request(
+            "http://127.0.0.1:%d/api/ingest" % port, data=raw,
+            headers=hdrs, method="POST")
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read())
+
+    try:
+        # Before any collector exists, the path is closed.
+        st, body = post_raw(b"{}")
+        assert st == 503, ("no collector must close the route", st, body)
+
+        ingest_auth.enroll_collector(db, "noauth-col")
+        # No token.
+        st, body = post_raw(json.dumps(good()).encode())
+        assert st == 401, ("missing token must be 401", st, body)
+        # Wrong token.
+        st, body = post_raw(json.dumps(good()).encode(), token="deadbeef" * 8)
+        assert st == 401, ("unknown token must be 401", st, body)
+        # Garbage body, no token: must NOT log a row.
+        st, body = post_raw(b"<<<not json>>>")
+        assert st == 401, ("garbage without a token must be refused at auth", st, body)
+    finally:
+        srv.shutdown()
+        store.DB_PATH = old
+
+    import sqlite3
+    con = sqlite3.connect(db)
+    try:
+        n = con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
+    except sqlite3.OperationalError:
+        n = 0
+    con.close()
+    assert n == 0, "an unauthenticated caller must write no ingest rows, got %d" % n
 
 
 # ---------------------------------------------------------------------------

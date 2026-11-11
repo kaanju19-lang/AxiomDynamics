@@ -24,7 +24,7 @@ from urllib.parse import urlparse, parse_qs
 
 import numpy as np
 
-from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest, accounts
+from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest, accounts, ingest_auth
 from .warrants import SignalEvidence, build_warrant
 
 store.init_db()
@@ -461,6 +461,54 @@ def route_post_disposition(advisory_id, body, headers=None):
     }, 200
 
 
+def route_post_ingest_authenticated(body, headers=None):
+    """
+    The inbound detector path, B02 §2, after the collector credential has been
+    checked by the HTTP handler. Returns (payload, status).
+
+    **Status codes carry the validation outcome.** 202 for accepted, 422 for a
+    named refusal, 200 for a suspect reading retained but not scored - so a
+    collector can tell "fix your payload" from "someone will look at it" from
+    "carry on".
+
+    Authentication happens in do_POST before this is reached, because a route
+    that logs a body before checking the caller lets anyone write to the ingest
+    log. This function still re-resolves the token rather than trusting a
+    parameter, so calling it directly without a credential cannot bypass the
+    gate - a missing or dead token is a 401 here too.
+    """
+    mode = ingest_auth.auth_mode(store.DB_PATH)
+    if mode == ingest_auth.AUTH_NONE:
+        return {
+            "error": "ingest is closed: no collector enrollment exists on this "
+                     "deployment.",
+            "auth_mode": mode,
+        }, 503
+    token = _bearer_token(headers or {})
+    if not token:
+        return {"error": "authentication required", "auth_mode": mode}, 401
+    try:
+        collector = ingest_auth.resolve_token(store.DB_PATH, token)
+    except ValueError as exc:
+        return {"error": str(exc), "auth_mode": mode}, 401
+
+    result = ingest.ingest_and_record(store.DB_PATH, body)
+    payload = {
+        "outcome": result.outcome,
+        "accepted_for_scoring": result.accepted_for_scoring,
+        "advisory_emitted": result.emitted_an_advisory,
+        "recorded_at": result.recorded_at,
+        "collector_id": collector["collector_id"],
+        "collector_name": collector["collector_name"],
+    }
+    if result.reason:
+        payload["reason"] = result.reason
+    status = {ingest.ACCEPTED: 202,
+              ingest.SUSPECT: 200,
+              }.get(result.outcome, 422)
+    return payload, status
+
+
 def route_get_disposition_history(advisory_id):
     """
     The full decision trail for one advisory, oldest first. This is the record
@@ -626,24 +674,50 @@ class Handler(BaseHTTPRequestHandler):
         parts = path.split("/")  # ['', 'api', 'warrant', '<advisory_id>', 'disposition']
         try:
             if path == "/api/ingest":
-                # B02 §2. Reads the raw body with a size cap: an ingest route
-                # that buffers whatever it is sent is a memory-exhaustion path
-                # before it is anything else. A detector payload is a few
-                # hundred bytes; 64 KiB is generous.
+                # B02 §2. Authenticate BEFORE reading or logging the body.
+                # An earlier draft validated the token after parsing and logged
+                # unparseable bodies on the way in, so any anonymous caller could
+                # write rows to the ingest log by sending garbage. The credential
+                # is checked first, and only an authenticated collector's body is
+                # read, parsed and recorded.
+                mode = ingest_auth.auth_mode(store.DB_PATH)
+                if mode == ingest_auth.AUTH_NONE:
+                    return self._send_json(
+                        {"error": "ingest is closed: no collector enrollment exists "
+                                  "on this deployment. Enroll a collector before any "
+                                  "detector payload can be ingested.",
+                         "auth_mode": mode}, status=503)
+                token = _bearer_token(self.headers)
+                if not token:
+                    return self._send_json(
+                        {"error": "authentication required: send 'Authorization: "
+                                  "Bearer <token>' from the collector enrollment",
+                         "auth_mode": mode}, status=401)
+                try:
+                    collector = ingest_auth.resolve_token(store.DB_PATH, token)
+                except ValueError as exc:
+                    return self._send_json(
+                        {"error": str(exc), "auth_mode": mode}, status=401)
+
+                # Size cap before reading: an ingest route that buffers whatever
+                # it is sent is a memory-exhaustion path before it is anything
+                # else. A detector payload is a few hundred bytes; 64 KiB is
+                # generous.
                 length = int(self.headers.get("Content-Length", 0) or 0)
                 if length > 64 * 1024:
                     return self._send_json(
                         {"outcome": ingest.REJECTED_SCHEMA,
                          "reason": "payload exceeds the 64 KiB ingest limit",
                          "accepted_for_scoring": False,
-                         "advisory_emitted": False}, status=413)
+                         "advisory_emitted": False,
+                         "collector_id": collector["collector_id"],
+                         "collector_name": collector["collector_name"]}, status=413)
                 raw = self.rfile.read(length) if length else b""
                 try:
                     body = json.loads(raw.decode("utf-8")) if raw else None
                 except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-                    # A payload that is not JSON never reaches the chain — but it
-                    # is still logged, because a collector sending garbage is an
-                    # operational problem someone must see.
+                    # Authenticated, so this is a real collector sending garbage -
+                    # an operational problem someone must see. It is logged.
                     ingest.init_ingest_log(store.DB_PATH)
                     ingest.record(store.DB_PATH, ingest.IngestResult(
                         ingest.REJECTED_SCHEMA, "body is not valid JSON: %s" % exc),
@@ -652,8 +726,10 @@ class Handler(BaseHTTPRequestHandler):
                         {"outcome": ingest.REJECTED_SCHEMA,
                          "reason": "body is not valid JSON",
                          "accepted_for_scoring": False,
-                         "advisory_emitted": False}, status=422)
-                result, status = route_post_ingest(body)
+                         "advisory_emitted": False,
+                         "collector_id": collector["collector_id"],
+                         "collector_name": collector["collector_name"]}, status=422)
+                result, status = route_post_ingest_authenticated(body, self.headers)
                 return self._send_json(result, status=status)
             if path == "/api/session":
                 length = int(self.headers.get("Content-Length", 0) or 0)
