@@ -234,17 +234,30 @@ def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
     same `prev_hash` and fork the chain.
 
     `guard`, when supplied, is called **inside that transaction, before the
-    INSERT**. It may raise to abort the append; whatever it raises propagates and
-    the transaction rolls back. This exists for the AD-2 entry check: the caller
-    verifies the reviewer's certification is still live, and a revocation landing
-    between that check and this INSERT would otherwise record a decision under a
-    certificate that no longer exists. The ledger's own write lock is the only
-    place where "still live" and "still unwritten" can be true at the same
-    instant — so the re-check belongs here rather than in the route.
+    INSERT**. It may raise to abort the append, **or return a falsy value** to
+    abort it; whatever it raises propagates and the transaction rolls back. This
+    exists for the AD-2 entry check: the caller verifies the reviewer's
+    certification is still live, and a revocation landing between that check and
+    this INSERT would otherwise record a decision under a certificate that no
+    longer exists. The ledger's own write lock is the only place where "still
+    live" and "still unwritten" can be true at the same instant — so the
+    re-check belongs here rather than in the route.
+
+    **Returning False must abort, and originally did not.** The first version
+    read `if guard is not None: guard()` and discarded the result, while the
+    route passed `lambda: accounts.cert_is_live(...)`, which returns a bool. The
+    guard therefore ran, computed False, and the row was written anyway. The
+    suite did not catch it because the tests simulated the race with a guard that
+    *raised*, which is not the guard the route actually installs. A guard whose
+    only tested failure mode is one the caller does not use is not a guard.
+    Found by adversarial audit 2026-11-11, after 310 green tests.
     """
     with _connect_atomic() as conn:
         if guard is not None:
-            guard()
+            if guard() is False:
+                raise ValueError(
+                    "the write guard refused this append (the condition it "
+                    "checked became false before the row was written)")
         prev = conn.execute(
             "SELECT record_hash FROM dispositions ORDER BY id DESC LIMIT 1"
         ).fetchone()

@@ -244,6 +244,62 @@ def test_revocation_between_resolve_and_write_is_caught_by_the_lock_guard():
 
 
 @test
+def test_revocation_in_the_resolve_to_write_window_aborts_through_the_real_guard():
+    # THE test the audit said was missing. The earlier version of this file
+    # simulated the race with a guard that *raised*, which is not the guard the
+    # route installs. The route's guard is `lambda: cert_is_live(...)` — it
+    # *returns a bool* — and `save_disposition` discarded the return value, so the
+    # guard computed False and the row was written anyway. 310 green tests.
+    #
+    # This drives the real route and revokes the certificate inside
+    # `resolve_session`, i.e. exactly between the resolve and the write.
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+
+    real_resolve = acct.resolve_session
+
+    def resolve_then_revoke(db_path, token):
+        out = real_resolve(db_path, token)          # cert live at resolve
+        at.revoke(db_path, "Hoffman", note="revoked in the window")
+        return out                                   # dead by the time we write
+
+    acct.resolve_session = resolve_then_revoke
+    try:
+        body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"}, tok)
+    finally:
+        acct.resolve_session = real_resolve
+
+    assert status == 401, "a disposition was written under a revoked certificate: %s" % (body,)
+    assert store.ledger_size() == 0, "the aborted append left a row behind"
+
+
+@test
+def test_a_falsy_guard_aborts_the_append():
+    # The minimal statement of the defect, independent of the route: a guard that
+    # returns False must stop the write, because that is what the route passes.
+    fresh()
+    try:
+        store.save_disposition("AD-2025-0001", "Hoffman", "CERT-H-1",
+                               "concur_dispatch", guard=lambda: False)
+    except ValueError as exc:
+        assert "write guard refused" in str(exc), exc
+    else:
+        raise AssertionError("a guard returning False did not abort the append")
+    assert store.ledger_size() == 0
+
+
+@test
+def test_a_truthy_guard_permits_the_append():
+    # ...and the positive case, so the test above is not satisfied by a guard
+    # that refuses everything.
+    fresh()
+    rec = store.save_disposition("AD-2025-0001", "Hoffman", "CERT-H-1",
+                                 "concur_dispatch", guard=lambda: True)
+    assert rec["id"] == 1
+    assert store.ledger_size() == 1
+
+
+@test
 def test_guard_refusal_rolls_back_the_whole_transaction():
     # And the chain is untouched: no orphan row, no forked prev_hash.
     fresh()
@@ -321,6 +377,44 @@ def test_long_note_is_refused():
     body, status = post("AD-2025-0001", {"disposition": "concur_dispatch",
                                          "note": "x" * 501}, tok)
     assert status == 400, (status, body)
+
+
+@test
+def test_non_string_note_is_400_not_500():
+    # The audit found `{"note": {...}}` raised AttributeError on .strip() and the
+    # handler turned it into a 500. A malformed client request is the client's
+    # fault and must say so.
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    for bad in ({"a": 1}, [1, 2], 7, True):
+        body, status = post("AD-2025-0001", {"disposition": "concur_dispatch",
+                                             "note": bad}, tok)
+        assert status == 400, "note=%r gave %s: %s" % (bad, status, body)
+    assert store.ledger_size() == 0
+
+
+@test
+def test_hostile_body_shapes_never_cause_a_500():
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    shapes = [
+        {}, {"disposition": None}, {"disposition": ["concur_dispatch"]},
+        {"disposition": "concur_dispatch", "note": {"deep": {"er": 1}}},
+        {"disposition": "CONCUR_DISPATCH"}, {"disposition": " concur_dispatch"},
+    ]
+    accepted = 0
+    for shape in shapes:
+        body, status = post("AD-2025-0001", shape, tok)
+        assert status in (200, 400), "shape %r gave %s: %s" % (shape, status, body)
+        if status == 200:
+            accepted += 1
+    # Every shape in that list is malformed on purpose, including the
+    # " concur_dispatch" one, which is refused because a leading space is not
+    # stripped from the disposition. So the whole point is the status: none of
+    # these is a 500. This test changed twice while being written — first the
+    # expectation was one acceptance, then two — and both times the code was
+    # right and the test was wrong. The list is the assertion.
+    assert accepted == 0, "%d hostile shapes were accepted" % accepted
 
 
 @test

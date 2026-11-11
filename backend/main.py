@@ -417,8 +417,14 @@ def route_post_disposition(advisory_id, body, headers=None):
             }, 400
 
     disposition = body.get("disposition")
-    note = (body.get("note") or "").strip()
-    if disposition not in VALID_DISPOSITIONS:
+    raw_note = body.get("note")
+    if raw_note is not None and not isinstance(raw_note, str):
+        return {"error": "note must be a string"}, 400
+    note = (raw_note or "").strip()
+    # isinstance first: `["concur_dispatch"] in VALID_DISPOSITIONS` hashes the
+    # list and raises TypeError, which the handler turns into a 500. A malformed
+    # body is a 400. Found by the hostile-shape sweep 2026-11-11.
+    if not isinstance(disposition, str) or disposition not in VALID_DISPOSITIONS:
         return {"error": "a valid disposition is required"}, 400
     if len(note) > 500:
         return {"error": "note must be 500 characters or fewer"}, 400
@@ -430,11 +436,18 @@ def route_post_disposition(advisory_id, body, headers=None):
     # already checked it, but a revocation landing between resolve and INSERT is
     # the same race that made attest() re-read under its lock; here the guard runs
     # in save_disposition's transaction so there is no window between the check
-    # and the append.
-    rec = store.save_disposition(
-        advisory_id, reviewer_name, cert_id, disposition, note,
-        guard=lambda: accounts.cert_is_live(store.DB_PATH, cert_id,
-                                            session["key_id"]))
+    # and the append. A falsy guard aborts the append — see save_disposition's
+    # docstring for why that had to be fixed after the audit.
+    try:
+        rec = store.save_disposition(
+            advisory_id, reviewer_name, cert_id, disposition, note,
+            guard=lambda: accounts.cert_is_live(store.DB_PATH, cert_id,
+                                                session["key_id"]))
+    except ValueError as exc:
+        # Reaching here means the guard fired: the certificate was revoked
+        # between resolve and write. That is an authentication failure, not a
+        # server fault, so it is a 401 the reviewer can act on.
+        return {"error": str(exc), "auth_mode": mode}, 401
     return {
         "ok": True,
         "advisory_id": advisory_id,
