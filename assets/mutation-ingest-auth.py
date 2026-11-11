@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -101,7 +102,9 @@ MUTATIONS = [
      '    if False and not attribution.verify_registry(db_path)["ok"]:'),
 ]
 
-SNAPSHOT = "/tmp/mutation-ingest-snapshot"
+SNAPSHOT = os.environ.get(
+    "AXIOM_MUTATION_SNAPSHOT",
+    os.path.join(tempfile.gettempdir(), "mutation-ingest-snapshot"))
 
 
 def snapshot_path(target):
@@ -109,9 +112,22 @@ def snapshot_path(target):
 
 
 def save_snapshot(originals):
+    """
+    Write pristine copies so an interrupted run can be undone with --restore.
+
+    Existing files are overwritten rather than trusted. The snapshot is the last
+    known-good source for a restore, so a left-over copy from an earlier run
+    that was itself interrupted mid-mutation would restore the *mutated* tree —
+    which is worse than having no snapshot at all. Writing unconditionally also
+    avoids the PermissionError a stale /tmp directory owned by another user
+    produces on this mount.
+    """
     os.makedirs(SNAPSHOT, exist_ok=True)
     for t, src in originals.items():
-        with open(snapshot_path(t), "w", encoding="utf-8", newline="") as f:
+        p = snapshot_path(t)
+        if os.path.exists(p):
+            os.remove(p)
+        with open(p, "w", encoding="utf-8", newline="") as f:
             f.write(src)
 
 
@@ -126,11 +142,29 @@ def restore_snapshot():
 
 
 def run_tests():
+    """
+    Run the test modules against the current tree.
+
+    PYTHONPYCACHEPREFIX is redirected per run, via -X rather than the
+    environment variable. The tests are run with -I, and **-I sets
+    sys.pycache_prefix to None, discarding the environment variable** — so the
+    obvious `env={PYTHONPYCACHEPREFIX: ...}` form silently does nothing. -X is
+    processed after -I and survives, which was verified rather than assumed.
+    Without it, bytecode lands in the source tree's __pycache__, where a .pyc
+    from an earlier run can outlive the source it was compiled from and a
+    mutation gets judged against code it never loaded.
+    """
     codes = []
-    for mod in TESTS:
-        p = subprocess.run([sys.executable, "-I", os.path.join(REPO, mod)],
-                           capture_output=True, text=True, cwd=REPO)
-        codes.append((mod, p.returncode, p.stdout + p.stderr))
+    cache = tempfile.mkdtemp(prefix="axiom-mutation-pyc-")
+    try:
+        for mod in TESTS:
+            p = subprocess.run(
+                [sys.executable, "-I", "-X", "pycache_prefix=" + cache,
+                 os.path.join(REPO, mod)],
+                capture_output=True, text=True, cwd=REPO)
+            codes.append((mod, p.returncode, p.stdout + p.stderr))
+    finally:
+        shutil.rmtree(cache, ignore_errors=True)
     return codes
 
 
@@ -192,14 +226,19 @@ def main():
                 survived += 1
                 print("ALIVE %-2d %s   <-- FINDING: no test went red"
                       % (i, label))
+                print("        either the guard is untested, or it is redundant with\n"
+                      "        another check and no test can see it. Decide which by\n"
+                      "        reading the code — do NOT add an EQUIVALENT exemption\n"
+                      "        keyed by mutation number, which silently absorbs a real\n"
+                      "        survivor in that slot.")
     finally:
         for t, src in originals.items():
             with open(os.path.join(REPO, t), "w", encoding="utf-8",
                       newline="") as f:
                 f.write(src)
 
-    print("\n%d mutations: %d killed, %d survived" % (len(MUTATIONS), killed,
-                                                      survived))
+    print("\n%d mutations: %d killed, %d survived"
+          % (len(MUTATIONS), killed, survived))
     return 0 if survived == 0 else 1
 
 

@@ -15,6 +15,15 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+# Point the database at a temp directory *before* any backend import. Importing
+# `backend.main` runs `store.init_db()` against `store.DB_PATH`, and without this
+# the module creates an axiom.db in the repository root — which does not merely
+# litter the tree, it fails: this mount is not a filesystem SQLite can lock, so
+# the import dies with "disk I/O error" and both route tests below go red for a
+# reason that has nothing to do with the gate.
+_TMPDIR = tempfile.mkdtemp(prefix="axiom-ingest-auth-")
+os.environ.setdefault("AXIOM_DB_PATH", os.path.join(_TMPDIR, "test.db"))
+
 from backend import ingest_auth  # noqa: E402
 
 RESULTS = []
@@ -46,6 +55,40 @@ class _Tmp:
         if os.path.isdir(self.d):
             os.rmdir(self.d)
         return False
+
+
+def _call_route(db, body, headers):
+    """
+    Call the ingest route directly against `db`.
+
+    The route reads store.DB_PATH rather than taking a path, so the module-level
+    constant is pointed at this test's database and restored afterwards. Without
+    the restore, a later test in the same process would silently inspect the
+    previous test's database and could pass on stale state.
+    """
+    import backend.store as store_mod
+    from backend import main
+    previous = store_mod.DB_PATH
+    store_mod.DB_PATH = db
+    try:
+        return main.route_post_ingest_authenticated(body, headers=headers)
+    finally:
+        store_mod.DB_PATH = previous
+
+
+def _ingest_log_rows(db):
+    """
+    Rows in the ingest log, treating an absent table as zero.
+
+    The table is created lazily. Counting it must not raise — an error here
+    would be read as "no rows", which is the false green these tests exist to
+    rule out.
+    """
+    import sqlite3
+    from backend import ingest
+    ingest.init_ingest_log(db)
+    with sqlite3.connect(db) as con:
+        return con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
 
 
 @test
@@ -185,6 +228,68 @@ def test_the_chain_catches_a_forged_append():
         out = ingest_auth.verify_chain(db)
         assert out["ok"] is False, out
         assert "chain break" in out["message"], out
+
+
+@test
+def test_a_row_with_the_right_prev_hash_but_a_wrong_entry_hash_is_caught():
+    # Mutant M9. The forged-append test above trips the prev_hash comparison
+    # (mutant M10) and never reaches the entry_hash comparison, so removing the
+    # entry_hash check would leave the suite green. This row gets its prev_hash
+    # right — the real predecessor's hash — and its entry_hash wrong, so the
+    # only check that can catch it is the one M9 removes.
+    #
+    # Asserting "hash mismatch" rather than just ok is False matters: a run that
+    # failed on some other check would pass a bare `ok is False` and prove
+    # nothing about the line under test.
+    with _Tmp() as db:
+        ingest_auth.enroll_collector(db, "col-12")
+        import sqlite3
+        con = sqlite3.connect(db)
+        predecessor = con.execute(
+            "SELECT entry_hash FROM ingest_collectors ORDER BY id DESC LIMIT 1"
+        ).fetchone()[0]
+        con.execute(
+            "INSERT INTO ingest_collectors (name, token_hash, note, created_at, "
+            "revoked_at, prev_hash, entry_hash) VALUES (?,?,?,?,?,?,?)",
+            ("forger", "b" * 64, "", "2026-01-01 00:00:00", None,
+             predecessor, "e" * 64))
+        con.commit()
+        con.close()
+        out = ingest_auth.verify_chain(db)
+        assert out["ok"] is False, out
+        assert "hash mismatch" in out["message"], out
+
+
+@test
+def test_the_route_refuses_a_missing_header_when_a_collector_is_enrolled():
+    # Mutants M5 and M2. do_POST checks the credential before reading the body,
+    # and route_post_ingest_authenticated re-resolves so a direct call cannot
+    # bypass the gate. This exercises the second of those directly: the route
+    # is called with no headers at all, on a deployment that has a collector
+    # enrolled, and must refuse.
+    #
+    # The deployment matters. With nothing enrolled, auth_mode returns
+    # AUTH_NONE and the route answers 503 before it ever looks for a token, so
+    # a 401 here is only meaningful with an enrollment present.
+    with _Tmp() as db:
+        ingest_auth.enroll_collector(db, "col-13")
+        body, status = _call_route(db, {"detector_id": "D-1"}, headers={})
+        assert status == 401, (status, body)
+        assert _ingest_log_rows(db) == 0
+
+
+@test
+def test_the_route_refuses_an_unknown_token():
+    # Mutant M5 from the other side: the route re-resolves rather than trusting
+    # a caller-supplied collector, so an unrecognised token is refused even when
+    # the handler is bypassed entirely.
+    with _Tmp() as db:
+        ingest_auth.enroll_collector(db, "col-14")
+        body, status = _call_route(
+            db, {"detector_id": "D-1"},
+            headers={"Authorization": "Bearer " + ("0" * 64)})
+        assert status == 401, (status, body)
+        assert _ingest_log_rows(db) == 0
 
 
 @test

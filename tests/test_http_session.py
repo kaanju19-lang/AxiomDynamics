@@ -13,6 +13,7 @@ Run: python3 -I tests/test_http_session.py
 import http.client
 import json
 import os
+import sqlite3
 import sys
 import tempfile
 import threading
@@ -25,6 +26,8 @@ os.environ.setdefault("AXIOM_DB_PATH", os.path.join(_TMPDIR, "test.db"))
 
 from backend import accounts as acct  # noqa: E402
 from backend import attribution as at  # noqa: E402
+from backend import ingest  # noqa: E402
+from backend import ingest_auth  # noqa: E402
 from backend import main  # noqa: E402
 from backend import store  # noqa: E402
 from http.server import ThreadingHTTPServer  # noqa: E402
@@ -71,12 +74,51 @@ def fresh():
     acct.init(db)
     at.register(db, "Hoffman", "CERT-H-1", KEY)
     acct.enroll(db, "hoffman", PW, "CERT-H-1", iterations=1000)
+    # Enrolled so the ingest route is past its AUTH_NONE branch and the
+    # missing-token and unknown-token checks are actually on the path.
+    ingest_auth.init(db)
+    ingest_auth.enroll_collector(db, "collector-01")
+
+
+def _ingest_log_count():
+    """
+    Rows in the ingest log, initialised on demand.
+
+    The log table is created lazily by the handler, so a request that auth
+    rejects never creates it. Counting must therefore treat a missing table as
+    zero rather than raising — an error here would pass for "no rows written",
+    which is exactly the false green M2 and M3 are there to catch.
+    """
+    db = store.DB_PATH
+    ingest.init_ingest_log(db)
+    with sqlite3.connect(db) as con:
+        return con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
 
 
 def req(method, path, body=None, headers=None):
     _start()
     conn = http.client.HTTPConnection("127.0.0.1", _SERVER["port"], timeout=10)
     raw = json.dumps(body).encode("utf-8") if body is not None else None
+    h = {"Content-Type": "application/json"}
+    h.update(headers or {})
+    conn.request(method, path, body=raw, headers=h)
+    r = conn.getresponse()
+    payload = r.read()
+    conn.close()
+    try:
+        parsed = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        parsed = payload.decode("utf-8", "replace")
+    return r.status, parsed
+
+
+def req_raw(method, path, raw, headers=None):
+    """
+    Send bytes verbatim. `req` json-encodes its body, which cannot produce the
+    unparseable payload the ingest gate has to refuse *before* logging it.
+    """
+    _start()
+    conn = http.client.HTTPConnection("127.0.0.1", _SERVER["port"], timeout=10)
     h = {"Content-Type": "application/json"}
     h.update(headers or {})
     conn.request(method, path, body=raw, headers=h)
@@ -114,6 +156,43 @@ def test_write_without_header_over_http_is_401():
                        {"disposition": "concur_dispatch"})
     assert status == 401, (status, body)
     assert store.ledger_size() == 0
+
+
+@test
+def test_ingest_without_header_on_an_enrolled_deployment_is_401():
+    # Mutant M2: with the missing-token check removed from do_POST, this request
+    # falls through to the body read. The earlier 503 test cannot see that — it
+    # runs on a deployment with nothing enrolled, so the AUTH_NONE branch returns
+    # first and the missing-token check is never on the path.
+    #
+    # The body is deliberately unparseable. A well-formed body would still be
+    # refused by route_post_ingest_authenticated's own re-check, so it would
+    # pass with M2 in place and prove nothing. Garbage is the discriminating
+    # case: do_POST logs an unparseable body itself, before the route is
+    # reached, so this is the one shape where a removed check leaves a row.
+    fresh()
+    mode = ingest_auth.auth_mode(store.DB_PATH)
+    assert mode != ingest_auth.AUTH_NONE, mode
+    before = _ingest_log_count()
+    status, body = req_raw("POST", "/api/ingest", b"{not json at all")
+    assert status == 401, (status, body)
+    assert _ingest_log_count() == before
+
+
+@test
+def test_ingest_with_an_unknown_token_is_401_and_logs_nothing():
+    # Mutant M3: resolve_token raising must be caught and answered 401. The
+    # mutation swallows the ValueError and substitutes a placeholder collector,
+    # so the body is parsed and logged for a caller who never authenticated.
+    # Same reasoning as M2 above: the payload is unparseable so that the log
+    # write in do_POST is the observable, not a 401 the route would have given
+    # anyway.
+    fresh()
+    before = _ingest_log_count()
+    status, body = req_raw("POST", "/api/ingest", b"{not json at all",
+                           {"Authorization": "Bearer " + ("0" * 64)})
+    assert status == 401, (status, body)
+    assert _ingest_log_count() == before
 
 
 @test

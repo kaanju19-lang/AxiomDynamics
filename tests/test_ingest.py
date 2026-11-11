@@ -24,6 +24,25 @@ from backend import ingest  # noqa: E402
 RESULTS = []
 
 
+def _log_rows(db):
+    """
+    Rows in the ingest log, treating an absent table as zero.
+
+    The log table is created lazily on the first recorded outcome, so a run in
+    which nothing was ever logged leaves it missing. Treating that as an error
+    would read as a failure; folding it into the count as zero would hide a
+    genuinely missing table. Counting it here, explicitly, keeps both visible.
+    """
+    import sqlite3
+    con = sqlite3.connect(db)
+    try:
+        return con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
+    except sqlite3.OperationalError:
+        return 0
+    finally:
+        con.close()
+
+
 def test(fn):
     try:
         fn()
@@ -417,23 +436,39 @@ def test_the_http_route_refuses_a_missing_or_bad_token_and_logs_nothing():
         # No token.
         st, body = post_raw(json.dumps(good()).encode())
         assert st == 401, ("missing token must be 401", st, body)
+        # The message must be the handler's, not the route's. Both refuse with
+        # 401 and write nothing, so status and row count cannot tell them apart
+        # — but only the handler's tells the caller to send a Bearer token from
+        # the collector enrollment. Without this assertion, deleting do_POST's
+        # missing-token check leaves every other observable identical and the
+        # mutation survives (mutant M2).
+        assert "collector enrollment" in body["error"], body
         # Wrong token.
         st, body = post_raw(json.dumps(good()).encode(), token="deadbeef" * 8)
         assert st == 401, ("unknown token must be 401", st, body)
         # Garbage body, no token: must NOT log a row.
         st, body = post_raw(b"<<<not json>>>")
         assert st == 401, ("garbage without a token must be refused at auth", st, body)
+
+        # Garbage body with an UNKNOWN token. This is not the same case as the
+        # line above and it is the one that finds a handler which swallows
+        # resolve_token's failure: with that mutation in place the garbage is
+        # parsed and logged, and the request is only refused afterwards by the
+        # route's own re-check — so the status is still 401 and only the log row
+        # betrays it. A well-formed body cannot discriminate, because a failed
+        # re-check refuses it before anything is written either way.
+        st, body = post_raw(b"<<<not json>>>", token="deadbeef" * 8)
+        assert st == 401, ("garbage with an unknown token must be 401", st, body)
+        n_mid = _log_rows(db)
+        assert n_mid == 0, (
+            "a caller with an unknown token must write no ingest rows, got %d"
+            % n_mid)
     finally:
         srv.shutdown()
         store.DB_PATH = old
 
     import sqlite3
-    con = sqlite3.connect(db)
-    try:
-        n = con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
-    except sqlite3.OperationalError:
-        n = 0
-    con.close()
+    n = _log_rows(db)
     assert n == 0, "an unauthenticated caller must write no ingest rows, got %d" % n
 
 
