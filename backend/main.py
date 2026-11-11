@@ -24,7 +24,7 @@ from urllib.parse import urlparse, parse_qs
 
 import numpy as np
 
-from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store
+from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest
 from .warrants import SignalEvidence, build_warrant
 
 store.init_db()
@@ -382,6 +382,37 @@ STATIC_MIME = {
 }
 
 
+def route_post_ingest(body):
+    """
+    The inbound detector path, B02 §2. Returns (payload, status).
+
+    **Status codes carry the validation outcome, and that is deliberate.** A
+    collector that treats every non-200 as "retry" would retry a payload that can
+    never succeed (a bad schema) until it jams the queue, and would silently drop
+    a payload that needs a human (a suspect reading). 202 for accepted, 422 for a
+    named refusal, 200 for a suspect reading retained but not scored — the
+    collector can distinguish "fix your payload" from "someone will look at it"
+    from "carry on".
+
+    No authentication. That is a disclosed gap (B01 §7 item 1, AD-2) and the
+    reason this route must not be exposed beyond the Railroad's own collector on
+    a trusted segment; an unauthenticated ingest route is a data-poisoning route.
+    """
+    result = ingest.ingest_and_record(store.DB_PATH, body)
+    payload = {
+        "outcome": result.outcome,
+        "accepted_for_scoring": result.accepted_for_scoring,
+        "advisory_emitted": result.emitted_an_advisory,
+        "recorded_at": result.recorded_at,
+    }
+    if result.reason:
+        payload["reason"] = result.reason
+    status = {ingest.ACCEPTED: 202,
+              ingest.SUSPECT: 200,
+              }.get(result.outcome, 422)
+    return payload, status
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass  # keep the console quiet; flip this on for debugging
@@ -458,6 +489,36 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path
         parts = path.split("/")  # ['', 'api', 'warrant', '<advisory_id>', 'disposition']
         try:
+            if path == "/api/ingest":
+                # B02 §2. Reads the raw body with a size cap: an ingest route
+                # that buffers whatever it is sent is a memory-exhaustion path
+                # before it is anything else. A detector payload is a few
+                # hundred bytes; 64 KiB is generous.
+                length = int(self.headers.get("Content-Length", 0) or 0)
+                if length > 64 * 1024:
+                    return self._send_json(
+                        {"outcome": ingest.REJECTED_SCHEMA,
+                         "reason": "payload exceeds the 64 KiB ingest limit",
+                         "accepted_for_scoring": False,
+                         "advisory_emitted": False}, status=413)
+                raw = self.rfile.read(length) if length else b""
+                try:
+                    body = json.loads(raw.decode("utf-8")) if raw else None
+                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    # A payload that is not JSON never reaches the chain — but it
+                    # is still logged, because a collector sending garbage is an
+                    # operational problem someone must see.
+                    ingest.init_ingest_log(store.DB_PATH)
+                    ingest.record(store.DB_PATH, ingest.IngestResult(
+                        ingest.REJECTED_SCHEMA, "body is not valid JSON: %s" % exc),
+                        {"_unparsed": raw[:200].decode("utf-8", "replace")})
+                    return self._send_json(
+                        {"outcome": ingest.REJECTED_SCHEMA,
+                         "reason": "body is not valid JSON",
+                         "accepted_for_scoring": False,
+                         "advisory_emitted": False}, status=422)
+                result, status = route_post_ingest(body)
+                return self._send_json(result, status=status)
             if len(parts) == 5 and parts[1] == "api" and parts[2] == "warrant" and parts[4] == "disposition":
                 length = int(self.headers.get("Content-Length", 0))
                 raw = self.rfile.read(length) if length else b"{}"

@@ -8,7 +8,7 @@
 
 > **What is solid and what is dotted.** Every box and arrow drawn with a solid line exists in the code today. Every dotted element is labelled as a production requirement not yet built, and each maps to the gap list in **B01 §7**. This distinction is the point of the document: a flow map that draws the intended system as though it were the shipped one is the most common way a vendor misleads a customer without ever writing a false sentence.
 >
-> **One section departs from the convention and says so.** §2, the ingest path, is drawn entirely dotted, because there is no inbound detector route in the code at all. Rather than omit the entry point — which would leave the map starting mid-system — it is shown as designed and labelled unbuilt. That is a deliberate exception, not an oversight, and it is flagged again in the section itself.
+> **The convention, and where §2 stands against it.** Every section of this map describes code that exists. §2 was the exception until 2026-11-11, when the ingest validation chain was built; its diagram is no longer dotted, because the path it draws is now real. Two parts of §2 remain unbuilt and are labelled as such in the section itself rather than in a diagram: the Railroad's own payload schema, and authentication on the endpoint.
 
 ---
 
@@ -57,11 +57,11 @@ flowchart TB
 
 ## 2. What enters — the ingest path
 
-> **This entire section is a requirement, not a build.** There is no inbound detector route in the code today: the demonstration build generates signals from physics equations on synthetic traces (**B01 §7 item 5**). Every element in the diagram below is **drawn dotted** for that reason, and it is the only section of this document where that is true. It is included because the validation behaviour is the design the Railroad is being asked to rely on, and a flow map that omitted the entry point would be less useful than one that shows it unbuilt.
+> **Built 2026-11-11, and this is the precise claim.** The validation chain below now exists in code: `backend/ingest.py`, served at `POST /api/ingest`. It implements these three gates in this order and fails closed — a refused payload emits no advisory and is logged with a named reason. What is **not** done: the payload schema is a versioned **demonstration** schema (`axiom-detector-payload/v1`) built from the fields the physics engine consumes, not the schema agreed with the Railroad; and the endpoint has **no authentication**, which is the AD-2 gap (B01 §7 item 1) and the reason it must not be exposed beyond the Railroad's own collector on a trusted segment. **An unauthenticated ingest route is a data-poisoning route** — that sentence belongs here rather than in a footnote. The demonstration fleet still generates its signals from physics equations on synthetic traces (B01 §7 item 5), so **ingesting a real payload does not make the demo's numbers real**; it makes that payload real.
 
 ```mermaid
 flowchart LR
-    A["Detector payload<br/><i>not yet accepted</i>"] --> B{"Payload parses<br/>against schema?"}
+    A["Detector payload<br/><i>POST /api/ingest</i>"] --> B{"Payload parses<br/>against schema?"}
     B -->|no| C["Rejected and logged<br/><b>no advisory emitted</b>"]
     B -->|yes| D{"Timestamp<br/>present?"}
     D -->|no| C
@@ -70,18 +70,15 @@ flowchart LR
     E -->|yes| G["Accepted for scoring"]
     G --> H["Physics engine"]
 
-    style A stroke-dasharray: 6 4,fill:#fff
-    style B stroke-dasharray: 6 4,fill:#fff
-    style D stroke-dasharray: 6 4,fill:#fff
-    style E stroke-dasharray: 6 4,fill:#fff
-    style C fill:#fdeaea,stroke:#a33,stroke-dasharray: 6 4
-    style F fill:#fff4d6,stroke:#b8860b,stroke-dasharray: 6 4
-    style G fill:#eaf4ea,stroke:#2d6a2d,stroke-dasharray: 6 4
+    style C fill:#fdeaea,stroke:#a33
+    style F fill:#fff4d6,stroke:#b8860b
+    style G fill:#eaf4ea,stroke:#2d6a2d
+    style H stroke-dasharray: 6 4,fill:#fff
 ```
 
-**The design intent: malformed input fails closed.** It does not produce a low-confidence advisory; it produces no advisory and a log entry. The distinction matters: a system that emits a weak signal for a bad reading teaches reviewers to ignore weak signals. **That sentence describes what we have decided to build. It is not a description of what runs today** — today nothing is ingested, so nothing is rejected and nothing is scored from a Railroad source.
+**The design intent: malformed input fails closed.** It does not produce a low-confidence advisory; it produces no advisory and a log entry. The distinction matters: a system that emits a weak signal for a bad reading teaches reviewers to ignore weak signals. **The chain now runs as drawn.** `H` stays dotted because the demonstration fleet is not wired to ingested readings — an accepted payload is validated and logged, and the physics engine would score it, but the demo's rankings still come from synthetic traces.
 
-> **Current state, stated plainly.** The demonstration build generates its signals from physics equations on synthetic traces (**B01 §7 item 5**). There is no detector payload endpoint, no schema validation, no timestamp check and no plausibility filter in the shipped code. The real detector payload schema must be defined, versioned and agreed with the Railroad before production, and the validation chain above must then be built and tested against it. **Until both have happened, every number in a demonstration is a demonstration of the method, not of your data** — and no customer's IT reviewer should be told otherwise.
+> **Current state, stated plainly.** The chain above is built and tested (24 tests), and every element of the diagram is real code rather than a requirement. Three things remain open and are not smoothed over: **the schema** is a demonstration schema and the real one must be defined, versioned and agreed with the Railroad; **authentication** on the endpoint does not exist, so it is safe only on a trusted segment until AD-2 lands; and **nothing downstream is wired to ingested readings yet** — an accepted payload is validated and logged, but the demonstration fleet still scores synthetic traces, so every number in a demonstration is still a demonstration of the method, not of the Railroad's data. **No customer's IT reviewer should be told otherwise.**
 
 ---
 

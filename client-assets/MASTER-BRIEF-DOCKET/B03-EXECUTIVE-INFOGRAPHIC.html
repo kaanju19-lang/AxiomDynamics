@@ -443,16 +443,16 @@
 
   <!-- ================= STATUS ================= -->
   <section class="status">
-    <h2>Four gaps are designed and not yet built. They are listed here, not in an appendix.</h2>
+    <h2>Three gaps remain, and two of them are ours to close. They are listed here, not in an appendix.</h2>
     <dl>
       <dt>Detector ingest</dt>
-      <dd>No endpoint accepts a Railroad payload today; the demonstration generates its own signals. Schema agreed in the pilot, validation chain built against it.</dd>
+      <dd>Built 2026-11-11. A payload is validated against a schema, a timestamp and physical plausibility, and either accepted, held as suspect without scoring, or refused with a named reason and logged. Two parts are open: the schema is ours and must be replaced with yours, and the endpoint has no authentication, so it sits on a trusted segment until reviewer credentials land.</dd>
       <dt>Append-only ledger</dt>
-      <dd>Today the write path can overwrite a record for the same advisory. The ledger is a record, not yet a tamper-evident trail. Rebuild target Q2 2027.</dd>
+      <dd>Built 2026-11-09, hardened 2026-11-11. Rows are insert-only, corrections are new rows that supersede, and the database itself aborts an update, a delete, or a replace over an existing row. A SHA-256 chain crosses every row. Tamper-evident, not tamper-proof: write access to the file is a different threat, addressed by export and key custody.</dd>
       <dt>Registered identity</dt>
-      <dd>Reviewer identity is a local account, not a cryptographically issued credential. A hash proves integrity, not authorship. Target Q2 2027.</dd>
+      <dd>Open. Reviewer identity is a local account, not a cryptographically issued credential. A hash proves integrity, not authorship — and a symmetric signature cannot name who made it. Target Q2 2027.</dd>
       <dt>Signed export</dt>
-      <dd>Content hashes are produced; a signed bundle with partition boundary and record count is not. Target Q2 2027.</dd>
+      <dd>Built 2026-11-09, with the D09 cadence added 2026-11-10. A bundle carries a manifest, every record in canonical form, and an HMAC-SHA256 signature; a recipient verifies it with a Python standard library and nothing from us. Limits are stated in B01 §4.5a rather than assumed away.</dd>
     </dl>
   </section>
 

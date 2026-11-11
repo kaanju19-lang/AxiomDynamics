@@ -48,12 +48,21 @@ not this file.
 
 ## The largest known gap
 
-**There is no detector ingest path.** No endpoint accepts a Railroad payload.
-Every demonstration signal is generated from the physics equations on synthetic
-traces. This is disclosed in B01 §7 gap #5, B02 §2 and the B03 status block.
+**The ingest chain is built; nothing downstream is wired to it.** As of
+2026-11-11 `POST /api/ingest` accepts a payload and applies schema → timestamp →
+plausibility in that order: accepted for scoring (202), retained as suspect
+without scoring (200), or refused with a named reason and logged (422). 24
+tests. No outcome other than `accepted` emits an advisory.
 
-Every demonstration number demonstrates **the method**, not the Railroad's data.
-The validation chain — schema, timestamp, plausibility — is designed and not built.
+Three parts remain open, disclosed in B01 §7 item 5 and B02 §2: the payload
+schema is a **demonstration schema** (`axiom-detector-payload/v1`) and the real one
+must be agreed with the Railroad; **the endpoint has no authentication**, which
+makes it a data-poisoning route until AD-2 lands and is why it belongs on a
+trusted segment; and **the demonstration fleet still scores synthetic traces** —
+an accepted payload is validated and logged, not scored.
+
+Every demonstration number therefore still demonstrates **the method**, not the
+Railroad's data.
 
 ## Open items, in priority order
 
