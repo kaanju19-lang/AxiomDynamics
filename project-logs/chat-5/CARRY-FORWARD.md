@@ -1,9 +1,14 @@
 # Chat-5 — Carry-Forward
 
-Handoff from chat-4, closed 2026-11-10. Read this first, then confirm every
+Handoff from chat-4, closed 2026-11-11. Read this first, then confirm every
 claim below against the repository. **Nothing in this document is authority.**
 The repository is. Every written push list in this project has gone stale at
 least once — four sessions running now, including this one's.
+
+**State at handoff:** clean tree, nothing untracked, HEAD is the transcript
+re-snapshot. The suite is **114 tests**, the arithmetic pass **97 checks**, the
+decision paper **65 checks** — all green when this was written. The A1 workbook
+is installed and correct. **One owner action: push.**
 
 ---
 
@@ -35,6 +40,27 @@ modified on this checkout. It is CRLF working-tree content against LF blobs, not
 content: `git diff --ignore-cr-at-eol` returns empty for those. There is no
 `.gitattributes` and `core.autocrlf` is unset. Always check with
 `--ignore-cr-at-eol`, stage named files only, and **never `git add -A`**.
+
+## The A1 workbook — closed, and the builder can no longer break it
+
+`AxiomDynamics-ROI-Calculator.xlsx` now charges the **$370,000 pilot year** and
+returns **2.0653×** three-year, agreeing with A2 §5.1. The stale copy, the
+`…rebuilt.xlsx` intermediate and `REPLACE-WORKBOOK.bat` are all deleted. Verified
+by reading the cached values back out of the file and by converting it to PDF, not
+by trusting the build script's output line.
+
+**A defect was found and fixed while doing that, and it is worth knowing about.**
+`build_roi_calculator.py` writes live formulas with no cached values — openpyxl
+cannot evaluate them — so the previous workflow was "run the builder, then
+recalculate in LibreOffice by hand." Running the builder merely to confirm it
+still worked therefore **silently replaced the recalculated docket workbook with a
+formula-only copy**, and every figure the docket and A2 quote read as zero to
+anything that did not open it in Excel first.
+
+The builder now does the LibreOffice round trip itself and prints a loud warning
+if LibreOffice is missing. Running it is safe. **But the general lesson stands:
+a build step whose second half is manual is a build step that gets half-run.**
+Check for that pattern elsewhere before trusting any script that says "then do X."
 
 ## One thing that needs the owner, before anything else
 

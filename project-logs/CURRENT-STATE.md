@@ -170,9 +170,9 @@ under a different name is how the staleness got missed in the first place.
 
 The standing rule is that a phase is not finished until its assets and its
 conversation are in this repository. Chat-4's raw log was extracted at close:
-5,574 events, 12 MB, into
+5,667 events, 12 MB, into
 `project-logs/transcripts/raw/2026-11-10-chat-4-snapshot.jsonl`, with the
-readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 691 turns
+readable extract at `project-logs/transcripts/2026-11-10-chat-4.md` — 704 turns
 of which **six are the owner's**.
 
 **A defect in the extractor was fixed in this pass.** `extract_transcript.py`
