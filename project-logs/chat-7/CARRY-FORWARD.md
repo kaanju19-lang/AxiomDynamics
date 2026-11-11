@@ -1,6 +1,6 @@
 # Chat-7 — Carry-Forward
 
-**State at rollover:** HEAD `b829af4`. Suite **346 passed, 0 failed**. 4 commits
+**State at rollover:** HEAD `2fa4bc4`. Suite **346 passed, 0 failed**. 5 commits
 unpushed. Chat-7 built the two remaining AD-2 halves (ingest gating and the
 signed key directory) and a mutation driver that found four gaps in its own
 test coverage.
@@ -119,6 +119,6 @@ not applied** — Q1–Q2 2027 targets.
 
 ## Push required
 
-4 commits unpushed (`826fabd`, `1b76ba7`, `1f25f9a`, `b829af4`) plus the chat-7
-close commits. Run `PUSH-TO-GITHUB.bat`. The sandbox cannot reach GitHub —
+5 commits unpushed (`826fabd`, `1b76ba7`, `1f25f9a`, `b829af4`, `2fa4bc4`).
+Run `PUSH-TO-GITHUB.bat`. The sandbox cannot reach GitHub —
 `git push` and `git fetch` both fail HTTP 403 from the proxy.

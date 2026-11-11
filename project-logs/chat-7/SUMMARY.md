@@ -1,6 +1,6 @@
 # Chat-7 — Summary
 
-**When:** 2026-11-11. **Commits:** `826fabd`, `1b76ba7`, `1f25f9a`, `b829af4`.
+**When:** 2026-11-11. **Commits:** `826fabd`, `1b76ba7`, `1f25f9a`, `b829af4`, `2fa4bc4` (close).
 **Suite:** 315 → 346 (plus 30 tests that initially never ran — see the defect).
 
 Worked a five-item ladder top-down, low complexity to high, one at a time.
