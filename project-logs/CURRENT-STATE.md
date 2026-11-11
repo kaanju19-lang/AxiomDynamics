@@ -1,10 +1,12 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-11 (**chat-7 closed** — AD-2's other two halves:
-authenticated ingest and the signed key directory). Next session: read
-`chat-7/CARRY-FORWARD.md`, then this file. **Chat-8 starts by closing the four
-mutation survivors** listed there — test gaps found by
-`assets/mutation-ingest-auth.py`, not code defects.
+**Last updated:** 2026-11-11 (**chat-7 closed and audited** — AD-2's other two
+halves, authenticated ingest and the signed key directory, plus a close-out pass
+that found five docket documents still describing the ingest route as open).
+Next session: read `chat-7/CARRY-FORWARD.md`, then this file. **Chat-8 starts by
+closing the four mutation survivors** listed there — test gaps found by
+`assets/mutation-ingest-auth.py`, not code defects. Re-confirmed at close:
+18 mutations, 14 killed, 4 alive (M2, M3, M5, M9).
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that

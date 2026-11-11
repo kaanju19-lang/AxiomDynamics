@@ -80,6 +80,31 @@ that means less than it appears to.
 
 ---
 
+## Close-out audit
+
+A pass over the whole repo before rolling over found the build itself sound and
+the **documentation of it stale**. Five docket documents still told the client the
+ingest endpoint had no authentication: B02 §2, D00 (twice) and B03's status
+block. All now describe the collector credential and the gate-before-body-read.
+B01's item-1 closing paragraph said the signed key directory *kept the item open*,
+contradicting the same row's last column, which records it as built — fixed.
+
+B01 and C01 declined an HTTP export route on the grounds that the server had "no
+authentication". That was true when written and is now imprecise rather than
+false: reviewer sessions and collector tokens exist, but neither is an
+administrator principal, and a full ledger export should not go to either. Both
+now say that instead, and the conclusion — no export route — is unchanged.
+
+The two `assets/` build records were **annotated as historical, not rewritten**.
+They are evidence of what was true when written; editing them would destroy that.
+The defect in each got a strikethrough and a note naming the fix.
+
+Verified at close: 346 tests green, every module counted by the runner, both
+previously-silent test files reporting their own 15, mutation baseline still
+18 / 14 killed / 4 alive, tree clean, transcript an exact prefix of the live log.
+
+---
+
 ## What chat-8 picks up
 
 Fix the four mutation survivors, then the independent adversarial audit of the
