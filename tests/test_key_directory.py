@@ -146,6 +146,44 @@ def test_one_key_cannot_name_two_reviewers_even_when_resigned():
 
 
 @test
+def test_a_refused_directory_returns_no_bindings():
+    """
+    `bindings` is what a caller iterates to decide which name a key belongs to.
+    Returning the entries parsed before the failure — even alongside ok=False —
+    invites a caller that checks `ok` late, or logs the bindings and carries on.
+
+    Observed before this test: the forged two-reviewer directory above returned
+    {'<key>': 'hoffman'} from the very document it had just refused, so the
+    refusal was true and the conflicted name was still on offer.
+    """
+    with _Tmp() as db:
+        attribution.register(db, "hoffman", "CERT-H-1", REVIEWER_KEY)
+        signed = key_directory.sign(key_directory.build(db), KEY)
+        forged = dict(signed["entries"][0])
+        forged["reviewer"] = "saboteur"
+        resigned = key_directory.sign(
+            {"format": signed["format"],
+             "generated_at": signed["generated_at"],
+             "entries": signed["entries"] + [forged]}, KEY)
+        out = key_directory.verify(resigned, KEY)
+        assert out["ok"] is False, out
+        assert out["bindings"] == {}, \
+            "a refused directory handed back bindings: %r" % (out["bindings"],)
+
+
+@test
+def test_an_accepted_directory_still_returns_its_bindings():
+    """The counterpart: the fix must not empty bindings on the happy path."""
+    with _Tmp() as db:
+        attribution.register(db, "hoffman", "CERT-H-1", REVIEWER_KEY)
+        out = key_directory.verify(
+            key_directory.sign(key_directory.build(db), KEY), KEY)
+        assert out["ok"] is True, out
+        assert out["bindings"] == {
+            key_directory.key_id(REVIEWER_KEY): "hoffman"}, out
+
+
+@test
 def test_a_revoked_binding_is_not_live():
     with _Tmp() as db:
         attribution.register(db, "hoffman", "CERT-H-1", REVIEWER_KEY)

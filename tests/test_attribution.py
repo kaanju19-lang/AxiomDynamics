@@ -650,6 +650,51 @@ def test_a_revoked_key_cannot_be_re_registered_back_into_use():
 
 
 @test
+def test_one_key_cannot_be_registered_to_a_second_reviewer():
+    """
+    A key shared between two reviewers destroys the only thing an attestation
+    says. Before this check `register` refused only a *revoked* key, so a
+    second registration with the same bytes under a different name succeeded —
+    and because `attest` resolves the newest entry for a key_id, the second
+    reviewer could then attest rows naming themselves, while the original
+    reviewer was locked out of their own key.
+
+    The register is append-only, so a bad binding can never be removed. The key
+    directory caught the conflict at publish time, which is far too late. This
+    asserts the write is refused instead.
+    """
+    fresh()
+    at.register(store.DB_PATH, "Hoffman", "CERT-000", HOFFMAN)
+    try:
+        at.register(store.DB_PATH, "Okafor", "CERT-002", HOFFMAN)
+    except ValueError as exc:
+        assert "already bound" in str(exc), exc
+    else:
+        raise AssertionError("a second reviewer was allowed to take a live key")
+    # The original binding still governs: Hoffman can still attest with it.
+    row = store.save_disposition("AD-2025-8888", "Hoffman", "CERT-000",
+                                 "concur_dispatch", "")
+    at.attest(store.DB_PATH, row["id"], HOFFMAN)
+
+
+@test
+def test_a_renewal_under_a_new_certificate_is_still_allowed_for_the_same_key():
+    """
+    The counterpart to the refusal above, and the reason it is narrower than it
+    first looks. Renewing is registering the same key under a new certificate
+    for the *same* reviewer — the test below depends on it, and so does the
+    rotation procedure in D09 §8.4.5. The refusal must be about the reviewer
+    changing, never about the certificate.
+    """
+    fresh()
+    at.register(store.DB_PATH, "Hoffman", "CERT-OLD", HOFFMAN, note="original")
+    at.register(store.DB_PATH, "Hoffman", "CERT-NEW", HOFFMAN, note="renewed")
+    rows = [r for r in at.registry(store.DB_PATH) if r["reviewer"] == "Hoffman"]
+    assert len(rows) == 2, rows
+    assert rows[-1]["cert_id"] == "CERT-NEW", rows[-1]
+
+
+@test
 def test_a_renewal_under_a_new_certificate_exports_the_new_certificate():
     """The renewal case end to end: attest after the renewal, export the renewal.
 

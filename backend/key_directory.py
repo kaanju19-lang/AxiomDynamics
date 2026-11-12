@@ -210,8 +210,15 @@ def verify(directory: Dict[str, Any], key: bytes) -> Dict[str, Any]:
           "no reviewer has a live key binding; the directory cannot verify "
           "any attestation")
 
-    return {"ok": all(c["ok"] for c in checks), "checks": checks,
-            "bindings": live}
+    # A rejected directory must not hand back bindings. `bindings` is what a
+    # caller iterates to decide which name a key belongs to, and returning the
+    # ones parsed before a failure — even alongside ok=False — invites a caller
+    # that checks `ok` late, or logs the bindings and moves on. The specific
+    # case that surfaced this: a key bound to two reviewers returned
+    # {'<key>': 'Hoffman'} from the very directory that had just refused it, so
+    # "refused" was true and the conflicted name was still on offer.
+    ok = all(c["ok"] for c in checks)
+    return {"ok": ok, "checks": checks, "bindings": live if ok else {}}
 
 
 def save(directory: Dict[str, Any], path: str) -> None:

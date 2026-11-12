@@ -456,6 +456,21 @@ python3 tools/verify_ledger_export.py \
 # Expected final line: "OK — every check passed."
 ```
 
+**Reviewer credentials are a separate key and a separate procedure.** The export key above signs bundles; it is **not** a reviewer key and must never be registered as one (D09 §8.4.7). Each reviewer is issued their own key when they join, and that key is what attests their dispositions:
+
+```bash
+# For each reviewer, from a signed F08 only (D09 §8.4.2 step 1):
+python3 -I tools/issue_reviewer_key.py \
+    --reviewer "Hoffman" --cert CERT-H-0001 \
+    --key-file /root/reviewer-keys/hoffman.key --note "F08 dated 2026-11-11"
+
+# It prints the key_id. RECORD THAT -- and never the key -- in the custody
+# log (D09 §8.4.6). Give the key file to the reviewer, or to the sealed
+# store; do NOT leave it beside the export bundles.
+```
+
+**The joiner/mover/leaver procedure itself is D09 §8.4** and is the part a script cannot do. Read it before issuing a credential: step 1 is a signed F08, and there is no path to step 2 without it.
+
 **Every subsequent export passes the previous one, and this is not optional:**
 
 ```bash

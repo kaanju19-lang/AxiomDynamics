@@ -222,6 +222,32 @@ def register(db_path: str, reviewer: str, cert_id: str, key: bytes,
                 "use — re-registering the same key bytes is not a renewal, it "
                 "is the same secret, and whatever made it untrustworthy is "
                 "still true; issue a new key" % (kid, r["revoked_at"]))
+        # A live key belongs to exactly one *reviewer* for its whole life. The
+        # certificate may change — that is the renewal path (register the same
+        # key under a renewed certificate, which `attest` and export both
+        # resolve by taking the newest entry for the key_id). The reviewer may
+        # not.
+        #
+        # Before this check the only prior rule was the revoked-key test above,
+        # so a second register() with the same bytes under a different name
+        # *succeeded* and silently took the key over: the second reviewer could
+        # then attest rows naming themselves, while the original reviewer was
+        # locked out of their own key. key_directory.verify catches the conflict
+        # at publish time, but that is after a bad binding is already in an
+        # append-only register — the wrong time to discover it, because the
+        # register cannot be repaired. Refused at the write instead.
+        for r in conn.execute(
+                "SELECT reviewer, cert_id, registered_at FROM reviewer_keys "
+                "WHERE key_id = ? AND revoked_at IS NULL LIMIT 1", (kid,)):
+            if r["reviewer"] != reviewer:
+                raise ValueError(
+                    "key %s is already bound to %r under %s since %s; one key "
+                    "attributes exactly one reviewer for the life of the key. "
+                    "Issue a new key for %r — a shared key means an attestation "
+                    "no longer says who made it. (A renewed certificate for %r "
+                    "may reuse their own key.)"
+                    % (kid, r["reviewer"], r["cert_id"], r["registered_at"],
+                       reviewer, r["reviewer"]))
         prev = conn.execute(
             "SELECT entry_hash FROM reviewer_keys ORDER BY id DESC LIMIT 1"
         ).fetchone()
