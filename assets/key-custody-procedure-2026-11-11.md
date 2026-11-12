@@ -131,10 +131,11 @@ Suite **351 → 359**: 2 attribution, 2 key-directory, 4 for the tool.
 
 ## Docket corrected in the same pass
 
-B01 §10 (AD-2 bullet), §2 item 2, §7 item 1 (status cell and its closing
-paragraph), B02 §2, C01 (new reviewer-credential block), C02 §5, D00 Part IV and
-the AD-2 line, D09 §4.4 rows, and F08's preamble. Grep confirms no document
-still claims the procedure is unwritten.
+B01 (the AD-2 bullet in the preamble, which carries no section number), §2 item
+2, §7 item 1 (status cell and its closing paragraph), B02 §2, C01 (new
+reviewer-credential block), C02 §5, D00 Part IV and the AD-2 line, D09 §4.4
+rows, and F08's preamble. Grep confirms no document still claims the procedure
+is unwritten.
 
 ## Not closed, and the section says so
 

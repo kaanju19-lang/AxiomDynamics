@@ -1,9 +1,11 @@
 # AxiomDynamics — Current State
 
 **Last updated:** 2026-11-11 (**chat-8 in progress** — chat-7's four mutation
-survivors closed; the driver now reports **18 mutations, 18 killed, 0
-survived**, suite **351**). Next session: read `CURRENT-STATE.md`, then the
-latest `chat-N/CARRY-FORWARD.md`. Account: `assets/mutation-survivors-closed-2026-11-11.md`.
+survivors closed and the AD-2 custody procedure written; the driver reports
+**18 mutations, 18 killed, 0 survived**, suite **359**). Next session: read
+`CURRENT-STATE.md`, then the latest `chat-N/CARRY-FORWARD.md`. Accounts:
+`assets/mutation-survivors-closed-2026-11-11.md` (phase one),
+`assets/key-custody-procedure-2026-11-11.md` (phase two).
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -82,6 +84,41 @@ sets it first.
 
 **`project-logs/close-gate.sh` carries chat-7's session path** and will fail
 from any other session. Fix its paths before chat-8 closes.
+
+## Chat-8 phase two — the AD-2 custody procedure, 2026-11-11
+
+Commit `3de44cf`. B01 §7 item 1 has been open on "key custody and
+joiner/mover/leaver — a written procedure, not code" since chat-6. It is now
+**D09 §8.4**, eight subsections, beside §4.5 which already does the same job for
+the export key. Account: `assets/key-custody-procedure-2026-11-11.md`.
+**Suite 351 → 359.**
+
+**Writing the procedure down exposed three things the code did not support, and
+no test found any of them.** That is the part worth carrying:
+
+- **A key could be registered to a second reviewer, and the second one won.**
+  `register` refused only a key revoked *anywhere* in its history; a *live* key
+  presented under a different reviewer was accepted, and because `attest`
+  resolves the newest entry for a `key_id` — deliberately, so renewal works —
+  the second reviewer took the key over and the original holder was locked out
+  of their own key. The register is append-only, so the binding could never be
+  removed. Now refused at the write. A renewal under a new certificate for the
+  **same** reviewer still works; my first attempt refused that too and would
+  have broken rotation to fix sharing.
+- **A refused key directory still handed back bindings** — `ok=False` alongside
+  `bindings={'<key>': 'Hoffman'}` for the directory it had just refused. Now
+  `{}`.
+- **The procedure named a step nobody could perform.** The only code that made
+  a reviewer key was `seed_demo_account.py`, which generates one and discards
+  it. `tools/issue_reviewer_key.py` is the joiner step: generate, register,
+  print the `key_id`, never the key, refuse to overwrite an existing key file.
+
+Every mechanism claim in §8.4 was executed rather than reasoned about. Both new
+guards are mutation-tested — each fails exactly one test when removed.
+**Item 1 is not closed:** a credential holder is not a person, the HMAC scheme
+is symmetric, a demo cannot attest, and every step but revocation is performed
+by a human. What changed is that the item is now auditable under D09 §10.1, and
+B01 §7 item 1 says that rather than implying a document settles it.
 
 ## What this project is
 
