@@ -12,6 +12,7 @@ Conversation records for the project.
 | `2026-11-11-chat-5.md` | 705 (4 user, 701 assistant) | chat-5, first line to the closing request |
 | `2026-11-11-chat-7-part1.md` | 45 (1 user, 44 assistant) | chat-7 first attempt; aborted 15:37 UTC on a billing error after `b02196f` |
 | `2026-11-11-chat-7-part2.md` | 289 (5 user, 284 assistant) | chat-7 completed; ingest auth, key directory, mutation findings |
+| `2026-11-11-chat-8.md` | 242 (4 user, 238 assistant) | chat-8; four mutation survivors closed, AD-2 custody procedure, the three defects it exposed |
 | `raw/2026-11-09-chat-2.jsonl` | 791 events | the unprocessed chat-2 log, 1.6 MB |
 | `raw/chat-2-final.jsonl`, `raw/chat-2-close.jsonl` | — | later snapshots of the same chat-2 session |
 | `raw/2026-11-10-chat-3-snapshot.jsonl` | 6,372 events | the chat-3 log at close, 26 MB, valid JSONL |
@@ -19,6 +20,7 @@ Conversation records for the project.
 | `raw/2026-11-11-chat-5-snapshot.jsonl` | 5,420 lines | the chat-5 log at close, 11.0 MB, valid JSONL |
 | `raw/2026-11-11-chat-7-part1-snapshot.jsonl` | 369 lines | chat-7 part 1 at close, 1.0 MB, byte-identical to source |
 | `raw/2026-11-11-chat-7-part2-snapshot.jsonl` | 2,208 lines | chat-7 part 2 at close, 3.9M, exact prefix of the live log |
+| `raw/2026-11-11-chat-8-snapshot.jsonl` | 1,984 lines | chat-8 at the first close snapshot, 4.0 MB, valid JSONL |
 
 The `.md` is the readable version: every user and assistant turn in order. Tool
 calls are recorded inline so you can see what was run; tool *output* — command
@@ -95,6 +97,14 @@ Four things it must do, learned the hard way on chat-3 and chat-5:
    trustworthy if you can read the user's actual messages back and recognise
    every one. If a message is missing or a prompt appears that nobody typed, the
    filter is wrong.
+
+**A file in `raw/` cannot be overwritten in place.** Once `raw/<name>.jsonl`
+exists, `cp` onto it and `>>` to it both return `Permission denied` — a new file
+in the same directory writes fine and `mv -f` over the old name succeeds. This
+was hit at chat-8's close, when a re-snapshot after the extraction failed on the
+destination the extractor had just written. Consequence: give
+`extract_transcript.py` a `/tmp` destination for the raw file and move it in
+afterwards, or write to a fresh name and rename.
 
 **A caveat on the turn count.** It grows as the session does, and it counts
 assistant *messages*, which include every tool call as a separate entry. The
