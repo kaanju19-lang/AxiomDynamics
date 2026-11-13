@@ -46,7 +46,7 @@ def test(fn):
 
 
 def run(*args, cwd=None):
-    p = subprocess.run([sys.executable, "-I", TOOL, *args],
+    p = subprocess.run([sys.executable, "-I", "-B", TOOL, *args],
                        capture_output=True, text=True, cwd=cwd or ROOT)
     return p.returncode, p.stdout + p.stderr
 

@@ -574,7 +574,7 @@ def test_the_standalone_verifier_reports_a_key_that_matches_nothing():
     with open(rk, "wb") as f:
         f.write(OKAFOR)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", bp, "--key-file", kp, "--json",
          "--reviewer-key", "%s=%s" % (at.key_id(OKAFOR), rk)],
         capture_output=True, text=True, cwd=d)
@@ -847,7 +847,7 @@ def _run_standalone(bundle, key, reviewer_key=None):
         json.dump(bundle, f)
     with open(kp, "wb") as f:
         f.write(key)
-    cmd = [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+    cmd = [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
            "--bundle", bp, "--key-file", kp, "--json"]
     if reviewer_key is not None:
         kid, name, rk = reviewer_key
@@ -938,7 +938,7 @@ def test_the_standalone_verifier_sees_attribution_and_still_needs_no_database():
     with open(kp, "wb") as f:
         f.write(KEY)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", bp, "--key-file", kp, "--json"],
         capture_output=True, text=True, cwd=d)
     result = json.loads(out.stdout)
@@ -967,7 +967,7 @@ def test_the_standalone_verifier_recomputes_with_a_reviewer_key():
     with open(rk, "wb") as f:
         f.write(HOFFMAN)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", bp, "--key-file", kp, "--json",
          "--reviewer-key", "%s=%s" % (at.key_id(HOFFMAN), rk)],
         capture_output=True, text=True, cwd=d)
@@ -1019,7 +1019,7 @@ def test_the_standalone_verifier_catches_a_flipped_attestation_value():
     with open(rk, "wb") as f:
         f.write(HOFFMAN)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", bp, "--key-file", kp, "--json",
          "--reviewer-key", "%s=%s" % (at.key_id(HOFFMAN), rk)],
         capture_output=True, text=True, cwd=d)
@@ -1047,7 +1047,7 @@ def test_the_standalone_verifier_rejects_a_mislabelled_reviewer_key():
     with open(rk, "wb") as f:
         f.write(OKAFOR)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", bp, "--key-file", kp,
          "--reviewer-key", "%s=%s" % (at.key_id(HOFFMAN), rk)],
         capture_output=True, text=True, cwd=d)

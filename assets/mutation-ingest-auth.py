@@ -185,7 +185,7 @@ def run_tests():
     try:
         for mod in TESTS:
             p = subprocess.run(
-                [sys.executable, "-I", "-X", "pycache_prefix=" + cache,
+                [sys.executable, "-I", "-B", "-X", "pycache_prefix=" + cache,
                  os.path.join(REPO, mod)],
                 capture_output=True, text=True, cwd=REPO)
             codes.append((mod, p.returncode, p.stdout + p.stderr))

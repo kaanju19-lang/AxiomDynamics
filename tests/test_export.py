@@ -387,7 +387,7 @@ def test_a_rewritten_history_is_caught_by_the_standalone_verifier_too():
     with open(kp, "wb") as f:
         f.write(KEY)
     out = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--bundle", p2, "--key-file", kp, "--previous-bundle", p1],
         capture_output=True, text=True, cwd=d)
     assert out.returncode != 0, "standalone verifier accepted a rewritten history"
@@ -465,12 +465,16 @@ def test_a_bundle_carrying_a_duplicate_json_key_is_refused():
     with open(bp, "w", encoding="utf-8") as f:
         f.write(body)
 
-    for cmd in ([sys.executable, "-I",
+    for cmd in ([sys.executable, "-I", "-B",
                  os.path.join(ROOT, "tools", "verify_ledger_export.py"),
                  "--bundle", bp, "--key-file", kp],
                 # The in-repo CLI is a package module, so it runs with -m from
-                # the repo root, not as a path. `-I` still isolates it.
-                [sys.executable, "-m", "backend.ledger_export",
+                # the repo root, not as a path. `-B` stops it writing bytecode:
+                # a `-m backend...` run imports the package, so without -B it
+                # leaves __init__/store/ledger_export .pyc under backend/.
+                # `-I` could not be used here AND carry a cache prefix, because
+                # -I sets sys.pycache_prefix to None. -B sidesteps that.
+                [sys.executable, "-B", "-s", "-m", "backend.ledger_export",
                  "verify", "--bundle", bp, "--key-file", kp]):
         out = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
         assert out.returncode != 0, "a duplicate-key bundle was accepted by: " + cmd[1]
@@ -691,7 +695,7 @@ def _run_standalone(bundle, key, previous=None):
         json.dump(bundle, f)
     with open(kp, "wb") as f:
         f.write(key)
-    cmd = [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+    cmd = [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
            "--bundle", bp, "--key-file", kp, "--json"]
     if previous is not None:
         pp = os.path.join(d, "prev.json")

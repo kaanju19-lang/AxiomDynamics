@@ -159,7 +159,7 @@ def run_tests():
     """Run the two modules that must catch these mutations."""
     codes = []
     for mod in ("tests/test_attribution.py", "tests/test_export.py"):
-        p = subprocess.run([sys.executable, "-I", os.path.join(REPO, mod)],
+        p = subprocess.run([sys.executable, "-I", "-B", os.path.join(REPO, mod)],
                            capture_output=True, text=True, cwd=REPO)
         codes.append((mod, p.returncode, p.stdout))
     return codes

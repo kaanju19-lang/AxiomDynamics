@@ -385,7 +385,7 @@ def test_the_standalone_verifier_accepts_a_chained_full_export():
     with open(keyfile, "wb") as f:
         f.write(KEY)
     r = subprocess.run(
-        [sys.executable, "-I", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
+        [sys.executable, "-I", "-B", os.path.join(ROOT, "tools", "verify_ledger_export.py"),
          "--key-file", keyfile,
          "--bundle", os.path.join(d, full["file"]),
          "--previous-bundle", os.path.join(d, prev["file"])],
