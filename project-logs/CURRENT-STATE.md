@@ -1,10 +1,23 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-13 (**chat-10 closed**). Next session: read
-`CURRENT-STATE.md`, then `project-logs/chat-10/CARRY-FORWARD.md`. Suite **390**;
-`tests/test_frontend.py` is mutation-tested. Chat-10 corrected four stale
-attestation claims chat-9's own gate could not see, and built the enterprise
-frontend pass. Account: `assets/frontend-enterprise-pass-2026-11-13.md`.
+**Last updated:** 2026-11-13 (**chat-11 closed**). Next session: read
+`CURRENT-STATE.md`, then `project-logs/chat-11/CARRY-FORWARD.md`. Suite **398**;
+Chat-11 wrote the Master % Tracker rubric (the real total is **78.4**, not the
+79.1 chat-10 carried), corrected B04's inventory from 2,695 to 8,200 lines,
+corrected B02 §9's "ingest is not built at all", and corrected D10's false claim
+that a GPG key exists. Decision paper: `assets/asymmetric-signature-decision-2026-11-13.md`
+— an asymmetric signature does **not** close B01 §7 item 11. Phase record:
+`assets/chat-11-phase-record-2026-11-13.md`.
+
+**Chat-11's finding, worth carrying:** a capability gets built and the documents
+describing its absence do not close with it. Two more instances found, after
+chat-9 and chat-10 each fixed one by hand. `tests/test_docket_currency.py` now
+holds six capabilities and fails if any document asserts one is absent.
+
+**The next chat opens on two low items that produce no commits:** the dashboard has
+never been looked at by anyone (three chats now), and the `gnupg` decision is the
+owner's to make and blocks the asymmetric build. Do not assume there is code to
+write.
 
 **The buildable queue inside this repository is near-empty.** Three of chat-9's
 six rungs are blocked outside it: the real payload schema needs the Railroad, the
