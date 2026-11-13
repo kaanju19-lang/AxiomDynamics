@@ -1,10 +1,10 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-13 (**chat-9 closed**). Next session: read
-`CURRENT-STATE.md`, then `project-logs/chat-9/CARRY-FORWARD.md`. Suite **370**,
-mutation driver **24 mutations, 24 killed**. Chat-9 closed item 1's last
-software half: **a disposition cannot exist without an attestation**.
-Account: `assets/attestation-at-entry-build-2026-11-13.md`.
+**Last updated:** 2026-11-13 (**chat-10 closed**). Next session: read
+`CURRENT-STATE.md`, then `project-logs/chat-10/CARRY-FORWARD.md`. Suite **390**;
+`tests/test_frontend.py` is mutation-tested. Chat-10 corrected four stale
+attestation claims chat-9's own gate could not see, and built the enterprise
+frontend pass. Account: `assets/frontend-enterprise-pass-2026-11-13.md`.
 
 **The buildable queue inside this repository is near-empty.** Three of chat-9's
 six rungs are blocked outside it: the real payload schema needs the Railroad, the
