@@ -24,62 +24,6 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 
-// --- Industry SVG Icons ---
-function svgRailCar(size = 24) {
-  const svg = `<svg viewBox="0 0 48 32" width="${size}" height="${size}" style="display:inline-block">
-    <rect x="2" y="8" width="44" height="16" rx="2" fill="none" stroke="#0ea5e9" stroke-width="2"/>
-    <circle cx="8" cy="28" r="3" fill="#0ea5e9"/>
-    <circle cx="40" cy="28" r="3" fill="#0ea5e9"/>
-    <line x1="6" y1="24" x2="42" y2="24" stroke="#0ea5e9" stroke-width="1" opacity="0.5"/>
-  </svg>`;
-  const div = document.createElement('div');
-  div.innerHTML = svg;
-  return div.firstElementChild;
-}
-
-function svgBearing(size = 20, temp = "normal") {
-  const colors = { normal: "#10b981", warning: "#f59e0b", critical: "#ef4444" };
-  const color = colors[temp] || colors.normal;
-  const svg = `<svg viewBox="0 0 40 40" width="${size}" height="${size}" style="display:inline-block">
-    <circle cx="20" cy="20" r="18" fill="none" stroke="#e2e8f0" stroke-width="2"/>
-    <circle cx="20" cy="20" r="12" fill="none" stroke="${color}" stroke-width="2"/>
-    <circle cx="20" cy="20" r="4" fill="${color}" opacity="0.6"/>
-    <circle cx="20" cy="6" r="2.5" fill="${color}"/>
-    <circle cx="34" cy="20" r="2.5" fill="${color}"/>
-    <circle cx="20" cy="34" r="2.5" fill="${color}"/>
-    <circle cx="6" cy="20" r="2.5" fill="${color}"/>
-  </svg>`;
-  const div = document.createElement('div');
-  div.innerHTML = svg;
-  return div.firstElementChild;
-}
-
-function svgTrack(size = 16) {
-  const svg = `<svg viewBox="0 0 48 12" width="${size}" height="${size * 0.25}" style="display:inline-block">
-    <line x1="4" y1="4" x2="44" y2="4" stroke="#64748b" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <line x1="4" y1="8" x2="44" y2="8" stroke="#64748b" stroke-width="1.5" stroke-dasharray="2,3"/>
-    <circle cx="10" cy="6" r="0.8" fill="#0ea5e9"/>
-    <circle cx="24" cy="6" r="0.8" fill="#0ea5e9"/>
-    <circle cx="38" cy="6" r="0.8" fill="#0ea5e9"/>
-  </svg>`;
-  const div = document.createElement('div');
-  div.innerHTML = svg;
-  return div.firstElementChild;
-}
-
-function svgThermometer(size = 20, temp = "normal") {
-  const colors = { normal: "#10b981", warning: "#f59e0b", critical: "#ef4444" };
-  const color = colors[temp] || colors.normal;
-  const svg = `<svg viewBox="0 0 24 40" width="${size}" height="${size}" style="display:inline-block">
-    <rect x="8" y="2" width="8" height="22" rx="4" fill="none" stroke="${color}" stroke-width="2"/>
-    <circle cx="12" cy="32" r="6" fill="${color}" opacity="0.7"/>
-    <line x1="12" y1="8" x2="12" y2="20" stroke="${color}" stroke-width="2"/>
-  </svg>`;
-  const div = document.createElement('div');
-  div.innerHTML = svg;
-  return div.firstElementChild;
-}
-
 // ---------------------------------------------------------------------------
 // Generic canvas line chart. series = [{label, points:[[x,y],...], color}]
 // options: { yLabel, xLabel, hLines:[{y,label,color}], vLines:[{x,label,color}] }
@@ -108,10 +52,10 @@ function drawLineChart(canvas, series, options = {}) {
   const yToPx = (y) => padT + plotH - ((y - yMin) / (yMax - yMin || 1)) * plotH;
 
   // grid
-  ctx.strokeStyle = "#223041";
+  ctx.strokeStyle = "#e2e8f0";   // grid only: decorative, kept faint
   ctx.lineWidth = 1;
   ctx.font = "11px Segoe UI, Arial";
-  ctx.fillStyle = "#7f93a8";
+  ctx.fillStyle = "#475569";   // axis text
   const GRID_N = 5;
   for (let i = 0; i <= GRID_N; i++) {
     const y = yMin + (yMax - yMin) * (i / GRID_N);
@@ -128,23 +72,23 @@ function drawLineChart(canvas, series, options = {}) {
   // horizontal reference lines (e.g. legacy fixed threshold)
   for (const h of options.hLines || []) {
     const py = yToPx(h.y);
-    ctx.strokeStyle = h.color || "#e0624f";
+    ctx.strokeStyle = h.color || "#b91c1c";
     ctx.setLineDash([6, 4]);
     ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(W - padR, py); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = h.color || "#e0624f";
+    ctx.fillStyle = h.color || "#b91c1c";
     ctx.fillText(h.label || "", padL + 6, py - 4);
   }
 
   // vertical marker lines (e.g. defect frequencies)
   for (const v of options.vLines || []) {
     const px = xToPx(v.x);
-    ctx.strokeStyle = v.color || "#4fd6e0";
+    ctx.strokeStyle = v.color || "#1d4ed8";
     ctx.setLineDash([4, 3]);
     ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, H - padB); ctx.stroke();
     ctx.setLineDash([]);
     ctx.save();
-    ctx.fillStyle = v.color || "#4fd6e0";
+    ctx.fillStyle = v.color || "#1d4ed8";
     ctx.translate(px + 3, padT + 10);
     ctx.fillText(v.label || "", 0, 0);
     ctx.restore();
@@ -152,7 +96,7 @@ function drawLineChart(canvas, series, options = {}) {
 
   // series lines
   for (const s of series) {
-    ctx.strokeStyle = s.color || "#4fd6e0";
+    ctx.strokeStyle = s.color || "#0369a1";
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     s.points.forEach(([x, y], i) => {
@@ -163,7 +107,7 @@ function drawLineChart(canvas, series, options = {}) {
   }
 
   // axis labels
-  ctx.fillStyle = "#dbe6f0";
+  ctx.fillStyle = "#0d1520";
   ctx.font = "11px Segoe UI, Arial";
   if (options.yLabel) ctx.fillText(options.yLabel, 6, 12);
   if (options.xLabel) ctx.fillText(options.xLabel, W - padR - 60, H - 4);
@@ -171,9 +115,9 @@ function drawLineChart(canvas, series, options = {}) {
   // legend
   let lx = padL;
   for (const s of series) {
-    ctx.fillStyle = s.color || "#4fd6e0";
+    ctx.fillStyle = s.color || "#0369a1";
     ctx.fillRect(lx, 2, 10, 10);
-    ctx.fillStyle = "#dbe6f0";
+    ctx.fillStyle = "#0d1520";
     ctx.fillText(s.label, lx + 14, 11);
     lx += 14 + ctx.measureText(s.label).width + 16;
   }
@@ -189,11 +133,20 @@ async function loadFleet() {
   tbody.innerHTML = "";
   fleet.sort((a, b) => TIER_ORDER[b.severity_tier] - TIER_ORDER[a.severity_tier]);
   for (const u of fleet) {
-    const tr = el("tr", { "data-unit": u.unit_id });
+    // Rows open the detail panel on click. A click-only affordance is unusable
+    // without a mouse, so the row carries a tab stop, a button role and an
+    // Enter/Space handler -- three attributes that must travel together or the
+    // row announces itself as interactive and then does nothing.
+    const tr = el("tr", {
+      "data-unit": u.unit_id,
+      tabindex: "0",
+      role: "button",
+      "aria-label": `Open detail for unit ${u.unit_id}, ${u.severity_tier}`,
+    });
 
     // Unit + Rail Car icon
     const unitCell = el("td", {});
-    unitCell.appendChild(svgRailCar(18));
+    unitCell.appendChild(AxiomIcons.icon("railcar", { size: 18, state: "normal" }));
     unitCell.appendChild(document.createTextNode(" " + u.unit_id));
     tr.appendChild(unitCell);
 
@@ -205,7 +158,7 @@ async function loadFleet() {
     const tempCell = el("td", {});
     const tempStatus = u.peak_temp_f > (u.ambient_temp_f + 170) ? "critical" :
                        u.peak_temp_f > (u.ambient_temp_f + 115) ? "warning" : "normal";
-    tempCell.appendChild(svgBearing(18, tempStatus));
+    tempCell.appendChild(AxiomIcons.icon("bearing", { size: 18, state: tempStatus }));
     tempCell.appendChild(document.createTextNode(` ${u.peak_temp_f.toFixed(1)}°F`));
     tr.appendChild(tempCell);
 
@@ -214,11 +167,19 @@ async function loadFleet() {
     if (u.severity_tier !== "INFORMATIONAL") {
       badgeCell.appendChild(el("span", {
         class: "corroborated-tag",
-        text: u.corroborated ? "✓ corroborated" : "⚠ single signal",
+        text: u.corroborated ? "✓ corroborated (2+ signals agree)"
+                              : "⚠ single signal — capped at REVIEW",
       }));
     }
     tr.appendChild(badgeCell);
-    tr.addEventListener("click", () => showDetail(u.unit_id));
+    const open = () => showDetail(u.unit_id);
+    tr.addEventListener("click", open);
+    tr.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();   // Space would otherwise scroll the page
+        open();
+      }
+    });
     tbody.appendChild(tr);
   }
 }
@@ -441,14 +402,14 @@ function renderThermo(d) {
   const ambientDeltaLine = d.ambient_temp_f + 170.0; // legacy critical: 170F ABOVE ambient, not a flat number
   drawLineChart(document.getElementById("chart-thermo"),
     [
-      { label: "Left journal (F)", points, color: "#4fd6e0" },
-      { label: "Right journal (F)", points: rightPoints, color: "#4fe0a0" },
+      { label: "Left journal (F)", points, color: "#0369a1" },
+      { label: "Right journal (F)", points: rightPoints, color: "#047857" },
     ],
     {
       yLabel: "deg F", xLabel: "minutes",
       hLines: [
-        { y: ambientDeltaLine, label: `legacy critical (170F above ${d.ambient_temp_f.toFixed(0)}F ambient)`, color: "#e0624f" },
-        { y: d.ambient_temp_f, label: "ambient", color: "#7f93a8" },
+        { y: ambientDeltaLine, label: `legacy critical (170F above ${d.ambient_temp_f.toFixed(0)}F ambient)`, color: "#b91c1c" },
+        { y: d.ambient_temp_f, label: "ambient", color: "#475569" },
       ],
     });
 
@@ -473,10 +434,10 @@ function renderThermo(d) {
 function renderFFT(d) {
   const points = d.spectrum_freqs_hz.map((f, i) => [f, d.spectrum_magnitude[i]]);
   const vLines = Object.entries(d.defect_frequencies_hz).map(([label, hz]) => ({
-    x: hz, label, color: d.peaks[label].found ? "#e0624f" : "#7f93a8",
+    x: hz, label, color: d.peaks[label].found ? "#b91c1c" : "#475569",
   }));
   drawLineChart(document.getElementById("chart-fft"),
-    [{ label: "FFT magnitude", points, color: "#e0a94f" }],
+    [{ label: "FFT magnitude", points, color: "#b45309" }],
     { yLabel: "amplitude", xLabel: "Hz", vLines });
 
   const hits = Object.entries(d.peaks).filter(([, p]) => p.found);
@@ -489,7 +450,7 @@ function renderFFT(d) {
 function renderKinematics(d) {
   const points = d.profile.distances_m.map((dist, i) => [dist, d.profile.velocities_mps[i] * 2.237]);
   drawLineChart(document.getElementById("chart-coast"),
-    [{ label: "Speed (mph)", points, color: "#4fe0a0" }],
+    [{ label: "Speed (mph)", points, color: "#047857" }],
     { yLabel: "mph", xLabel: "meters coasted" });
 
   const mph = (v) => (v * 2.237).toFixed(1);
@@ -510,9 +471,26 @@ function renderKinematics(d) {
 
 // ---------------------------------------------------------------------------
 
-function kpiCard(label, value, cls, sub) {
-  const card = el("div", { class: "kpi-card" });
-  card.appendChild(el("div", { class: "kpi-label", text: label }));
+// State carried three ways, so it survives a monochrome print, a colour-blind
+// reader and a screen reader: the top-edge bar (state-*), the number's colour
+// (good/bad/accent), and the icon's own state colour. All three come from `cls`
+// so they cannot drift apart.
+const KPI_STATE = { good: "state-ok", bad: "state-bad", accent: "state-warn" };
+const KPI_ICON_STATE = { good: "normal", bad: "critical", accent: "warning" };
+
+function kpiCard(label, value, cls, sub, iconName) {
+  const state = KPI_STATE[cls] || "";
+  const card = el("div", { class: `kpi-card ${state}` });
+
+  const head = el("div", { class: "kpi-head" });
+  if (iconName) {
+    head.appendChild(AxiomIcons.icon(iconName, {
+      size: 15, state: KPI_ICON_STATE[cls] || "normal",
+    }));
+  }
+  head.appendChild(el("div", { class: "kpi-label", text: label }));
+  card.appendChild(head);
+
   card.appendChild(el("div", { class: `kpi-value ${cls || ""}`, text: value }));
   if (sub) card.appendChild(el("div", { class: "kpi-sub", text: sub }));
   return card;
@@ -529,19 +507,23 @@ async function loadROI() {
     "Fleet Mission-Ready", `${roi.mission_ready_pct.toFixed(1)}%`,
     roi.mission_ready_pct >= 90 ? "good" : "accent",
     `${roi.fleet_size} axles monitored`,
+    "gauge",
   ));
   strip.appendChild(kpiCard(
     "Net Estimated Benefit", fmtUsd(roi.net_estimated_benefit_usd), "good",
     `${roi.estimated_failures_avoided} corroborated defect(s) × $${(roi.expected_cost_per_missed_defect_usd / 1e6).toFixed(1)}M expected cost/miss`,
+    "currency",
   ));
   strip.appendChild(kpiCard(
     "Mean Time To Detect", `${roi.axiom_mttd_hours.toFixed(2)} hrs`, "accent",
     `vs. ${roi.legacy_mttd_hours.toFixed(1)} hrs legacy (${roi.mttd_improvement_pct.toFixed(0)}% faster)`,
+    "clock",
   ));
   strip.appendChild(kpiCard(
     "Open Reviews", `${roi.urgent_review_count + roi.review_count}`,
     roi.urgent_review_count > 0 ? "bad" : "good",
     `${roi.urgent_review_count} urgent · ${roi.review_count} single-signal`,
+    "warrant",
   ));
 
   const noteEl = document.getElementById("kpi-note");

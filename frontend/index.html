@@ -7,12 +7,32 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+<!--
+  The demonstration band. It is not a footnote and it is not dismissible: every
+  number on this dashboard is computed from physics equations over synthetic
+  traces, not from a Railroad reading. D00 Part VI calls this the largest gap in
+  the docket, and a dashboard that looks authoritative without saying so would be
+  exactly the drift that table exists to prevent. The band goes above the header
+  so it is the first thing rendered and survives any screenshot.
+-->
+<div id="demo-band" role="status" aria-label="Demonstration data notice">
+  <span class="demo-band-tag">DEMONSTRATION</span>
+  <span class="demo-band-text">
+    All signals are generated from the physics models over <strong>synthetic traces</strong>.
+    No reading here came from a Railroad detector.
+  </span>
+  <span class="demo-band-ref">B01 §7 · D00 Part VI</span>
+</div>
+
 <header>
-  <div>
+  <div class="brand">
     <h1>AxiomDynamics</h1>
     <p class="subtitle">Physics-First Predictive Maintenance for Rail</p>
   </div>
-  <p class="disclaimer">Demo: Simulation-based (see README)</p>
+  <div class="header-meta">
+    <span class="header-mode">On-premise edge · zero outbound network</span>
+  </div>
 </header>
 
 <main>
@@ -26,7 +46,7 @@
                autocomplete="current-password" required />
         <button type="submit">Sign in</button>
       </form>
-      <span id="signin-status" class="session-status"></span>
+      <span id="signin-status" class="session-status" role="status"></span>
       <p class="session-note">
         Decisions are recorded under the signed-in reviewer's certification.
         Reading the fleet and the warrants does not require sign-in.
@@ -35,7 +55,7 @@
     <div id="session-signed-in" hidden>
       <span class="session-label">Signed in as</span>
       <span id="session-who"></span>
-      <span id="session-expiry" class="session-status"></span>
+      <span id="session-expiry" class="session-status" role="status"></span>
       <button id="signout-btn" type="button">Sign out</button>
     </div>
   </section>
@@ -43,48 +63,49 @@
   <div id="kpi-strip"></div>
   <div id="kpi-note"></div>
 
-  <section id="fleet-panel">
-    <h2>Fleet</h2>
+  <section id="fleet-panel" aria-labelledby="fleet-heading">
+    <h2 id="fleet-heading">Fleet</h2>
     <div class="table-scroll">
       <table id="fleet-table">
         <thead>
-          <tr><th>Unit</th><th>Car</th><th>Axle</th><th>Speed</th><th>Bearing Temp</th><th>Status</th></tr>
+          <tr><th scope="col">Unit</th><th scope="col">Car</th><th scope="col">Axle</th><th scope="col">Speed</th><th scope="col">Bearing Temp</th><th scope="col">Status</th></tr>
         </thead>
         <tbody id="fleet-tbody"></tbody>
       </table>
     </div>
   </section>
 
-  <section id="alerts-panel">
-    <h2>Predictive Ghost Warrants</h2>
+  <section id="alerts-panel" aria-labelledby="alerts-heading">
+    <h2 id="alerts-heading">Predictive Ghost Warrants</h2>
     <p class="summary">Each warrant fuses every independent signal for one axle. Escalation to URGENT REVIEW requires at least two independent signals to agree — a single signal, even a severe one, is held at REVIEW.</p>
     <div id="alerts-list"></div>
     <p class="guardrail-note">AxiomDynamics never silently translates "URGENT REVIEW" into a stop-train instruction. Existing railroad operating rules, detector logic, and authorized personnel remain sole authority over train movement.</p>
   </section>
 
-  <section id="detail-panel" hidden>
+  <section id="detail-panel" hidden aria-labelledby="detail-title">
     <h2 id="detail-title"></h2>
 
     <div class="chart-block">
       <h3>Thermodynamics — rate-of-change (z-score) vs. legacy fixed threshold</h3>
-      <canvas id="chart-thermo" width="860" height="260"></canvas>
+      <canvas id="chart-thermo" width="860" height="260" role="img" aria-label="Thermodynamics rate-of-change chart"></canvas>
       <p id="thermo-summary" class="summary"></p>
     </div>
 
     <div class="chart-block">
       <h3>Acoustics — FFT spectrum vs. bearing defect frequencies (BPFO/BPFI/BSF/FTF)</h3>
-      <canvas id="chart-fft" width="860" height="260"></canvas>
+      <canvas id="chart-fft" width="860" height="260" role="img" aria-label="Acoustic FFT spectrum chart"></canvas>
       <p id="fft-summary" class="summary"></p>
     </div>
 
     <div class="chart-block">
       <h3>Kinematics — coasting profile (E<sub>k</sub> = &frac12; m v&sup2;)</h3>
-      <canvas id="chart-coast" width="860" height="260"></canvas>
+      <canvas id="chart-coast" width="860" height="260" role="img" aria-label="Kinematics coasting profile chart"></canvas>
       <p id="coast-summary" class="summary"></p>
     </div>
   </section>
 </main>
 
+<script src="icons.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
