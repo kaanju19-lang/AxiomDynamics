@@ -1,0 +1,77 @@
+{
+  "gpg_version": "gpg (GnuPG) 2.2.27",
+  "key_type": "rsa",
+  "iters": 25,
+  "measurements": {
+    "process_start_only": {
+      "n": 25,
+      "median_ms": 4.45,
+      "mean_ms": 4.39,
+      "p95_ms": 5.31,
+      "min_ms": 3.66,
+      "max_ms": 5.4
+    },
+    "sign_unprotected_release-archive": {
+      "n": 25,
+      "median_ms": 34.01,
+      "mean_ms": 34.55,
+      "p95_ms": 38.25,
+      "min_ms": 30.57,
+      "max_ms": 39.96
+    },
+    "verify_release-archive": {
+      "n": 25,
+      "median_ms": 25.18,
+      "mean_ms": 24.99,
+      "p95_ms": 27.92,
+      "min_ms": 23.1,
+      "max_ms": 28.67
+    },
+    "sign_unprotected_export-bundle-1000-rows": {
+      "n": 25,
+      "median_ms": 23.35,
+      "mean_ms": 23.64,
+      "p95_ms": 26.83,
+      "min_ms": 20.86,
+      "max_ms": 27.4
+    },
+    "verify_export-bundle-1000-rows": {
+      "n": 25,
+      "median_ms": 7.68,
+      "mean_ms": 7.85,
+      "p95_ms": 8.77,
+      "min_ms": 6.98,
+      "max_ms": 8.9
+    },
+    "sign_unprotected_single-attestation": {
+      "n": 25,
+      "median_ms": 21.78,
+      "mean_ms": 22.28,
+      "p95_ms": 24.38,
+      "min_ms": 20.46,
+      "max_ms": 30.98
+    },
+    "verify_single-attestation": {
+      "n": 25,
+      "median_ms": 5.67,
+      "mean_ms": 5.53,
+      "p95_ms": 6.32,
+      "min_ms": 4.62,
+      "max_ms": 6.34
+    },
+    "sign_passphrase_loopback": {
+      "n": 25,
+      "median_ms": 322.18,
+      "mean_ms": 324.64,
+      "p95_ms": 352.37,
+      "min_ms": 287.68,
+      "max_ms": 358.33
+    }
+  },
+  "derived": {
+    "bundle_sign_ms_median": 23.35,
+    "bundles_per_year": 64,
+    "total_seconds_per_year": 1.494,
+    "note": "64 = 12 monthly full + 52 weekly incremental, from ledger_replication.due_exports"
+  }
+}

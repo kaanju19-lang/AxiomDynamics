@@ -153,10 +153,47 @@ The Railroad retains each bundle as received, in order, without overwriting one 
 
 ### 5.2 Data deletion
 
-The Railroad may delete Railroad Data at any time by:
-- Purging records from the Platform (via an admin interface or SQL).
-- Destroying the database file (this deletes all records).
-- Purging backup media.
+**Corrected 2026-11-13 (chat-12). This paragraph promised a capability the
+Platform does not have and must not claim.** Its first draft listed "purging
+records from the Platform (via an admin interface or SQL)" as a routine means of
+deletion. Neither exists:
+
+- **There is no admin interface.** Nothing in the Platform exposes a purge route.
+  The only `DELETE` the server answers is `DELETE /api/session`, which signs a
+  reviewer out; it removes no data.
+- **There is no SQL purge path either**, because the schema refuses it.
+  `BEFORE DELETE` and `BEFORE UPDATE` triggers on the disposition ledger raise
+  `ABORT` (AD-3, B01 §4.1). A rail auditor asking "prove a decision cannot be
+  removed" and a clause saying "delete records by SQL" are contradictory
+  statements in the same document set, and the auditor is right.
+
+What the Railroad can actually do, stated as the software behaves:
+
+- **Destroy the database file.** This deletes everything, including every
+  disposition, because the triggers live inside the file they protect. It is
+  total and irreversible, and it simultaneously destroys the audit trail — which
+  is why §4.5 makes the retained bundle series the reference the Railroad keeps.
+- **Destroy the host or its storage.** Equivalent to the above.
+- **Purge backup media**, which is retention outside the Platform under §3.3.
+
+**Superseded records are not deleted, and "deletion" does not mean supersession.**
+A correction creates a new row carrying `supersedes_id`; the superseded row keeps
+its content and timestamp. A reader who wants a decision treated as no longer
+current supersedes it, and does not delete it.
+
+**Data that is not a disposition can be handled separately.** Detector traces and
+operational logs are not the audit record; a deployment may purge those on the
+retention schedule §5.1 describes. **The append-only guarantee covers the
+disposition ledger, the certification registry and the account register** — the
+three records F00 names as making everything else defensible.
+
+**A conflict with D07 §15.5, corrected here.** This paragraph previously said
+that on termination the Railroad "exports its data and then destroys the
+database". D07 §15.5 says only that the Railroad exports its data and ceases use;
+it does not require destruction of the database, and a destruction step destroys
+the evidence a dispute might turn on. **D07 §15.5 governs** — it is the contract,
+and this addendum cannot add a term to it. Export first, then destroy at the
+Railroad's discretion, not under an obligation this document invented.
 
 **Upon termination (D07 §15.5), the Railroad exports its data and then destroys the database.** Supplier certifies destruction in writing within **thirty (30) days of termination**.
 

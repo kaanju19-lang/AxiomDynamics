@@ -72,12 +72,30 @@ This is the number that decides how far to go, and it is **the weakest evidence 
 the paper**. It is also load-bearing, so it is labelled as an estimate rather than
 derived, and a reader should treat it as the thing to check first.
 
-**Estimated, not measured:** an asymmetric operation via `gpg` is a
-`subprocess.run` that starts a process, unlocks a secret key, computes and exits.
-Something in the tens to low hundreds of milliseconds is plausible on a small edge
-box. **This figure was invented for this paper.** It has not been benchmarked on
-the target hardware, and the recommendation below should be re-checked against a
-real measurement before any code is written.
+**Measured 2026-11-13 (chat-12), superseding an estimate.** The first draft of this
+section invented a figure of "tens to low hundreds of milliseconds" and flagged it
+as the weakest evidence in the paper. It has now been benchmarked:
+`assets/gpg-benchmark-2026-11-13.md`, reproducible via
+`tools/bench_gpg_signature.py`, raw output under `assets/benchmarks/`.
+
+| Operation (median, 25 iters) | ed25519 | RSA-3072 |
+|---|---|---|
+| sign 512 KB export bundle, **unprotected key** | **10.2 ms** | 23.4 ms |
+| sign 4 MB release archive, unprotected key | 16.1 ms | 34.0 ms |
+| sign with a **passphrase** (loopback pinentry) | **299.3 ms** | 322.2 ms |
+
+**The estimate was right for a passphrase-protected key and wrong for an
+unprotected one, and the first draft did not distinguish them.** That distinction
+is the whole result. An unprotected key costs ~10 ms and payload size barely
+matters, so the 64 bundles a year cost **0.65 s annually**. A protected key costs
+~300 ms and the cost is pinentry startup on every invocation — it does not
+amortise across a warm agent, which was tested.
+
+**This does not make per-row signing affordable, but it removes the paper's stated
+reason.** At 10 ms, hundreds of rows a day is a couple of seconds of CPU spread
+over a day. The verdict below rests instead on the structural point that follows,
+which the measurement does not touch: signing inside a write transaction holds the
+SQLite write lock for its duration. **The lock is the argument; latency never was.**
 
 What *is* derived from the repository:
 
@@ -85,14 +103,23 @@ What *is* derived from the repository:
 |---|---|---|---|
 | **Releases** | a handful per year | obvious | `gpg` — already built |
 | **Export bundles** | **64 per year** per series: 12 monthly full + 52 weekly incremental | `ledger_replication.due_exports` | affordable; seconds per year |
-| **Per-disposition attestations** | *assumed* low hundreds per day | **assumption — see below** | likely unaffordable in the write path |
+| **Per-disposition attestations** | low hundreds per day | **B01 §6 (unsourced)** | stays HMAC — the write lock, not the latency |
 
-**The disposition rate is an assumption, not a derivation.** No file in this
-repository states one; the demo fleet generates synthetic signals and the demo
-ledger is small. The paper's first draft called both volumes "derivable from what
-is already built", which is true of the bundle count and false of this one. If the
-real rate is tens per day rather than hundreds, the per-row verdict may flip, and
-that is worth knowing before it is decided.
+**Corrected 2026-11-13 (chat-12): this is not an assumption. B01 §6 states it.**
+The first draft said "no file in this repository states one". That is false —
+`B01 §6 Scale envelope` reads: "Per edge box, designed for: one to six detector
+feeds, up to ~5,000 monitored axles, sub-second inference per unit, **disposition
+volume in the low hundreds per day**." The figure here and B01's figure agree.
+
+**Two documents agreeing is not a source.** B01 §6 states the envelope without
+deriving it, and nothing in the repository can: there is no real fleet and the demo
+fleet is synthetic. So the honest statement is not "invented" and not "derived" but
+**"asserted in B01 §6, unsourced, and repeated here."**
+
+What that settles is smaller than it looks but worth having: at low hundreds per
+day the per-row question is moot whatever the signature costs, and it only becomes
+live at volumes beyond one edge box — that is, beyond the envelope B01 §6 defines.
+**The scope question is bounded by the same document that raised it.**
 
 That said, the structural point does not depend on the number. `store.save_disposition`
 calls `attest(conn, rec)` **after the INSERT and before COMMIT** — the attestation
@@ -198,7 +225,7 @@ Stated so the decision can be costed, not so it is pre-committed.
 
 **Requires the owner's decision:** accepting `gnupg`, and `dirmngr` with it, into an image whose selling point is that it talks to nothing. That is a commercial and architectural question.
 
-**Before any code:** benchmark a `gpg` signature on target-class hardware, and establish the real disposition rate. Two numbers in this paper are invented and are labelled as such.
+**Before any code:** ~~benchmark a `gpg` signature, and establish the real disposition rate.~~ **Both done 2026-11-13 (chat-12).** Signature cost measured at **10.2 ms unprotected / 299.3 ms passphrase-protected** (`assets/gpg-benchmark-2026-11-13.md`); the disposition rate is **B01 §6's stated envelope**, unsourced and unbounded from within this repository. Neither number now blocks code. **The only remaining blocker is the owner's `gnupg`/`dirmngr` decision.**
 
 ---
 

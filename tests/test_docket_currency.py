@@ -18,6 +18,14 @@ document may assert that it is absent.
 Deliberately NOT tested: that the documents are accurate in other respects. These
 checks only catch the "says absent, is present" direction, which is the one that
 silently understates the product to a customer.
+
+Chat-12 added the opposite direction, because chat-11's lesson was that staleness
+runs both ways: D10 claimed a GPG key "is issued and published" while D09 and B04
+said none exists, and no absence-grep could ever have found it. The second test
+below is that shape -- a document promising a *capability* the software does not
+have. It is a much smaller net than the first (a phrase list, not a semantic
+search), and it is a net for the two specific claims this project has already
+made wrongly, not a general guarantee.
 """
 import glob
 import os
@@ -106,6 +114,63 @@ def test_b02s_own_sections_do_not_contradict_each_other_on_ingest():
         for ln in text.splitlines())
     assert not (says_built and says_absent), (
         "B02 §2 says the chain runs as drawn while §9 says it is not built at all")
+
+
+# The mirror image: claims of PRESENCE that the code does not support. Each
+# entry is (label, phrases asserting the capability exists, a predicate name that
+# must be True for the claim to be honest). These were all false at some point in
+# this project's history, so each is pinned by the exact wording that was wrong.
+def _no_admin_purge_route():
+    """True when the Platform exposes no way to delete ledger records."""
+    main_py = os.path.join(ROOT, "backend", "main.py")
+    with open(main_py, "rb") as fh:
+        src = fh.read().decode("utf-8", "replace")
+    # A DELETE handler exists for sign-out only. Any purge route would need a
+    # handler that calls a delete on the dispositions table.
+    return "route_purge" not in src and "purge_ledger" not in src
+
+
+def _no_issued_gpg_key():
+    """True when no release signing key is issued or under custody."""
+    # The tool exists; the key does not. A key file under the repo would falsify
+    # this, so look for the one path the custody procedure names.
+    return not glob.glob(os.path.join(ROOT, "**", "release-signing*.key"),
+                         recursive=True)
+
+
+PRESENCE_CLAIMS = [
+    ("admin purge interface",
+     ["purging records from the platform (via an admin interface or sql)",
+      "via an admin interface or SQL"],
+     _no_admin_purge_route),
+    ("issued GPG release key",
+     ["The key is issued and published by Supplier"],
+     _no_issued_gpg_key),
+]
+
+
+def test_no_document_claims_a_capability_that_does_not_exist():
+    problems = []
+    for label, needles, predicate in PRESENCE_CLAIMS:
+        if not predicate():
+            continue          # the capability now exists; the claim is fair
+        for path, text in docket_text():
+            for line in text.splitlines():
+                # A retraction quotes the phrase it retracts. Any line that is
+                # itself doing the retracting is skipped -- "no longer",
+                # "corrected", or a quoted phrase introduced as a former claim
+                # (the wording this project uses: was / previously / does not).
+                low = line.lower()
+                if ("no longer" in low or "corrected" in low
+                        or "previous" in low or "does not" in low
+                        or "as a routine means of" in low):
+                    continue
+                for needle in needles:
+                    if needle.lower() in line.lower():
+                        problems.append(
+                            f"{os.path.basename(path)} claims a {label} exists "
+                            f"({needle!r}), but the code does not provide one")
+    assert not problems, "false presence claims:\n  " + "\n  ".join(problems)
 
 
 def test_every_capability_guard_names_a_file_that_is_still_where_it_was():
