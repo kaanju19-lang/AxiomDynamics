@@ -120,22 +120,107 @@ def test_b02s_own_sections_do_not_contradict_each_other_on_ingest():
 # entry is (label, phrases asserting the capability exists, a predicate name that
 # must be True for the claim to be honest). These were all false at some point in
 # this project's history, so each is pinned by the exact wording that was wrong.
+def _backend_sources():
+    for path in sorted(glob.glob(os.path.join(ROOT, "backend", "*.py"))):
+        with open(path, "rb") as fh:
+            yield os.path.basename(path), fh.read().decode("utf-8", "replace")
+
+
 def _no_admin_purge_route():
-    """True when the Platform exposes no way to delete ledger records."""
-    main_py = os.path.join(ROOT, "backend", "main.py")
-    with open(main_py, "rb") as fh:
-        src = fh.read().decode("utf-8", "replace")
-    # A DELETE handler exists for sign-out only. Any purge route would need a
-    # handler that calls a delete on the dispositions table.
-    return "route_purge" not in src and "purge_ledger" not in src
+    """
+    True when nothing in backend/ can delete a disposition.
+
+    The first version of this looked for the literal names `route_purge` or
+    `purge_ledger`, which only proves the author did not choose those two words.
+    An independent audit showed a `route_delete_dispositions` would have passed.
+    This looks at behaviour instead: a deleted row needs a DELETE against the
+    ledger's table, and the triggers block it unless something drops them first.
+    Either pattern anywhere in backend/ falsifies the "no purge" claim.
+    """
+    for _name, src in _backend_sources():
+        # Strip comment and docstring text first. The ledger module *explains*
+        # that DROP TRIGGER is possible for someone with file access, and a naive
+        # substring test reads that explanation as the capability itself -- the
+        # first run of this predicate failed for exactly that reason.
+        low = _code_only(src).lower()
+        if "drop trigger" in low:
+            return False
+        if "delete from dispositions" in low:
+            return False
+    return True
+
+
+def _code_only(src):
+    """Source with `#` comments and string literals removed."""
+    out = []
+    for line in src.splitlines():
+        # Drop everything from a `#` that is not inside a string. This is not a
+        # full tokeniser; it only needs to be right for this repository's style.
+        in_str = None
+        cut = len(line)
+        for i, ch in enumerate(line):
+            if in_str:
+                if ch == in_str and (i == 0 or line[i - 1] != "\\"):
+                    in_str = None
+            elif ch in "\"'":
+                in_str = ch
+            elif ch == "#":
+                cut = i
+                break
+        out.append(line[:cut])
+    return "\n".join(out)
 
 
 def _no_issued_gpg_key():
-    """True when no release signing key is issued or under custody."""
-    # The tool exists; the key does not. A key file under the repo would falsify
-    # this, so look for the one path the custody procedure names.
-    return not glob.glob(os.path.join(ROOT, "**", "release-signing*.key"),
-                         recursive=True)
+    """
+    True when no release-signing key material is present in the repository.
+
+    The first version globbed for `release-signing*.key`, a name nothing in this
+    project produces -- `tools/sign_release.py` takes a fingerprint and
+    `ledger_export` takes an operator-chosen `--key-file`. That predicate could
+    never return False, so it was a permanent pass an audit caught.
+    This looks for key material by content instead: a PGP private key block, or
+    any `*.key`/`*.asc` holding one.
+    """
+    patterns = ("**/*.key", "**/*.asc", "**/*.gpg", "**/*.pgp")
+    for pat in patterns:
+        for path in glob.glob(os.path.join(ROOT, pat), recursive=True):
+            if os.sep + ".git" + os.sep in path or "/tests/" in path.replace(os.sep, "/"):
+                continue        # git internals and test fixtures are not custody
+            try:
+                with open(path, "rb") as fh:
+                    head = fh.read(4096)
+            except OSError:
+                continue
+            if b"PRIVATE KEY BLOCK" in head:
+                return False
+    return True
+
+
+def _is_quoted(line, phrase):
+    """
+    True when `phrase` appears inside quotation marks on this line.
+
+    This is what separates "the docket says X" from "here is what it used to
+    say". Both contain X; only the first is a claim. Handles the straight and
+    curly double quotes the docket actually uses.
+    """
+    low = line.lower()
+    target = phrase.lower()
+    quotes = "\"“”"
+    start = 0
+    while True:
+        i = low.find(target, start)
+        if i < 0:
+            return False
+        # The phrase counts as quoted when an odd number of quote marks precede
+        # it, i.e. it begins inside an open quotation. Checking only the adjacent
+        # characters misses the real case -- a retraction quotes the whole clause
+        # ("purging records ... (via an admin interface or SQL)") and the needle
+        # starts part-way through it.
+        if sum(1 for ch in low[:i] if ch in quotes) % 2 == 1:
+            return True
+        start = i + 1
 
 
 PRESENCE_CLAIMS = [
@@ -155,22 +240,93 @@ def test_no_document_claims_a_capability_that_does_not_exist():
         if not predicate():
             continue          # the capability now exists; the claim is fair
         for path, text in docket_text():
+            # Quotation marks can straddle a line break: the D09 retraction opens
+            # its quotation on one line and closes it on the next, so counting
+            # quotes per line alone reads a wrapped retraction as a claim.
+            preceded = ""
             for line in text.splitlines():
-                # A retraction quotes the phrase it retracts. Any line that is
-                # itself doing the retracting is skipped -- "no longer",
-                # "corrected", or a quoted phrase introduced as a former claim
-                # (the wording this project uses: was / previously / does not).
-                low = line.lower()
-                if ("no longer" in low or "corrected" in low
-                        or "previous" in low or "does not" in low
-                        or "as a routine means of" in low):
-                    continue
+                # A retraction quotes the phrase it retracts, so the phrase
+                # appearing is not itself a defect. The first version of this
+                # skip searched for bare words -- "corrected", "previous",
+                # "does not" -- and an audit showed it would swallow a NEW false
+                # claim written into a correction line, which is exactly where
+                # one would be hidden. So the test is positional: the phrase must
+                # be inside quotation marks to count as quoted-and-retracted, and
+                # a line that states the capability without quoting it is a claim
+                # regardless of what other words it contains.
                 for needle in needles:
-                    if needle.lower() in line.lower():
-                        problems.append(
-                            f"{os.path.basename(path)} claims a {label} exists "
-                            f"({needle!r}), but the code does not provide one")
+                    if needle.lower() not in line.lower():
+                        continue
+                    # Quoted means the phrase is being reported, not asserted.
+                    # The project writes a retraction as: "... (via an admin
+                    # interface or SQL)" as a routine means of deletion. Nothing
+                    # exists. -- the phrase sits inside quotes and the line says
+                    # what was wrong with it. An unquoted occurrence is a claim.
+                    if _is_quoted(preceded + line, needle):
+                        continue
+                    problems.append(
+                        f"{os.path.basename(path)} claims a {label} exists "
+                        f"({needle!r}), but the code does not provide one")
+                preceded += " " + line
     assert not problems, "false presence claims:\n  " + "\n  ".join(problems)
+
+
+def test_the_presence_guard_catches_a_claim_hidden_in_a_correction():
+    """
+    An independent audit found the first version of the skip logic searching for
+    bare words -- "corrected", "previous", "does not" -- which skipped any line
+    containing them. Five realistic false claims were swallowed, including one
+    written into a correction line, which is where a false claim would hide.
+
+    This pins the boundary in both directions: a claim framed by any of those
+    words must still be caught, and a genuine retraction, which quotes the phrase
+    it retracts, must be skipped.
+    """
+    needle = "via an admin interface or SQL"
+    must_catch = [
+        'Corrected 2026-11-14: purging records from the Platform '
+        '(via an admin interface or SQL) is now available',
+        'The Railroad does not need to raise a ticket; purging records from '
+        'the Platform (via an admin interface or SQL) is self-service',
+        'Previous deletion was manual only. Purging records from the Platform '
+        '(via an admin interface or SQL) is the current method',
+        'This supersedes the previous paragraph: purging records from the '
+        'Platform (via an admin interface or SQL) is supported',
+        'The Platform does not restrict the Railroad: purging records from the '
+        'Platform (via an admin interface or SQL) is permitted at any time',
+        'The Railroad may delete data by purging records from the Platform '
+        '(via an admin interface or SQL).',
+    ]
+    for line in must_catch:
+        assert not _is_quoted(line, needle), (
+            f"a claim would be skipped as a retraction: {line!r}")
+
+    retraction = ('Its first draft listed "purging records from the Platform '
+                  '(via an admin interface or SQL)" as a routine means of '
+                  'deletion.')
+    assert _is_quoted(retraction, needle), (
+        "a genuine retraction would be reported as a false claim")
+
+
+def test_the_presence_predicates_are_not_vacuous():
+    """
+    Both predicates passed permanently in their first form: one looked for two
+    literal route names the author chose, the other globbed for a filename the
+    project never produces. A predicate that cannot return False turns its check
+    into decoration. These assert the predicates respond to the thing they claim
+    to detect.
+    """
+    import inspect
+    purge_src = inspect.getsource(_no_admin_purge_route)
+    key_src = inspect.getsource(_no_issued_gpg_key)
+    assert "drop trigger" in purge_src.lower(), (
+        "purge predicate does not look for a dropped trigger")
+    assert "PRIVATE KEY BLOCK" in key_src, (
+        "key predicate does not inspect file contents")
+
+    # And the behaviour: both must currently be true, on evidence not assertion.
+    assert _no_admin_purge_route() is True
+    assert _no_issued_gpg_key() is True
 
 
 def test_every_capability_guard_names_a_file_that_is_still_where_it_was():

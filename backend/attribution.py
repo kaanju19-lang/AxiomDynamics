@@ -138,9 +138,15 @@ REGISTRY_GENESIS = "0" * 64
 
 @contextmanager
 def _atomic(db_path: str):
-    conn = sqlite3.connect(db_path, isolation_level=None)
+    # `timeout` is the connection-level wait; without it sqlite3 defaults to 5 s
+    # and a second writer fails while the ledger's own connection would have
+    # queued for 30 s. The ledger, the account register and the reviewer registry
+    # share one file, so all three must agree on how long to wait or the one with
+    # the short fuse errors first under contention.
+    conn = sqlite3.connect(db_path, timeout=30.0, isolation_level=None)
     conn.row_factory = sqlite3.Row
     try:
+        conn.execute("PRAGMA busy_timeout=30000")
         conn.execute("BEGIN IMMEDIATE")
         yield conn
         conn.execute("COMMIT")

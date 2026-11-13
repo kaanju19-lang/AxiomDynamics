@@ -15,6 +15,12 @@ The paper estimated "tens to low hundreds of milliseconds" for one `gpg` signatu
 and called it the weakest evidence in the paper. Measured on this host
 (`gpg (GnuPG) 2.2.27`, Linux, 25 iterations, median):
 
+**Read the payload column as a size, not an artefact.** The tool signs
+`os.urandom(size)`, not a real export bundle or a real release archive. That is
+sound for timing — gpg hashes the byte stream and does not care what it holds —
+but the earlier table called these "export bundle" and "release archive" as though
+they had been built, and an audit was right to flag the difference.
+
 | Operation | ed25519 | RSA-3072 |
 |---|---|---|
 | process start only (`gpg --version`) | 3.85 ms | 4.45 ms |
@@ -33,12 +39,34 @@ crypto, not the file. The 64 bundles a year that `ledger_replication.due_exports
 produces therefore cost **0.65 s per year** at ed25519, not the "seconds per year"
 the paper guessed. The guess was conservative and in the right direction.
 
-**The passphrase path is 30x the unprotected path and does not go away.** It
-measured 299 ms whether the key was already unlocked in a warm agent, whether the
-agent was killed first, and whether `--passphrase` was passed each time. The cost
-is gpg-agent plus pinentry startup on each invocation, not key derivation. It is
+**The passphrase path is 30x the unprotected path and does not go away.** It is
 the realistic path for an unattended edge box, because a signing key with no
 passphrase is a key that anyone with disk access can use.
+
+**What the 300 ms is, corrected after an independent audit.** The first version of
+this file said the cost was "gpg-agent plus pinentry startup on each invocation,
+not key derivation". **That was wrong, and it was stated with more confidence than
+the benchmark supported.** The auditor isolated it three ways: stubbing
+`pinentry` with a no-I/O responder moved the time only 454.8 → 436.3 ms; symmetric
+encryption with no key and no agent showed `--s2k-mode 0` at 4.5 ms and
+`--s2k-mode 3` at 326 ms; and the agent's own CPU per signing call was 420–456 ms
+while `gpg` itself burned 0.00 s user and system time.
+
+**So the cost is iterated S2K key derivation**, at the maximal iteration count
+`gpg` uses by default, paid again on every signing call because gpg-agent does not
+retain a passphrase-unlocked key across process invocations. It is CPU, not
+process startup and not pinentry.
+
+**A second correction: this file claimed to have tested the warm-agent case and
+the tool never did.** The sentence removed above said the cost was measured
+"whether the key was already unlocked in a warm agent, whether the agent was
+killed first". Those variants are not in `tools/bench_gpg_signature.py` — an audit
+pointed out that the artifact a reader would re-run cannot reproduce the claim. I
+ran them by hand at the time and the conclusion held (≈443 ms with
+`--passphrase`, ≈349 ms warm-and-cached, so the cost is not avoided by warming),
+but **a claim of evidence must live in the tool, not in the author's memory of a
+terminal.** The measurement here is the single protected-key number; the warm-agent
+question is answered above as an observation, and labelled as one.
 
 So the honest figure for "what a signature costs" is a **choice of two numbers**,
 and which one applies is a security decision the paper never asked:

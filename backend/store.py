@@ -83,7 +83,14 @@ def _configure(conn):
     records surviving, which WAL+NORMAL still provides on the box this ships to.
     """
     conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
+    # FULL, not NORMAL. Under WAL, NORMAL syncs the -wal only at checkpoint, so a
+    # power cut can lose the most recent committed transaction while leaving the
+    # database consistent. B01 §5 and B02 both promise that "committed audit
+    # records survive" an edge-box power loss, and consistency without the last
+    # commit is not what that sentence says. FULL fsyncs the -wal on every commit.
+    # The cost is one fsync per disposition, at a volume B01 §6 puts in the low
+    # hundreds per day, which is not a throughput problem.
+    conn.execute("PRAGMA synchronous=FULL")
     conn.execute("PRAGMA busy_timeout=%d" % int(_BUSY_TIMEOUT_S * 1000))
 
 

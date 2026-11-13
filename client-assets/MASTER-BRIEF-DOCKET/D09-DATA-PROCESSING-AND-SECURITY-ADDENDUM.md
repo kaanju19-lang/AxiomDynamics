@@ -182,10 +182,20 @@ its content and timestamp. A reader who wants a decision treated as no longer
 current supersedes it, and does not delete it.
 
 **Data that is not a disposition can be handled separately.** Detector traces and
-operational logs are not the audit record; a deployment may purge those on the
-retention schedule §5.1 describes. **The append-only guarantee covers the
-disposition ledger, the certification registry and the account register** — the
-three records F00 names as making everything else defensible.
+operational logs are not the audit record and carry no `ABORT` trigger, so they
+can be deleted by SQL; **the Platform does not automate that and offers no
+interface for it**, so purging them is the Railroad's own retention procedure
+outside the Platform, on the schedule §5.1 describes. **The append-only guarantee
+covers the disposition ledger, the certification registry and the account
+register** — three records, not the three F00 §1 names (which are the disposition
+ledger, the order register and the certification registry). The account register
+belongs on this list because it is trigger-guarded too, not because F00 says so.
+
+**And the WAL note, added 2026-11-13.** Since `fe3a7c1` the database runs in WAL
+mode, so committed data can also live in the `-wal` sidecar beside the `.db`.
+**Destroying the `.db` file alone is not sufficient** to destroy the data: a
+surviving `-wal` holds recent commits. Destruction means removing `.db`, `-wal`
+and `-shm` together, or destroying the host or its storage.
 
 **A conflict with D07 §15.5, corrected here.** This paragraph previously said
 that on termination the Railroad "exports its data and then destroys the
@@ -195,7 +205,7 @@ the evidence a dispute might turn on. **D07 §15.5 governs** — it is the contr
 and this addendum cannot add a term to it. Export first, then destroy at the
 Railroad's discretion, not under an obligation this document invented.
 
-**Upon termination (D07 §15.5), the Railroad exports its data and then destroys the database.** Supplier certifies destruction in writing within **thirty (30) days of termination**.
+**Upon termination (D07 §15.5) the Railroad exports its data and ceases use.** Supplier certifies in writing, within **thirty (30) days of termination**, that it holds no Railroad Data to destroy — under AD-1 it holds none in normal operation. **Destruction of the Platform database is the Railroad's own decision, not a term of this addendum or of D07 §15.5**, and it is not a precondition of the certification above. This sentence previously required the Railroad to destroy the database and cited D07 §15.5 as its authority; §15.5 contains no such term, and the requirement would have destroyed the evidence an audit or dispute turns on.
 
 ### 5.3 Supplier-side deletion
 
