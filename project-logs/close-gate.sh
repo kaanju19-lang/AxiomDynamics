@@ -1,8 +1,9 @@
 #!/bin/bash
-# Every path below is derived at runtime. The previous version hardcoded one
-# session's mount (/sessions/intelligent-admiring-cori) and one chat's
-# transcript ids, so it only ever passed in the session that wrote it — a gate
-# that cannot run in another session is not a gate.
+# Every path below is derived at runtime. An earlier version hardcoded one
+# session's mount and one chat's transcript ids, so it only ever passed in the
+# session that wrote it — a gate that cannot run in another session is not a
+# gate. Re-verified at chat-10's open: the only remaining session path is this
+# comment.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" || exit 1
 # A fresh cache dir per run: /tmp/pyc may exist owned by another user, and a
 # stale cache dir is the same class of trap as a stale suite output file.
@@ -109,6 +110,13 @@ echo "6. DOCUMENTATION"
 # about a gap, false the moment the gap closed. Three were found at chat-9's open.
 ! grep -rqE "entry is not yet gated|not yet gated on (it|one)|entry is not gated" client-assets/ \
   && ok "no doc claims disposition entry is ungated" || no "stale entry-gating claim" "a document still says entry is not gated"
+# Attestation has been required at entry since chat-9, and the sweep that caught
+# three ungated claims at chat-9's open did NOT catch this family -- it grepped
+# for "ungated" and this drift is phrased "but not an attestation". Three
+# documents still said it after the change. A gate that greps one phrasing of a
+# claim only catches that phrasing.
+! grep -rqE "not an \*\*attestation\*\*|but not an attestation|does not require an \*\*attestation\*\*|only a live session" client-assets/ \
+  && ok "no doc claims entry does not require an attestation" || no "stale attestation claim" "a document still says entry needs no attestation"
 # The docx must match its OWN generator, not a stage number frozen at chat-7.
 # Asserting "Stage 11 is present" passed while the document was a stage behind
 # and would keep passing forever. Compare against the generator's top stage.
