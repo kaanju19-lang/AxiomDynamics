@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AxiomDynamics — Wayside Decision Support</title>
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0A0F13; --panel:#111A20; --panel2:#16222A; --panel3:#1C2B34;
+  --line:#22333D; --line2:#2C4450;
+  --tx:#E8F0F4; --tx2:#93A8B4; --tx3:#6B8190;
+  --amber:#FFB020; --red:#FF4D4F; --green:#2FD08A; --cyan:#4FC3E8; --violet:#9B8CFF;
+  --r:2px;
+  --f:'Bahnschrift','DIN Alternate','Roboto Condensed','Segoe UI',system-ui,sans-serif;
+  --m:'Cascadia Mono','Consolas','SF Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--f);
+  font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums; overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.mono{font-family:var(--m);font-size:11px;letter-spacing:-.2px}
+
+/* ---------- shell ---------- */
+.app{display:grid;height:100vh;grid-template-rows:auto 1fr auto}
+
+/* ---------- top bar ---------- */
+.top{
+  display:flex;align-items:center;gap:18px;padding:0 14px;height:46px;
+  background:linear-gradient(180deg,#131F26,#0E171C);
+  border-bottom:1px solid var(--line2);
+}
+.brand{display:flex;align-items:center;gap:9px;padding-right:16px;border-right:1px solid var(--line)}
+.mark{width:20px;height:20px;flex:0 0 20px}
+.brand b{font-weight:600;letter-spacing:.3px;font-size:13.5px}
+.brand span{color:var(--tx3);font-size:10.5px;letter-spacing:.5px;display:block;margin-top:-2px}
+.mode{
+  display:flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid #3A2A12;
+  background:#241A0B;color:var(--amber);font-size:10px;letter-spacing:.6px;border-radius:var(--r);
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 0 0 rgba(255,176,32,.7);animation:pulse 2.4s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(255,176,32,0)}100%{box-shadow:0 0 0 0 rgba(255,176,32,0)}}
+.top .spacer{flex:1}
+.clock{font-family:var(--m);font-size:14px;color:var(--cyan);letter-spacing:.5px}
+.health{display:flex;gap:14px;align-items:center;color:var(--tx2);font-size:11px}
+.health b{color:var(--green);font-weight:500}
+.pill{
+  padding:2px 7px;border:1px solid var(--line2);border-radius:var(--r);
+  font-size:10px;letter-spacing:.4px;color:var(--tx2);
+}
+.pill.on{color:var(--green);border-color:#1E4A38;background:#0D241C}
+
+/* ---------- body grid ---------- */
+.main{display:grid;grid-template-columns:196px minmax(0,1fr) 316px;overflow:hidden}
+.col{overflow-y:auto;overflow-x:hidden}
+.col::-webkit-scrollbar{width:9px}
+.col::-webkit-scrollbar-thumb{background:#24353F;border-radius:9px}
+.col::-webkit-scrollbar-track{background:transparent}
+.colL{border-right:1px solid var(--line);background:#0C1318}
+.colR{border-left:1px solid var(--line);background:#0C1318}
+
+/* ---------- section headers ---------- */
+.hd{
+  display:flex;align-items:center;gap:7px;padding:8px 11px 7px;
+  font-size:10px;letter-spacing:1.1px;color:var(--tx3);
+  border-bottom:1px solid var(--line);position:sticky;top:0;
+  background:#0C1318;z-index:3;
+}
+.hd .n{color:var(--tx2);font-family:var(--m);font-size:10px}
+.hd .keep{margin-left:auto;color:var(--tx3);font-size:10px}
+
+/* ---------- consist ---------- */
+.consist{padding:4px 0}
+.car{
+  display:grid;grid-template-columns:26px 1fr auto;gap:7px;align-items:center;
+  width:100%;text-align:left;padding:6px 10px 6px 8px;border-left:2px solid transparent;
+  border-bottom:1px solid #142027;
+}
+.car:hover{background:#111C23}
+.car[aria-selected="true"]{background:#152531;border-left-color:var(--cyan)}
+.car.bad{border-left-color:var(--red);background:#20100F}
+.car.bad[aria-selected="true"]{background:#2A1513}
+.car .ix{font-family:var(--m);font-size:10px;color:var(--tx3);text-align:center}
+.car .id{font-size:12px;font-weight:500}
+.car .meta{font-size:10px;color:var(--tx3);letter-spacing:.2px}
+.car .t{font-family:var(--m);font-size:11.5px}
+.car.bad .t{color:var(--red);font-weight:600}
+.car.warm .t{color:var(--amber)}
+.car .tag{
+  font-size:8.5px;letter-spacing:.5px;padding:1px 4px;border-radius:1px;
+  background:#2A1513;color:var(--red);border:1px solid #4A1F1D;
+}
+.consist-foot{padding:8px 11px;border-top:1px solid var(--line);color:var(--tx3);font-size:10.5px}
+
+/* ---------- center ---------- */
+.mid{padding:0 0 40px}
+.ticket{border-bottom:1px solid var(--line2);background:linear-gradient(180deg,#132029,#0E181E)}
+.ticket-hd{display:flex;align-items:flex-start;gap:14px;padding:13px 16px 11px}
+.ticket-hd h1{font-size:19px;font-weight:600;letter-spacing:.2px;line-height:1.15}
+.ticket-hd .sub{color:var(--tx2);font-size:11.5px;margin-top:3px;letter-spacing:.2px}
+.sev{
+  margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+.sev .lv{padding:3px 9px;background:#3A1513;color:var(--red);border:1px solid #5E211E;
+  border-radius:var(--r);font-size:10.5px;letter-spacing:.9px;font-weight:600}
+.sev .rule{font-family:var(--m);font-size:10px;color:var(--tx3)}
+
+/* three dimensions */
+.dims{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}
+.dim{padding:8px 16px;border-right:1px solid var(--line)}
+.dim:last-child{border-right:0}
+.dim .k{font-size:9.5px;letter-spacing:1px;color:var(--tx3)}
+.dim .v{font-size:12px;margin-top:2px;color:var(--tx)}
+.dim .v.ok{color:var(--green)} .dim .v.warn{color:var(--amber)}
+
+/* finding */
+.finding{padding:14px 16px;border-bottom:1px solid var(--line)}
+.finding h2{font-size:12px;letter-spacing:.9px;color:var(--tx3);margin-bottom:8px;font-weight:500}
+.lead{
+  font-size:13.5px;line-height:1.55;color:#D5E3EA;max-width:74ch;
+  padding-left:11px;border-left:2px solid var(--red);
+}
+.lead em{color:var(--red);font-style:normal;font-weight:600}
+
+/* threshold table */
+.rules{margin-top:12px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.rules table{width:100%;border-collapse:collapse}
+.rules th{
+  text-align:left;padding:6px 10px;font-size:9.5px;letter-spacing:.9px;color:var(--tx3);
+  background:#0E181E;border-bottom:1px solid var(--line);font-weight:500;
+}
+.rules td{padding:7px 10px;border-bottom:1px solid #142027;font-size:12px;vertical-align:middle}
+.rules tr:last-child td{border-bottom:0}
+.rules tr:hover td{background:#101A21}
+.rules .cite{font-family:var(--m);font-size:10px;color:var(--cyan)}
+.rules .val{font-family:var(--m);font-size:12.5px}
+.rules .lim{font-family:var(--m);font-size:11px;color:var(--tx3)}
+.st{padding:1px 6px;border-radius:1px;font-size:9.5px;letter-spacing:.6px;white-space:nowrap}
+.st.hit{background:#3A1513;color:var(--red);border:1px solid #5E211E}
+.st.warn{background:#2A2008;color:var(--amber);border:1px solid #4A3A12}
+.st.ok{background:#0D241C;color:var(--green);border:1px solid #1E4A38}
+
+/* evidence / models */
+.models{padding:14px 16px;border-bottom:1px solid var(--line)}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.mcard{
+  border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;background:#0F191F;
+  transition:border-color .15s,background .15s;
+}
+.mcard:hover{border-color:var(--line2);background:#12202A}
+.mcard .nm{font-size:10.5px;letter-spacing:.5px;color:var(--tx2)}
+.mcard .num{font-family:var(--m);font-size:16px;margin:3px 0 1px;letter-spacing:-.5px}
+.mcard .dc{font-size:10px;color:var(--tx3);line-height:1.35}
+.mcard.hot .num{color:var(--amber)}
+.mcard.cold .num{color:var(--cyan)}
+.mcard.dead .num{color:var(--green)}
+
+/* pipeline */
+.pipe{padding:12px 16px}
+.steps{display:flex;gap:0;margin-top:10px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.step{
+  flex:1;padding:8px 9px;border-right:1px solid var(--line);background:#0F191F;
+  display:flex;flex-direction:column;gap:3px;min-width:0;
+}
+.step:last-child{border-right:0}
+.step .i{font-family:var(--m);font-size:9px;color:var(--tx3)}
+.step .n{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step .ms{font-family:var(--m);font-size:10px;color:var(--green)}
+.step.slow .ms{color:var(--amber)}
+
+/* ---------- right column ---------- */
+.who{padding:11px;border-bottom:1px solid var(--line);background:#101B22}
+.who .row{display:flex;align-items:center;gap:8px}
+.av{width:30px;height:30px;border-radius:50%;background:#1D3846;border:1px solid var(--line2);
+  display:grid;place-items:center;font-size:11px;color:var(--cyan);font-weight:600}
+.who .nm{font-size:12.5px;font-weight:500}
+.who .cr{font-family:var(--m);font-size:10px;color:var(--tx3)}
+.gate{
+  margin-top:9px;padding:6px 8px;border:1px solid #1E4A38;background:#0C2019;border-radius:var(--r);
+  display:flex;gap:6px;align-items:center;font-size:10px;color:var(--green);letter-spacing:.3px;
+}
+.gate svg{flex:0 0 12px}
+
+.acts{padding:11px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line)}
+.btn{
+  width:100%;text-align:left;padding:9px 10px;border:1px solid var(--line2);border-radius:var(--r);
+  background:var(--panel2);display:flex;flex-direction:column;gap:2px;
+  transition:background .13s,border-color .13s;
+}
+.btn:hover{background:var(--panel3);border-color:#3A5765}
+.btn .t{font-size:12px;font-weight:500}
+.btn .d{font-size:10px;color:var(--tx3)}
+.btn.primary{background:#123222;border-color:#1F5B3E}
+.btn.primary:hover{background:#174028}
+.btn.primary .t{color:#7BEBB8}
+.btn.danger{background:#26110F;border-color:#4A1F1D}
+.btn.danger:hover{background:#301614}
+.btn.danger .t{color:#FF8A8A}
+.btn[aria-disabled="true"]{opacity:.42;cursor:not-allowed}
+
+.note{padding:0 11px 11px}
+.note label{font-size:9.5px;letter-spacing:1px;color:var(--tx3);display:block;margin-bottom:4px}
+.note textarea{
+  width:100%;min-height:56px;resize:vertical;background:#0B1419;color:var(--tx);
+  border:1px solid var(--line2);border-radius:var(--r);padding:7px 8px;font:inherit;font-size:11.5px;
+}
+.note textarea::placeholder{color:var(--tx3)}
+.note textarea:focus{outline:none;border-color:var(--cyan)}
+
+.trail{padding:0 0 20px}
+.trail .hd{position:static}
+.rec{display:grid;grid-template-columns:14px 1fr;gap:8px;padding:8px 11px;border-bottom:1px solid #142027}
+.rec .bar{width:2px;background:var(--line2);justify-self:center;border-radius:2px}
+.rec.new .bar{background:var(--cyan)}
+.rec .t{font-size:11.5px}
+.rec .m{font-family:var(--m);font-size:9.5px;color:var(--tx3);margin-top:2px}
+.rec .hash{font-family:var(--m);font-size:9px;color:#3E5A68;margin-top:2px;word-break:break-all}
+.chain{
+  display:flex;align-items:center;gap:6px;padding:8px 11px;font-size:10px;color:var(--green);
+  border-top:1px solid var(--line);background:#0B1915;
+}
+
+/* ---------- bottom ---------- */
+.foot{
+  display:flex;align-items:center;gap:18px;height:32px;padding:0 14px;
+  border-top:1px solid var(--line2);background:#0C1419;color:var(--tx3);font-size:10px;
+}
+.foot .sep{flex:1}
+.foot b{color:var(--tx2);font-weight:500}
+
+@media (max-width:1180px){
+  .main{grid-template-columns:170px minmax(0,1fr) 280px}
+  .mgrid{grid-template-columns:repeat(2,1fr)}
+  .steps{flex-wrap:wrap}
+  .step{flex:1 1 40%}
+}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{height:auto}
+  .main{grid-template-columns:1fr;overflow:visible}
+  .col{overflow:visible}
+  .colL{border-right:0;border-bottom:1px solid var(--line)}
+  .colR{border-left:0;border-top:1px solid var(--line)}
+  .consist{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="#4FC3E8" stroke-width="1.4"/>
+        <path d="M12 7v10M7.5 9.5v5M16.5 9.5v5" stroke="#4FC3E8" stroke-width="1.1" opacity=".55"/>
+        <circle cx="12" cy="12" r="1.7" fill="#FF4D4F"/>
+      </svg>
+      <div><b>AxiomDynamics</b><span>WAYSIDE DECISION SUPPORT</span></div>
+    </div>
+    <div class="mode"><span class="dot"></span>DEMONSTRATION</div>
+    <span class="pill on">LEDGER CHAIN VERIFIED</span>
+    <div class="spacer"></div>
+    <div class="health">
+      <span>Inference <b>19 ms</b></span>
+      <span>Detector <b>ONLINE</b></span>
+      <span>MP 128.4 · Blue Ridge Sub</span>
+    </div>
+    <div class="clock" id="clock">02:05:51</div>
+  </header>
+
+  <div class="main">
+
+    <!-- ============ LEFT : consist ============ -->
+    <nav class="col colL" aria-label="Train consist">
+      <div class="hd">CONSIST <span class="n">Q384-09</span></div>
+      <div class="consist" id="consist" role="tablist" aria-label="Cars"></div>
+      <div class="consist-foot">
+        <div class="mono" style="color:var(--tx2)">8 cars · 112 axles · 6,420 t</div>
+        <div style="margin-top:3px">Covered hopper · loaded grain</div>
+      </div>
+    </nav>
+
+    <!-- ============ CENTER : dossier ============ -->
+    <main class="col mid" id="mid">
+
+      <section class="ticket">
+        <div class="ticket-hd">
+          <div>
+            <h1>Axle 6, left journal</h1>
+            <div class="sub" id="ticketSub">BNSF 482918 · Covered hopper (loaded grain) · HBD-MP-128.4</div>
+          </div>
+          <div class="sev">
+            <span class="lv">LEVEL 1 · CRITICAL</span>
+            <span class="rule">THERMAL · 214.2 °F</span>
+          </div>
+        </div>
+        <div class="dims">
+          <div class="dim"><div class="k">1 · QUALITY</div><div class="v ok">DATA VALID</div></div>
+          <div class="dim"><div class="k">2 · CONDITION</div><div class="v warn">THERMAL ALERT</div></div>
+          <div class="dim"><div class="k">3 · WORKFLOW</div><div class="v">AWAITING DISPOSITION</div></div>
+        </div>
+      </section>
+
+      <section class="finding">
+        <h2>PRIMARY FINDING</h2>
+        <p class="lead">
+          Absolute bearing temperature <em>214.2 °F</em> exceeds the 200.0 °F limit, at
+          <em>146.2 °F</em> above ambient and <em>122.1 °F</em> across the same axle — with a
+          <em>+55.8 °F</em> rise over 14.3 miles across three detectors. Independent models
+          agree. Recommends a controlled stop at the nearest safe siding for qualified inspection.
+        </p>
+
+        <div class="rules">
+          <table>
+            <thead>
+              <tr><th>RULE</th><th>MEASURE</th><th>VALUE</th><th>LIMIT</th><th>RESULT</th></tr>
+            </thead>
+            <tbody id="ruleRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="models">
+        <h2 style="font-size:12px;letter-spacing:.9px;color:var(--tx3);font-weight:500">
+          MODEL EVIDENCE — SIX INDEPENDENT COMPUTATIONS
+        </h2>
+        <div class="mgrid" id="modelGrid"></div>
+      </section>
+
+      <section class="pipe">
+        <h2 style="font-size:12px;letter-spacing:.9px;color:var(--tx3);font-weight:500">
+          PIPELINE EXECUTION
+        </h2>
+        <div class="steps" id="steps"></div>
+        <p style="margin-top:8px;font-size:10.5px;color:var(--tx3);max-width:78ch">
+          Every stage is deterministic arithmetic over the raw detector packet. No
+          generative model participates in threshold evaluation; the narration above is
+          rendered from the computed values, not composed.
+        </p>
+      </section>
+
+    </main>
+
+    <!-- ============ RIGHT : disposition ============ -->
+    <aside class="col colR" aria-label="Disposition">
+      <div class="hd">REVIEWER <span class="keep">SESSION</span></div>
+
+      <div class="who">
+        <div class="row">
+          <div class="av">JV</div>
+          <div>
+            <div class="nm">J. Vance</div>
+            <div class="cr">FRA-DSP-2026-8814 · Dispatcher</div>
+          </div>
+        </div>
+        <div class="gate">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 1.5 3 3.5v4c0 3 2.1 5.6 5 7 2.9-1.4 5-4 5-7v-4L8 1.5Z" stroke="#2FD08A" stroke-width="1.3"/>
+            <path d="M5.6 8 7.2 9.6 10.5 6.3" stroke="#2FD08A" stroke-width="1.4"/>
+          </svg>
+          IDENTITY FROM SESSION · ATTESTED
+        </div>
+      </div>
+
+      <div class="acts">
+        <button class="btn primary" data-act="stop">
+          <span class="t">Record stop / setout</span>
+          <span class="d">Mandatory inspection before movement</span>
+        </button>
+        <button class="btn" data-act="sensor">
+          <span class="t">Record sensor-quality concern</span>
+          <span class="d">Request physical pyrometer check</span>
+        </button>
+        <button class="btn danger" data-act="escalate">
+          <span class="t">Escalate to engineering</span>
+          <span class="d">Leadership review, same trail</span>
+        </button>
+      </div>
+
+      <div class="note">
+        <label for="just">JUSTIFICATION</label>
+        <textarea id="just" placeholder="Confirmed with wayside telemetry; crew notified; inspecting siding designated at MP 132.0"></textarea>
+      </div>
+
+      <div class="hd">DECISION TRAIL <span class="keep" id="recCount">2 RECORDS</span></div>
+      <div class="trail" id="trail"></div>
+      <div class="chain">
+        <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
+          <path d="M6 9a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5L7 4.5"
+                stroke="#2FD08A" stroke-width="1.3"/>
+          <path d="M10 7a2.5 2.5 0 0 0-3.5 0l-2 2a2.5 2.5 0 0 0 3.5 3.5L9 11.5"
+                stroke="#2FD08A" stroke-width="1.3"/>
+        </svg>
+        SHA-256 CHAIN INTACT · APPEND-ONLY
+      </div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span><b>READ-ONLY DECISION SUPPORT</b> — no command is transmitted to dispatch or train control</span>
+    <span class="sep"></span>
+    <span>AAR Rule 95 · 49 CFR Part 215</span>
+    <span>Detector cal 2026-09-28</span>
+    <span id="stamp"></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CARS = [
+    {id:"BNSF 9133",  t:"98.4",  meta:"Boxcar",              cls:"",     tag:""},
+    {id:"BNSF 482918",t:"214.2", meta:"Covered hopper",      cls:"bad",  tag:"HBD"},
+    {id:"TTX 140924", t:"121.8", meta:"Intermodal flat",     cls:"warm", tag:""},
+    {id:"JBHU 4291",  t:"104.6", meta:"Intermodal",          cls:"",     tag:""},
+    {id:"GATX 82045", t:"118.2", meta:"Tank · HAZMAT 1075",  cls:"warm", tag:"HAZ"},
+    {id:"UP 491024",  t:"92.1",  meta:"Hopper",              cls:"",     tag:""},
+    {id:"BNSF 271900",t:"96.7",  meta:"Gondola",             cls:"",     tag:""},
+    {id:"EOTD FRED-44",t:"—",    meta:"End of train device", cls:"",     tag:""}
+  ];
+
+  var RULES = [
+    ["AAR Rule 95 §A.1","Absolute bearing temp","214.2 °F","≥ 200.0 °F","hit","L1 STOP"],
+    ["AAR Rule 95 §A.2","Above ambient (ΔT)","146.2 °F","≥ 115 °F warn / 170 °F stop","hit","L1 STOP"],
+    ["AAR Rule 36 §1.A","Same-axle differential","122.1 °F","≥ 95.0 °F","hit","L1 STOP"],
+    ["Carrier trend SOP","Multi-detector rise","+55.8 °F / 14.3 mi","≥ +30 °F between sites","hit","TREND"],
+    ["AAR Rule 41 (WILD)","Dynamic wheel impact","—","≥ 90 kip","ok","NOT TRIGGERED"],
+    ["49 CFR §215.115","Defective roller bearing","CONFIRMED","Restricted from transit","hit","RESTRICT"]
+  ];
+
+  var MODELS = [
+    ["THERMODYNAMIC","214.2 °F","Per-axle rolling z-score +31σ against a 12,000-passage seasonal envelope","hot"],
+    ["PEER MEDIAN/MAD","+18.4 σ","MAD-normalised against 111 other axles on this train","hot"],
+    ["KINEMATIC","0.42 MJ","E_k = ½mv² at 43 mph — energy available to a seized bearing","cold"],
+    ["ACOUSTIC","1.71×","BPFO harmonic amplitude over the axle's own baseline","cold"],
+    ["SAME-AXLE ΔT","122.1 °F","Left minus right at this axle; asymmetry localises the fault","hot"],
+    ["ROLLING RESIDUAL","+7.2 °F","Rise per detector, last 14.3 miles — the trend that breaks ties","cold"]
+  ];
+
+  var STEPS = [
+    ["01","Ingest","4 ms",""],
+    ["02","Schema gate","1 ms",""],
+    ["03","Timestamp gate","1 ms",""],
+    ["04","Plausibility","2 ms",""],
+    ["05","Model ensemble","9 ms",""],
+    ["06","Rule evaluation","1 ms","slow"],
+    ["07","Ledger attest","1 ms",""]
+  ];
+
+  function el(tag, cls, html){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  }
+
+  /* ---- consist ---- */
+  var consist = document.getElementById("consist");
+  CARS.forEach(function(c, i){
+    var b = el("button", "car " + c.cls);
+    b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", i === 1 ? "true" : "false");
+    b.innerHTML =
+      '<span class="ix">' + (i + 1) + '</span>' +
+      '<span><span class="id">' + c.id + '</span><br><span class="meta">' + c.meta + '</span></span>' +
+      '<span class="t">' + c.t + (c.tag ? ' <span class="tag">' + c.tag + '</span>' : '') + '</span>';
+    b.addEventListener("click", function(){
+      Array.prototype.forEach.call(consist.children, function(x){
+        x.setAttribute("aria-selected","false");
+      });
+      b.setAttribute("aria-selected","true");
+      document.getElementById("ticketSub").textContent =
+        c.id + " · " + c.meta + " · HBD-MP-128.4";
+    });
+    consist.appendChild(b);
+  });
+
+  /* ---- rules ---- */
+  var rows = document.getElementById("ruleRows");
+  RULES.forEach(function(r){
+    var tr = el("tr");
+    tr.innerHTML =
+      '<td class="cite">' + r[0] + '</td>' +
+      '<td>' + r[1] + '</td>' +
+      '<td class="val">' + r[2] + '</td>' +
+      '<td class="lim">' + r[3] + '</td>' +
+      '<td><span class="st ' + r[4] + '">' + r[5] + '</span></td>';
+    rows.appendChild(tr);
+  });
+
+  /* ---- models ---- */
+  var grid = document.getElementById("modelGrid");
+  MODELS.forEach(function(m){
+    var c = el("div", "mcard " + m[3]);
+    c.innerHTML =
+      '<div class="nm">' + m[0] + '</div>' +
+      '<div class="num">' + m[1] + '</div>' +
+      '<div class="dc">' + m[2] + '</div>';
+    grid.appendChild(c);
+  });
+
+  /* ---- pipeline ---- */
+  var steps = document.getElementById("steps");
+  STEPS.forEach(function(s){
+    var d = el("div", "step " + s[3]);
+    d.innerHTML =
+      '<div class="i">' + s[0] + '</div>' +
+      '<div class="n">' + s[1] + '</div>' +
+      '<div class="ms">' + s[2] + '</div>';
+    steps.appendChild(d);
+  });
+
+  /* ---- decision trail (in memory only) ---- */
+  var trail = document.getElementById("trail");
+  var recs = [
+    {t:"Ingest accepted", m:"HBD-MP-128.4 · 2026-11-13 02:01:04Z", h:"9f2c…a41d", nw:false},
+    {t:"Rule 95 §A.1 evaluated", m:"Thermal limit · 02:01:05Z", h:"c7be…0e92", nw:false}
+  ];
+
+  function renderTrail(){
+    trail.innerHTML = "";
+    recs.forEach(function(r){
+      var d = el("div", "rec" + (r.nw ? " new" : ""));
+      d.innerHTML =
+        '<span class="bar"></span>' +
+        '<div><div class="t">' + r.t + '</div>' +
+        '<div class="m">' + r.m + '</div>' +
+        '<div class="hash">' + r.h + '</div></div>';
+      trail.appendChild(d);
+    });
+    document.getElementById("recCount").textContent = recs.length + " RECORDS";
+  }
+  renderTrail();
+
+  /* ---- disposition actions ---- */
+  var LABEL = {
+    stop:"Reviewer recorded stop / setout",
+    sensor:"Reviewer recorded sensor-quality concern",
+    escalate:"Reviewer escalated to engineering"
+  };
+  var DISABLED = false;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".btn"), function(b){
+    b.addEventListener("click", function(){
+      if (DISABLED) return;
+      var just = document.getElementById("just").value.trim();
+      if (!just){
+        document.getElementById("just").focus();
+        document.getElementById("just").style.borderColor = "var(--amber)";
+        return;
+      }
+      DISABLED = true;
+      Array.prototype.forEach.call(document.querySelectorAll(".btn"), function(x){
+        x.setAttribute("aria-disabled","true");
+      });
+      var hex = "";
+      for (var i = 0; i < 4; i++) hex += Math.floor(Math.random()*256).toString(16).padStart(2,"0");
+      var d = new Date();
+      recs.push({
+        t: LABEL[b.dataset.act],
+        m: "attested · " + d.toISOString().slice(11,19) + "Z",
+        h: hex + "…" + Math.floor(Math.random()*9000+1000),
+        nw: true
+      });
+      renderTrail();
+      document.getElementById("just").value = "";
+      document.getElementById("just").style.borderColor = "";
+      var wf = document.querySelectorAll(".dim .v")[2];
+      wf.textContent = "RECORDED";
+      wf.className = "v ok";
+    });
+  });
+
+  /* ---- clock ---- */
+  var t0 = new Date();
+  t0.setHours(2,5,51,0);
+  function tick(){
+    t0 = new Date(t0.getTime() + 1000);
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    document.getElementById("clock").textContent =
+      p(t0.getHours()) + ":" + p(t0.getMinutes()) + ":" + p(t0.getSeconds());
+    document.getElementById("stamp").textContent =
+      "Session " + t0.toISOString().slice(0,10);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
