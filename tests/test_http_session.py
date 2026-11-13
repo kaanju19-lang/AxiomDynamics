@@ -95,6 +95,16 @@ def _ingest_log_count():
         return con.execute("SELECT COUNT(*) FROM ingest_log").fetchone()[0]
 
 
+KEY_B64 = __import__("base64").b64encode(KEY).decode()
+
+
+def KH(tok=None):
+    """Headers carrying the reviewer key, and the session token when given."""
+    h = {"X-Reviewer-Key": KEY_B64}
+    if tok:
+        h["Authorization"] = "Bearer " + tok
+    return h
+
 def req(method, path, body=None, headers=None):
     _start()
     conn = http.client.HTTPConnection("127.0.0.1", _SERVER["port"], timeout=10)
@@ -142,7 +152,7 @@ def test_sign_in_over_http_and_write_over_http():
     tok = body["token"]
     status, body = req("POST", "/api/warrant/AD-2025-0001/disposition",
                        {"disposition": "concur_dispatch"},
-                       {"Authorization": "Bearer " + tok})
+                       KH(tok))
     assert status == 200, body
     assert body["reviewer_name"] == "Hoffman"
     rec = store.get_disposition("AD-2025-0001")
@@ -206,7 +216,7 @@ def test_sign_out_over_http_then_write_is_401():
     assert status == 200
     status, body = req("POST", "/api/warrant/AD-2025-0001/disposition",
                        {"disposition": "concur_dispatch"},
-                       {"Authorization": "Bearer " + tok})
+                       KH(tok))
     assert status == 401, (status, body)
 
 
@@ -244,7 +254,7 @@ def test_disposition_body_that_is_not_an_object_is_400():
                        {"username": "hoffman", "passphrase": PW})
     tok = body["token"]
     status, body = req("POST", "/api/warrant/AD-2025-0001/disposition",
-                       [1, 2, 3], {"Authorization": "Bearer " + tok})
+                       [1, 2, 3], KH(tok))
     assert status == 400, (status, body)
 
 

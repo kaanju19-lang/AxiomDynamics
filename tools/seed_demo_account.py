@@ -43,6 +43,11 @@ def main(argv=None):
     ap.add_argument("--username", required=True)
     ap.add_argument("--cert", required=True,
                     help="certification ID to register and bind the account to")
+
+    ap.add_argument("--key-file", default=None,
+                    help="where to write the reviewer key (mode 0600, must not "
+                         "exist). Without it the key is discarded and this "
+                         "account cannot record a disposition.")
     ap.add_argument("--reviewer", default=None,
                     help="display name; defaults to the username")
     args = ap.parse_args(argv)
@@ -66,9 +71,14 @@ def main(argv=None):
 
     reviewer = args.reviewer or args.username
 
-    # The per-reviewer HMAC key is only needed so the registry has an entry; the
-    # demo does not attest, and printing the key would be the single worst thing
-    # this script could do. It is generated, registered, and discarded.
+    # The per-reviewer key is generated, registered, and **written to a file the
+    # caller names** -- never printed. It used to be discarded, and that made the
+    # demo unusable the moment entry began requiring an attestation (chat-9): the
+    # account could sign in and every write was refused, because the only copy of
+    # the key had been thrown away. A demo that cannot record a decision is not a
+    # demo. Writing it to a 0600 file the operator chooses keeps the original
+    # concern -- a key printed to a scrollback buffer is a leaked credential --
+    # while leaving the path usable.
     key = secrets.token_bytes(32)
     try:
         attribution.register(db, reviewer, args.cert, key,
@@ -88,7 +98,28 @@ def main(argv=None):
     print("enrolled     %s as %r under %s" % (acct["username"],
                                               acct["reviewer_name"],
                                               acct["cert_id"]))
+    if args.key_file:
+        try:
+            fd = os.open(args.key_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            print("refusing to overwrite %s -- a key file is the only copy of a "
+                  "credential" % args.key_file, file=sys.stderr)
+            return 1
+        try:
+            os.write(fd, key)
+        finally:
+            os.close(fd)
+        print("key written  %s (mode 0600; this is the only copy)"
+              % args.key_file)
+    else:
+        print("WARNING      no --key-file given, so the reviewer key has been "
+              "discarded and NO DISPOSITION CAN BE RECORDED with this account. "
+              "Re-run with --key-file <path> to make the demo usable.",
+              file=sys.stderr)
+
     print("\nSign in at POST /api/session with username %r." % args.username)
+    print("Then send  X-Reviewer-Key: %s  -- the base64 of the key file -- on "
+          "every disposition." % "<base64 of --key-file>")
     return 0
 
 

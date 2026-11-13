@@ -31,12 +31,38 @@ import tempfile
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TARGETS = ["backend/main.py", "backend/ingest_auth.py",
-           "backend/key_directory.py"]
+           "backend/key_directory.py", "backend/attribution.py",
+           "backend/store.py"]
 
 TESTS = ["tests/test_ingest.py", "tests/test_ingest_auth.py",
-         "tests/test_key_directory.py"]
+         "tests/test_key_directory.py", "tests/test_session_route.py"]
 
 MUTATIONS = [
+    # --- attestation at entry (chat-9) -----------------------------------
+    # The route's early key check and the in-transaction check in
+    # stamp_attestation are both wanted, and each needs a test that fails
+    # without it. Three of these survived the first run because the route
+    # refused before the inner layer was reached; the direct-call tests in
+    # tests/test_session_route.py are what kill M22-M24.
+    ("M19 entry stops requiring a reviewer key", "backend/main.py",
+     "    if not review_key:",
+     "    if False:"),
+    ("M20 route stops pre-verifying the key", "backend/main.py",
+     "        attribution.resolve_live_key(store.DB_PATH, review_key,\n"
+     "                                     reviewer_name, cert_id)",
+     "        pass"),
+    ("M21 save_disposition ignores the attest callable", "backend/store.py",
+     "        if attest is not None:",
+     "        if False:"),
+    ("M22 stamp_attestation stops checking the reviewer", "backend/attribution.py",
+     '    if live["reviewer"] != row["reviewer_name"]:',
+     "    if False:"),
+    ("M23 stamp_attestation stops checking revocation", "backend/attribution.py",
+     '    if live["revoked_at"] is not None:',
+     "    if False:"),
+    ("M24 stamp_attestation stops checking the certificate", "backend/attribution.py",
+     '    if live["cert_id"] != row["cert_id"]:',
+     "    if False:"),
     # --- the ingest gate in do_POST -------------------------------------
     ("M1 auth-mode check removed: closed deployment accepts traffic",
      "backend/main.py",

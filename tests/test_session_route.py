@@ -67,13 +67,17 @@ def sign_in(username, pw):
     return body["token"]
 
 
-def hdr(token):
-    return {"Authorization": "Bearer " + token}
+def hdr(token, key=KEY_H):
+    """Session token plus the reviewer key entry now requires."""
+    import base64
+    h = {"X-Reviewer-Key": base64.b64encode(key).decode()}
+    if token:
+        h["Authorization"] = "Bearer " + token
+    return h
 
 
-def post(advisory, body, token=None):
-    return main.route_post_disposition(advisory, body,
-                                       hdr(token) if token else {})
+def post(advisory, body, token=None, key=KEY_H):
+    return main.route_post_disposition(advisory, body, hdr(token, key))
 
 
 # ---------------------------------------------------------------------------
@@ -324,11 +328,127 @@ def test_two_reviewers_write_under_their_own_names():
     th = sign_in("hoffman", PW_H)
     to = sign_in("okafor", PW_O)
     b1, s1 = post("AD-2025-0001", {"disposition": "concur_dispatch"}, th)
-    b2, s2 = post("AD-2025-0001", {"disposition": "reject_sensor"}, to)
+    b2, s2 = post("AD-2025-0001", {"disposition": "reject_sensor"}, to,
+                  key=KEY_O)
     assert (s1, s2) == (200, 200), (b1, b2)
     hist = store.disposition_history("AD-2025-0001")
     assert [r["reviewer_name"] for r in hist] == ["Hoffman", "Okafor"]
     assert hist[1]["supersedes_id"] == hist[0]["id"]
+
+
+@test
+def test_entry_without_a_reviewer_key_is_401_and_writes_nothing():
+    """A session alone is not an attestation. D09 §8.4."""
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    body, status = main.route_post_disposition(
+        "AD-2025-0001", {"disposition": "concur_dispatch"},
+        {"Authorization": "Bearer " + tok})
+    assert status == 401, (status, body)
+    # "reviewer key" appears in the unregistered-key message too, so asserting
+    # that substring let this test pass with the early return removed (found by
+    # mutation, M1). The distinguishing phrase is the header instruction.
+    assert "reviewer key required" in body["error"]
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_another_reviewers_key_is_refused_and_writes_nothing():
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"},
+                        tok, key=KEY_O)
+    assert status == 401, (status, body)
+    # The inner transactional guard also names both reviewers, so asserting the
+    # two names let this pass with the route's early check removed (mutation M2).
+    # The phrase below exists only in the route's message.
+    assert "a reviewer signs decisions with their own key" in body["error"]
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_an_unregistered_key_is_refused():
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"},
+                        tok, key=b"\x00" * 32)
+    assert status == 401, (status, body)
+    assert "not in the reviewer registry" in body["error"]
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_a_revoked_key_is_refused():
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    at.revoke(store.DB_PATH, "Hoffman")
+    body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"}, tok)
+    assert status == 401, (status, body)
+    assert "revoked" in body["error"]
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_a_key_registered_under_another_certificate_is_refused():
+    """
+    A stale key after renewal. Same reviewer, wrong certificate — the one case
+    the reviewer-name check cannot see, because the name matches.
+    """
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    old = b"\xc3" * 32
+    at.register(store.DB_PATH, "Hoffman", "CERT-H-0", old)
+    body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"},
+                        tok, key=old)
+    assert status == 401, (status, body)
+    assert "CERT-H-0" in body["error"] and "CERT-H-1" in body["error"]
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_a_malformed_key_header_is_refused_not_half_parsed():
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    for junk in ("!!!not-base64!!!", "   ", "a"):
+        body, status = main.route_post_disposition(
+            "AD-2025-0001", {"disposition": "concur_dispatch"},
+            {"Authorization": "Bearer " + tok, "X-Reviewer-Key": junk})
+        assert status == 401, (junk, status, body)
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_a_successful_write_carries_a_verifiable_attestation():
+    """
+    The point of the whole change: the row is written *with* its attestation in
+    one transaction, and the attestation recomputes against the registry.
+    """
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    body, status = post("AD-2025-0001", {"disposition": "concur_dispatch"}, tok)
+    assert status == 200, (status, body)
+    assert body["attestation"]["key_id"] == at.key_id(KEY_H)
+    rows = store.disposition_history("AD-2025-0001")
+    assert len(rows) == 1
+    got = at.attestations(store.DB_PATH)
+    assert got[rows[0]["id"]]["key_id"] == at.key_id(KEY_H)
+    # Recomputed from the row and the key, not merely stored.
+    assert got[rows[0]["id"]]["value"] == at.attestation_value(KEY_H, rows[0])
+    assert at.verify_attestations(store.DB_PATH)["ok"] is True
+
+
+@test
+def test_the_attestation_is_written_with_the_row_or_not_at_all():
+    """
+    A refused key must leave the ledger untouched — not a row with no
+    attestation, which would export as an honest-looking unattested record.
+    """
+    fresh()
+    tok = sign_in("hoffman", PW_H)
+    post("AD-2025-0001", {"disposition": "reject_sensor"}, tok, key=KEY_O)
+    assert store.disposition_history("AD-2025-0001") == []
+    assert at.attestations(store.DB_PATH) == {}
+    assert store.verify_chain()["ok"] is True
 
 
 @test
@@ -427,6 +547,65 @@ def test_get_history_still_needs_no_auth():
     post("AD-2025-0001", {"disposition": "concur_dispatch"}, tok)
     body, status = main.route_get_disposition_history("AD-2025-0001")
     assert status == 200 and body["count"] == 1, body
+
+
+# ---------------------------------------------------------------------------
+# The transactional layer, tested on its own.
+#
+# The route checks the key early so a doomed request never opens a write
+# transaction. That early check means every route-level test is refused *before*
+# the in-transaction check runs, which made two mutations in
+# `attribution.stamp_attestation` survive: the reviewer check and the revocation
+# check could both be deleted with the route-level tests still green. Both layers
+# are wanted — the early one for a clean refusal, the inner one because it holds
+# the ledger's write lock and is the only place "still live" and "still unwritten"
+# are true together. The tests below call store.save_disposition directly, with
+# the route out of the way, so each inner check has to stand on its own.
+# ---------------------------------------------------------------------------
+@test
+def test_the_transactional_attestation_refuses_a_mismatched_reviewer():
+    fresh()
+    with_key = lambda conn, rec: at.stamp_attestation(conn, rec, KEY_O)
+    try:
+        store.save_disposition("AD-2025-0001", "Hoffman", "CERT-H-1",
+                               "concur_dispatch", attest=with_key)
+    except ValueError as exc:
+        assert "registered to" in str(exc), exc
+    else:
+        raise AssertionError("a key registered to another reviewer was accepted")
+    assert store.disposition_history("AD-2025-0001") == []
+    assert at.attestations(store.DB_PATH) == {}
+
+
+@test
+def test_the_transactional_attestation_refuses_a_revoked_key():
+    fresh()
+    at.revoke(store.DB_PATH, "Hoffman")
+    with_key = lambda conn, rec: at.stamp_attestation(conn, rec, KEY_H)
+    try:
+        store.save_disposition("AD-2025-0001", "Hoffman", "CERT-H-1",
+                               "concur_dispatch", attest=with_key)
+    except ValueError as exc:
+        assert "revoked" in str(exc), exc
+    else:
+        raise AssertionError("a revoked key was accepted")
+    assert store.disposition_history("AD-2025-0001") == []
+
+
+@test
+def test_the_transactional_attestation_refuses_a_certificate_mismatch():
+    fresh()
+    old = b"\xc3" * 32
+    at.register(store.DB_PATH, "Hoffman", "CERT-H-0", old)
+    with_key = lambda conn, rec: at.stamp_attestation(conn, rec, old)
+    try:
+        store.save_disposition("AD-2025-0001", "Hoffman", "CERT-H-1",
+                               "concur_dispatch", attest=with_key)
+    except ValueError as exc:
+        assert "certificate" in str(exc), exc
+    else:
+        raise AssertionError("a key for a stale certificate was accepted")
+    assert store.disposition_history("AD-2025-0001") == []
 
 
 if __name__ == "__main__":

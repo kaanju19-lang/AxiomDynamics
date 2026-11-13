@@ -433,6 +433,89 @@ def attest(db_path: str, row_id: int, key: bytes) -> Dict[str, object]:
     return {"row_id": row_id, "key_id": kid, "value": value}
 
 
+def resolve_live_key(db_path: str, key: bytes,
+                     reviewer_name: str, cert_id: str) -> Dict[str, object]:
+    """
+    The entry-time half of attestation: does this key belong to this reviewer,
+    under this certificate, and is it still live?
+
+    Every refusal names the specific mismatch, because the three failure modes
+    need different operator responses: a key registered elsewhere is a
+    credential mix-up, a certificate mismatch is a stale key after renewal, and
+    a revocation is a leaver. "Invalid key" would collapse them.
+    """
+    init(db_path)
+    kid = key_id(key)
+    entries = [e for e in registry(db_path) if e["key_id"] == kid]
+    if not entries:
+        raise ValueError(
+            "this key is not in the reviewer registry; entry requires a "
+            "registered reviewer key (see tools/issue_reviewer_key.py)")
+    entry = entries[-1]
+    if entry["reviewer"] != reviewer_name:
+        raise ValueError(
+            "this key is registered to %r, but the session belongs to %r — "
+            "a reviewer signs decisions with their own key"
+            % (entry["reviewer"], reviewer_name))
+    if entry["cert_id"] != cert_id:
+        raise ValueError(
+            "this key is registered under certificate %s but the session is "
+            "under %s — re-issue the key against the current certificate"
+            % (entry["cert_id"], cert_id))
+    if entry["revoked_at"] is not None:
+        raise ValueError(
+            "this reviewer key was revoked at %s" % entry["revoked_at"])
+    return {"key_id": kid, "reviewer": entry["reviewer"],
+            "cert_id": entry["cert_id"]}
+
+
+def stamp_attestation(conn, row: Dict[str, object], key: bytes) -> Dict[str, object]:
+    """
+    Record the attestation for a row that was **just inserted on `conn`**, inside
+    that same transaction.
+
+    This is the entry-time counterpart to `attest()`, which takes a row id and
+    opens its own connection. Two differences, both load-bearing:
+
+      * It is given the connection, so the attestation commits or rolls back
+        with the disposition. A key that fails a check therefore leaves no
+        disposition row at all, rather than a row whose attestation was refused
+        afterwards — which would be the "green operator, failing bundle"
+        disagreement this project keeps finding.
+      * It does not re-read the row from the database. The caller's `row` is the
+        one just written; re-reading would work, but passing it makes the
+        coupling explicit: the attestation covers *this* record_hash.
+
+    The registry is re-read here rather than accepting a pre-verified result,
+    because the route's check and this call are separated by the transaction —
+    the same stale-read window that `attest()` was fixed for.
+    """
+    kid = key_id(key)
+    live = conn.execute(
+        "SELECT reviewer, cert_id, revoked_at FROM reviewer_keys "
+        "WHERE key_id = ? ORDER BY id DESC LIMIT 1", (kid,)).fetchone()
+    if live is None:
+        raise ValueError(
+            "this key is not in the reviewer registry; entry requires a "
+            "registered reviewer key")
+    if live["revoked_at"] is not None:
+        raise ValueError("this reviewer key was revoked at %s"
+                         % live["revoked_at"])
+    if live["reviewer"] != row["reviewer_name"]:
+        raise ValueError(
+            "this key is registered to %r, but the row names %r"
+            % (live["reviewer"], row["reviewer_name"]))
+    if live["cert_id"] != row["cert_id"]:
+        raise ValueError(
+            "this key is registered under certificate %s but the row was "
+            "recorded under %s" % (live["cert_id"], row["cert_id"]))
+    value = attestation_value(key, row)
+    conn.execute(
+        "INSERT INTO attestations (row_id, key_id, value) VALUES (?,?,?)",
+        (row["id"], kid, value))
+    return {"row_id": row["id"], "key_id": kid, "value": value}
+
+
 def attestations(db_path: str) -> Dict[int, Dict[str, object]]:
     init(db_path)
     with sqlite3.connect(db_path) as conn:

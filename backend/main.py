@@ -16,6 +16,8 @@ deployment.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -24,7 +26,7 @@ from urllib.parse import urlparse, parse_qs
 
 import numpy as np
 
-from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest, accounts, ingest_auth
+from . import physics, simulate, warrants as warrants_mod, roi as roi_mod, store, ingest, accounts, ingest_auth, attribution
 from .warrants import SignalEvidence, build_warrant
 
 store.init_db()
@@ -332,6 +334,32 @@ def _bearer_token(headers) -> str:
     return parts[1].strip()
 
 
+def _reviewer_key(headers) -> bytes:
+    """
+    Pull the reviewer key out of `X-Reviewer-Key`, or return b"".
+
+    The key is a 32-byte secret sent **per request** rather than held for the
+    session, because it is the one thing the server cannot derive: the registry
+    stores only the 16-hex `key_id`, and the attestation is an HMAC the server
+    must compute from the key bytes. Sending it per request keeps it out of the
+    session store, so a stolen session token alone cannot produce an attestation
+    — the caller still needs the key file.
+
+    It is transmitted in base64 so a shell or a header parser cannot mangle
+    arbitrary bytes. A malformed value is b"", and the route answers "no
+    credential" rather than half-parsing one.
+
+    This does not make the transport private: B01 §7 item 10.
+    """
+    raw = (headers or {}).get("X-Reviewer-Key") or ""
+    if not raw.strip():
+        return b""
+    try:
+        return base64.b64decode(raw.strip(), validate=True)
+    except (ValueError, binascii.Error):
+        return b""
+
+
 def route_post_session(body):
     """
     Sign in. `POST /api/session` with a username and passphrase; the reply body is
@@ -432,6 +460,24 @@ def route_post_disposition(advisory_id, body, headers=None):
     reviewer_name = session["reviewer_name"]
     cert_id = session["cert_id"]
 
+    # Entry now requires an attestation as well as a session. A session proves a
+    # credential was presented; the key proves *which* registered reviewer
+    # presented it, and its attestation travels inside every export.
+    review_key = _reviewer_key(headers)
+    if not review_key:
+        return {
+            "error": "reviewer key required: send 'X-Reviewer-Key: "
+                     "<base64 of your key file>' alongside the session token. "
+                     "A session identifies the account; the key attests the "
+                     "decision (D09 §8.4).",
+            "auth_mode": mode,
+        }, 401
+    try:
+        attribution.resolve_live_key(store.DB_PATH, review_key,
+                                     reviewer_name, cert_id)
+    except ValueError as exc:
+        return {"error": str(exc), "auth_mode": mode}, 401
+
     # The certificate is re-checked inside the ledger's write lock. resolve_session
     # already checked it, but a revocation landing between resolve and INSERT is
     # the same race that made attest() re-read under its lock; here the guard runs
@@ -442,7 +488,9 @@ def route_post_disposition(advisory_id, body, headers=None):
         rec = store.save_disposition(
             advisory_id, reviewer_name, cert_id, disposition, note,
             guard=lambda: accounts.cert_is_live(store.DB_PATH, cert_id,
-                                                session["key_id"]))
+                                                session["key_id"]),
+            attest=lambda conn, rec: attribution.stamp_attestation(
+                conn, rec, review_key))
     except ValueError as exc:
         # Reaching here means the guard fired: the certificate was revoked
         # between resolve and write. That is an authentication failure, not a
@@ -458,6 +506,8 @@ def route_post_disposition(advisory_id, body, headers=None):
         "record_hash": rec["record_hash"],
         "reviewer_name": reviewer_name,
         "cert_id": cert_id,
+        "attestation": {"key_id": rec["attestation"]["key_id"],
+                        "value": rec["attestation"]["value"]},
     }, 200
 
 

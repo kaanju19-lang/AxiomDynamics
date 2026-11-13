@@ -222,7 +222,7 @@ def _migrate_v1(conn, legacy: str):
 # ---------------------------------------------------------------------------
 def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
                      disposition: str, note: str = "",
-                     guard=None) -> Dict[str, object]:
+                     guard=None, attest=None) -> Dict[str, object]:
     """
     Append a disposition. Never updates.
 
@@ -251,6 +251,16 @@ def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
     *raised*, which is not the guard the route actually installs. A guard whose
     only tested failure mode is one the caller does not use is not a guard.
     Found by adversarial audit 2026-11-11, after 310 green tests.
+
+    `attest`, when supplied, is called as `attest(conn, rec)` **after the INSERT
+    and before COMMIT**, inside the same transaction. It exists so that entry
+    requires a live reviewer key: the attestation is written with the row or not
+    at all. A refused key therefore leaves no disposition — there is no window in
+    which a row exists that no key vouched for, and no state where the operator
+    sees success and the recipient's verifier rejects the bundle.
+
+    `save_disposition` deliberately does not import `attribution`: the ledger is
+    the lower module and attribution reads it. The route supplies the callable.
     """
     with _connect_atomic() as conn:
         if guard is not None:
@@ -294,6 +304,10 @@ def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
              rec["supersedes_id"], rec["prev_hash"], rec["record_hash"]),
         )
         rec["id"] = cur.lastrowid
+        if attest is not None:
+            # Inside the transaction on purpose: raising here rolls back the
+            # INSERT above, so an unverifiable key leaves the ledger untouched.
+            rec["attestation"] = attest(conn, dict(rec))
         return dict(rec)
 
 
