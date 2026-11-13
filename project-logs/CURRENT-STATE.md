@@ -1,11 +1,16 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-11 (**chat-8 in progress** — chat-7's four mutation
-survivors closed and the AD-2 custody procedure written; the driver reports
-**18 mutations, 18 killed, 0 survived**, suite **359**). Next session: read
-`CURRENT-STATE.md`, then the latest `chat-N/CARRY-FORWARD.md`. Accounts:
-`assets/mutation-survivors-closed-2026-11-11.md` (phase one),
-`assets/key-custody-procedure-2026-11-11.md` (phase two).
+**Last updated:** 2026-11-13 (**chat-9 closed**). Next session: read
+`CURRENT-STATE.md`, then `project-logs/chat-9/CARRY-FORWARD.md`. Suite **370**,
+mutation driver **24 mutations, 24 killed**. Chat-9 closed item 1's last
+software half: **a disposition cannot exist without an attestation**.
+Account: `assets/attestation-at-entry-build-2026-11-13.md`.
+
+**The buildable queue inside this repository is near-empty.** Three of chat-9's
+six rungs are blocked outside it: the real payload schema needs the Railroad, the
+supply-chain application needs a release host and a GPG key with custody, and
+D07 §14.5 needs counsel. Chat-10 should start by re-deriving the ladder rather
+than assuming there is code to write.
 **Repository:** `C:\Users\RGV\AxiomDynamics`
 **Remote:** `github.com/kaanju19-lang/AxiomDynamics` (private)
 **Push state:** `git log --oneline origin/main..HEAD` is the only answer that
@@ -119,6 +124,47 @@ guards are mutation-tested — each fails exactly one test when removed.
 is symmetric, a demo cannot attest, and every step but revocation is performed
 by a human. What changed is that the item is now auditable under D09 §10.1, and
 B01 §7 item 1 says that rather than implying a document settles it.
+
+## Chat-9 — attestation at entry, and a generator defect four chats old, 2026-11-13
+
+Commits `0916bc0`, `e2bdf6d`, `fec966b`. **Suite 359 → 370.** Three rungs landed
+and three are blocked outside the repository.
+
+**Attestation at entry closes B01 §7 item 1's last software half.** A disposition
+now requires the session token **and** a registered reviewer key, and the
+attestation is written **inside the ledger's own transaction** — so a refused key
+rolls the whole write back and no row can exist that no key vouched for. The
+design was forced, not chosen: the registry stores only the 16-hex `key_id`, an
+attestation is an HMAC the server must compute, and it covers `recorded_at`,
+`prev_hash` and `supersedes_id`, none of which exist until the row is built. The
+key is therefore presented per request in `X-Reviewer-Key`. Making it the login
+credential was rejected because it would put the attestation secret in the
+session store and its backups. **Item 1 is still open** — a credential holder is
+not a person — and B01 says so in its own words.
+
+**Two defects this exposed, both mine.** `seed_demo_account.py` generated the
+reviewer key and discarded it, so after the change a seeded operator could sign
+in and have every write refused — the same "procedure naming a step nobody can
+perform" shape as chat-8. `--key-file` now writes it 0600.
+
+And **three of six mutations survived the first run**, all three because the
+assertion matched the wrong message: `"reviewer key"` also appears in the
+*unregistered-key* message, the inner guard also names both reviewers, and every
+route test was refused at the **early** check so the transactional layer was
+never reached. **Two layers of one check cannot both be tested through the outer
+layer.** Three direct `save_disposition` tests now reach the inner guard; all 24
+mutations are killed.
+
+**A generator defect four rebuilds old was found in the same pass.**
+`inlineRuns()` and `PB()` both handled bold and code and **neither handled
+single-asterisk italics**, so fifteen italic phrases rendered literally —
+including in stages written four chats ago. It hid because there were two
+near-identical tokenisers and the one with the gap was not the one every
+paragraph used. Now a single `tokenize()`.
+
+**Three documents still said entry was ungated** (D00's F08 row, D09 §4.4, F09
+Part 7) after chat-6 closed that gap. Corrected; `close-gate.sh` greps for the
+phrasing so the next one trips the gate.
 
 ## What this project is
 
