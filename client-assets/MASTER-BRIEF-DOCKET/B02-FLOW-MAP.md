@@ -250,7 +250,38 @@ It is not a claim that the platform detects bearing failures. **It computes a ph
 
 And it is not a picture of the finished product. **Twelve items in B01 §7 stand between this diagram and the one we would draw for a production deployment.** Two of them — registered identity (item 1) and export signing-key provenance (item 11) — are the ones that make the record attributable. **Item 1 is now partly built** (2026-11-11): a reviewer key can be registered, revoked and attested with, and a recipient can verify which registered key attested a row. What is still missing at the entry point is the binding of that key to an authenticated account, so a disposition can still be written by anyone holding a keyboard. Item 11 remains unbuilt and depends on it. We draw both dotted here because drawing them solid would be the single most effective way to mislead a customer while writing nothing false.
 
-**And one of them is larger than the other eleven. The ingest path (§2) is not built at all** — the demonstration generates its own signals rather than accepting a Railroad's. A reviewer reading this map top to bottom should understand that the right-hand two-thirds is closer to production than the left-hand third is. **The ledger is built and its export is signed and independently verifiable; the front door does not yet exist.**
+**This paragraph said the ingest path "is not built at all", and that stopped
+being true in chat-5 — it is corrected here rather than left, because a
+document that understates what exists is as misleading as one that overstates
+it, and this one also contradicted §2 above, which says the chain runs as
+drawn.**
+
+**What is now true of the left-hand third.** `POST /api/ingest` exists and
+applies B02 §2's three gates in order — schema, timestamp, plausibility — over a
+**demonstration** schema, and **it is authenticated**: a collector holds its own
+credential, deliberately separate from a reviewer account, and the credential is
+checked **before the body is read or logged**, so an anonymous caller cannot
+append rows. A missing, dead or unissued token is refused, and a deployment with
+no enrolled collector is closed rather than opened to anonymous traffic. Every
+outcome is logged; no outcome other than `accepted` emits an advisory. 43 tests
+across the two ingest suites (25 validation, 18 collector authentication).
+
+**What is still missing, and it is the part that matters commercially.** The
+schema is `axiom-detector-payload/v1`, a demonstration version; the real one must
+be agreed with the Railroad. And **an accepted payload is validated and logged,
+not scored** — the demonstration fleet still generates its signals from the
+physics equations on synthetic traces, so no number in the demo moves because of
+ingested data. **The front door exists; nothing downstream is wired to it.**
+
+**On attribution, corrected in the same pass.** Item 1 is no longer "partly
+built at the entry point": entry has required a live session bound to a
+certified account since chat-6 — identity comes from the session and never from
+the request body — and since chat-9 a disposition additionally requires a
+registered reviewer key, with the attestation written inside the ledger's own
+transaction. What keeps item 1 open is not software. It is that **a credential
+holder is not a person**, which is why it is drawn dotted here. Item 11 remains
+open: the export signature is symmetric and names no signer, for the reason
+`assets/asymmetric-signature-decision-2026-11-13.md` sets out.
 
 ---
 
