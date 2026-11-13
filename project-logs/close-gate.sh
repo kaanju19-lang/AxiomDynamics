@@ -104,6 +104,11 @@ STRAY=$(find backend tests tools -name "*.pyc" -newermt "-15 minutes" 2>/dev/nul
 echo "6. DOCUMENTATION"
 ! grep -rq "endpoint has no authentication" client-assets/ && ok "no doc claims unauthenticated ingest" || no "stale ingest claim" "found"
 ! grep -rq "has no authentication" client-assets/ && ok "no doc claims server has no auth" || no "stale server claim" "found"
+# Entry has been gated since chat-6. Documents that still say otherwise are the
+# exact failure [[axiomdynamics-docket-goes-stale]] describes: written honestly
+# about a gap, false the moment the gap closed. Three were found at chat-9's open.
+! grep -rqE "entry is not yet gated|not yet gated on (it|one)|entry is not gated" client-assets/ \
+  && ok "no doc claims disposition entry is ungated" || no "stale entry-gating claim" "a document still says entry is not gated"
 # The docx must match its OWN generator, not a stage number frozen at chat-7.
 # Asserting "Stage 11 is present" passed while the document was a stage behind
 # and would keep passing forever. Compare against the generator's top stage.

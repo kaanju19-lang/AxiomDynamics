@@ -87,40 +87,52 @@ function P(text, opts = {}) {
 
 /** Paragraph built from an array of {text, bold, italics, color, size} runs. */
 /** Turn a string with **bold** and `mono` spans into TextRuns. */
-function inlineRuns(text, size, color, forceBold, baseFont) {
+/**
+ * The single inline tokeniser. Handles three markers, in this order:
+ *   **bold**  -> split on "**" first, because a single-star pass would eat it
+ *   `code`    -> then backticks, monospaced
+ *   *italic*  -> last, so it cannot consume the pairs above
+ * Both the runs-with-options variant and PB() go through here, because two
+ * near-identical copies is how the italics gap survived four rebuilds: the
+ * formatter that had it was not the formatter every paragraph used.
+ */
+function tokenize(text, { size, color, forceBold, baseFont, forceItalic } = {}) {
   const font = baseFont || "Calibri";
   const runs = [];
   String(text).split("**").forEach((seg, si) => {
     const strong = si % 2 === 1 || forceBold;
     seg.split("`").forEach((t, ti) => {
       if (!t) return;
-      runs.push(new TextRun({
-        text: t, size, color,
-        bold: strong || undefined,
-        font: ti % 2 === 1 ? "Consolas" : font,
-      }));
+      const mono = ti % 2 === 1;
+      // A single-star pair inside a code span is literal, so only split when
+      // the segment is not monospaced.
+      const parts = mono ? [t] : t.split("*");
+      parts.forEach((p, pi) => {
+        if (!p) return;
+        const italic = (mono ? false : pi % 2 === 1) || forceItalic;
+        runs.push(new TextRun({
+          text: p, size, color, font: mono ? "Consolas" : font,
+          bold: strong || undefined,
+          italics: italic || undefined,
+        }));
+      });
     });
   });
   return runs;
 }
 
-/** Paragraph that honours **bold** spans inside its text. */
+function inlineRuns(text, size, color, forceBold, baseFont) {
+  return tokenize(text, { size, color, forceBold, baseFont });
+}
+
+/** Paragraph that honours **bold**, `code` and *italic* spans inside its text. */
 function PB(text, opts = {}) {
   const {
     size = 21, italics = false, color = SLATE, font = "Calibri",
     spaceBefore = 0, spaceAfter = 120, align = AlignmentType.JUSTIFIED,
   } = opts;
-  const runs = [];
-  String(text).split("**").forEach((seg, si) => {
-    const strong = si % 2 === 1;
-    seg.split("`").forEach((t, ti) => {
-      if (!t) return;
-      runs.push(new TextRun({
-        text: t, size, italics, color, font,
-        bold: strong || undefined,
-        font: ti % 2 === 1 ? "Consolas" : font,
-      }));
-    });
+  const runs = tokenize(text, {
+    size, color, baseFont: font, forceItalic: italics,
   });
   return new Paragraph({
     alignment: align,
@@ -398,7 +410,7 @@ doc.push(P("Every warrant carries a SHA-256 hash over a canonical JSON serialisa
 // ================================================================ PART II
 doc.push(H1("Part II — Stage-by-stage build chronology"));
 
-doc.push(P(`The build ran in nine distinct stages across ${COMMITS} commits, from 2026-11-08 00:53 to the present. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected.`));
+doc.push(P(`The build ran in twelve distinct stages across ${COMMITS} commits, from 2026-11-08 00:53 to the present. The stages below follow the git history. Commit hashes and dates are taken from the log, not recollected.`));
 
 doc.push(callout(
   "Reading the chronology",
@@ -536,7 +548,7 @@ doc.push(P("The highest-value item in the handoff and untouched since cf2e6ba. a
 doc.push(P("The pass also fixed two real defects in the A1 workbook builder: a sheet-5 note attributed a 2% escalation rate to a cell that has held 0.05% since the correction, and the script saved to a path inside the destroyed chat-1 sandbox, so running it raised FileNotFoundError. The committed workbook was deliberately not regenerated — doing so would have baked both open findings into a new file before the model question was settled."));
 
 doc.push(H3("7.2 — The build history document (commit a3ba43f)"));
-doc.push(P("Requested by the owner because chat-1's conversation no longer exists and the build needed a readable record of itself. 29 pages when written, 32 after the Stage 6–7 revision, and revised again at chat-4's close to carry Stage 8 and to mark Findings 1 and 2 closed; eight parts plus an appendix, generated from the repository by project-logs/build-history-summary.js so it can be rebuilt after a change. Layout was verified by rendering to PDF and reading the pages, which found two defects: every numbered list shared one continuous sequence, and the Word TOC field rendered empty in a converter that does not update fields."));
+doc.push(P("Requested by the owner because chat-1's conversation no longer exists and the build needed a readable record of itself. 29 pages when written, 32 after the Stage 6–7 revision, and revised again at chat-4's close to carry Stage 8 and to mark Findings 1 and 2 closed; Stages 9–12 were added at the close of chats 5 through 8, so it now covers twelve stages and a suite of 359; eight parts plus an appendix, generated from the repository by project-logs/build-history-summary.js so it can be rebuilt after a change. Layout was verified by rendering to PDF and reading the pages, which found two defects: every numbered list shared one continuous sequence, and the Word TOC field rendered empty in a converter that does not update fields."));
 
 doc.push(H3("7.3 — The append-only disposition ledger (commit 209efe6)"));
 doc.push(P("Chosen next because it was the one open code control needing no commercial decision from the owner, and because the docket's most legally significant record was overstating what the code did. backend/store.py used advisory_id as PRIMARY KEY with INSERT ... ON CONFLICT DO UPDATE, so a second disposition on the same advisory overwrote the first — its reviewer, its note and its recorded_at all gone. F09 described an append-only record; the code produced one row that could be rewritten. Six documents disclosed the gap."));
@@ -660,7 +672,7 @@ doc.push(PB("No credential path produced a write: absent header, bare token, `Ba
 doc.push(PB("Four limits are stated rather than implied. It does not prove a **human** was at the keyboard — it proves a credential was presented, and custody and joiner/mover/leaver are a procedure, not a function. It does not protect the **token in transit**: the demo host is plain HTTP, and a bearer token there is a shared secret on the wire (B01 §7 item 10). It does not make **attestation** stronger: passing the reviewer's HMAC key as the login credential was rejected precisely because it would put the attestation secret on the server for the life of every session. And entry now requires a live **session**, not an **attestation** — an unattested row is still an honest state the manifest counts."));
 
 doc.push(H3("10.6 — Documents this stage corrected"));
-doc.push(P("Most of the prose corrections were the same overstatement in four places: that entry is not gated. B01 §7 item 1, B01's AD-2 architecture row, its \"what this does not claim\" item 2, D09 §4.4, D00 Parts IV and VI, and F08's purpose note all said a reviewer can self-assert a certification ID. Each was rewritten in the same pass as the code change, per a rule this docket repeats: a gap moves to closed only when the code changes and every document that discloses it is amended in the same commit. F08 changed character rather than status — it is no longer a substitute for a missing technical control, it is now the record of *who the person behind the credential is*, which software still cannot establish."));
+doc.push(PB("Most of the prose corrections were the same overstatement in four places: that entry is not gated. B01 §7 item 1, B01's AD-2 architecture row, its \"what this does not claim\" item 2, D09 §4.4, D00 Parts IV and VI, and F08's purpose note all said a reviewer can self-assert a certification ID. Each was rewritten in the same pass as the code change, per a rule this docket repeats: a gap moves to closed only when the code changes and every document that discloses it is amended in the same commit. F08 changed character rather than status — it is no longer a substitute for a missing technical control, it is now the record of *who the person behind the credential is*, which software still cannot establish."));
 doc.push(P("Verification for the stage: suite 238 to 315. Six guard mutations and five credential mutations attempted; all killed, one only as a pair, which is recorded in the code because a source-level guard is what closes it. The audit that was run last found the defect that the tests did not, which is the order this project has learned to run them in."));
 
 // ---- Stage 11
@@ -699,6 +711,47 @@ doc.push(PB("These are test gaps, not code defects: the guards are present, they
 doc.push(H3("11.6 — Verification for the stage"));
 doc.push(PB("Suite 315 to 346, after the two silent files were repaired. Eighteen mutations attempted against the two new guards; fourteen killed and four reported as findings rather than as passes. Documents updated in the same commits as the code: B01 §7 items 1 and 5, the AD-2 architecture row, D09 §4.3's authentication and data-validation rows, and D09 §4.5.5 — the last because the reviewer key directory changes what a recipient of a bundle needs to be told. Two build records were written, `assets/ingest-auth-build-2026-11-11.md` and `assets/key-directory-build-2026-11-11.md`."));
 doc.push(P("The stage does not close item 1 or item 5. What keeps item 1 open is not the software's behaviour but the human process behind a credential — key custody and joiner/mover/leaver — plus attestation at entry. What keeps item 5 open is the real payload schema, which must be agreed with the Railroad. Neither is a thing a chat can finish, and the docket says so in the item's own last column rather than in a footnote."));
+
+// ---- Stage 12
+doc.push(H2("Stage 12 — chat-8: four mutations closed, and a written procedure that changed the code (2026-11-11)"));
+doc.push(PB("Chat-8 ran a two-rung ladder: close the four mutation survivors chat-7 had left, then write the key-custody and joiner/mover/leaver procedure that B01 §7 item 1 had been carrying as its remaining non-code half since chat-6. The first rung was known scope — four named gaps, four named tests. The second was open-ended, and it is where the stage earned its place in this history, because **making the procedure's sentences true required the code to change in three places.**"));
+doc.push(PB("That inversion is the stage's lesson. A written procedure is not a description of what the software does; it is a claim that the software *permits a person to comply with it*. Writing it down tested the code against an operator's task rather than against a test author's imagination, and the code failed three times."));
+
+doc.push(H3("12.1 — The four survivors, and the one that was not the gap it looked like"));
+doc.push(PB("`assets/mutation-ingest-auth.py` had reported four mutations that no test killed: M2, M3, M5 and M9. Each was a guard present in the code that could be deleted with the suite staying green. All four now have tests and the driver reports **18 mutations, 18 killed, 0 survived**; the suite moved from 346 to 351."));
+doc.push(PB("M5 and M9 were the plain coverage gaps the carry-forward described — nothing called the route function directly with empty headers, and the forged-append test tripped the `prev_hash` comparison before ever reaching the entry-hash comparison it was meant to exercise. M3 needed a case nothing had: a **garbage body carried with an unknown token**, which with the resolve failure swallowed is the one shape where a row can reach the ingest log while the status stays 401."));
+doc.push(PB("**M2 was not what it was reported to be.** I first declared it an equivalent mutant — a mutation no test could distinguish, because the observable behaviour was the same either way. An independent audit checked the error *text*, which I had not. The status is 401 and the row count is zero in both worlds; the message is not. I had compared status and side effects and stopped there, and stopping there is what made a real gap look like a benign one. The test now asserts the message."));
+
+doc.push(H3("12.2 — Two defects in the driver that was certifying the tests"));
+doc.push(PB("An independent audit ran after all eighteen mutations were green, and found the tool doing the certifying was broken in two ways. Both would have produced false greens, and both are the same family as everything else this project keeps finding."));
+doc.push(PB("The first: I had added an `EQUIVALENT` table keyed by **mutation index** — a list of slots where a survivor would be reported as equivalent rather than as a failure. The auditor substituted a genuine survivor into one of those slots and the driver printed \"equivalent\" and exited **0**. It would have absorbed any real survivor that happened to land there, silently and permanently. The table is gone; a survivor now always prints `ALIVE`, with instructions to decide by reading the code and an explicit prohibition on index-keyed exemptions."));
+doc.push(PB("The second: the pycache isolation was **inert**. The suite runs under `-I`, and `-I` sets `sys.pycache_prefix` to `None`, which discards `PYTHONPYCACHEPREFIX` entirely. Exporting the variable therefore did nothing, bytecode still reached the source tree, and the isolation that was supposed to keep a mutated run from reusing stale bytecode was not isolating anything. It now passes `-X pycache_prefix=<fresh tmp dir>`, which `-I` does honour. Both claims were verified empirically in both directions rather than reasoned about — which is the only reason the fix is known to work, since the broken version also looked plausible."));
+doc.push(callout(
+  "The tool that certifies the tests gets audited too",
+  "Every prior session's audit found something in the product. This one found two things in the harness: a table that converted failures into passes, and an isolation setting that was silently doing nothing. The project's standing rule — a fresh agent told to falsify — has now paid for itself in the product, in the documents, and in the tooling. A green suite was never the claim; it was the thing being tested.",
+  { fill: "FFF4E0", labelColor: RED },
+));
+
+doc.push(H3("12.3 — The custody procedure: D09 §8.4, beside §4.5 and not in a new document"));
+doc.push(PB("B01 §7 item 1 had been open since chat-6 on \"key custody and joiner/mover/leaver — a written procedure, not code\". It is now **D09 §8.4**, eight subsections. The design choice worth recording is the placement: **no new document and no new docket ID.** D09 is the security addendum and already carries §4.5 for the export key and a thin §8.1–§8.3 on access control. A reviewer credential is the same class of problem as an export key, so it belongs beside the one the docket already has. A fifteenth D-series document would have created a second place for the same rule to drift."));
+doc.push(PB("8.4.1 separates the three credentials — reviewer key, reviewer session, export key — because most of the confusion this procedure had to prevent came from treating them as one thing. 8.4.2 through 8.4.5 are joiner, mover, leaver and rotation in dependency order. 8.4.6 is the custody log, which records a `key_id` and never a key. 8.4.7 forbids interchange with the export key. 8.4.8 states the limits rather than implying them."));
+
+doc.push(H3("12.4 — Three defects the procedure exposed, none found by a test"));
+doc.push(PB("**A key could be registered to a second reviewer, and the second one won.** `register` refused only a key revoked *anywhere* in its history. A **live** key presented under a different reviewer was accepted. Since `attest` resolves the **newest** registry entry for a `key_id` — deliberately, so that a certificate renewal keeps working — the second reviewer took the key over and the original holder was locked out of attesting with their own key. The registry is append-only, so the bad binding could never be removed; `entries_consistent` caught it only at publish time, long after. It had been in the code since chat-6 and survived 346 tests and two adversarial audits. It is now refused at the write."));
+doc.push(callout(
+  "The first fix broke rotation to fix sharing",
+  "My first attempt refused any re-registration of a live key, which would also have refused an ordinary certificate renewal — the very operation `attest` takes the newest entry for. The correct rule is about the **reviewer** changing, not the certificate. A renewal under a new certificate for the same reviewer still works. That distinction is the whole content of the fix, and it only became visible by asking what the newest-entry rule was *for*.",
+  { fill: "FBEAEA", labelColor: RED },
+));
+doc.push(PB("**A refused key directory still handed back bindings.** `verify` returned `ok=False` alongside `bindings={'<key>': 'Hoffman'}` for the very directory it had just refused. Anything that checks `ok` late, or that logs the bindings and carries on, took a name from a failed document — and a refused document is exactly the one whose contents are not to be trusted. It now returns `{}` on refusal."));
+doc.push(PB("**The procedure named a step nobody could perform.** The only code that ever made a reviewer key was `seed_demo_account.py`, which generates one and discards it — correct behaviour for a demo seeder, but it means the joiner step in §8.4.2 had no implementation. `tools/issue_reviewer_key.py` is that step: generate, register, print the `key_id` and never the key, and refuse to overwrite an existing key file. A procedure that instructs an operator to perform a step the software cannot perform is a procedure that will be worked around."));
+
+doc.push(H3("12.5 — What the stage does not claim"));
+doc.push(PB("**Item 1 is not closed**, and B01 §7 item 1 now says so in its own words rather than implying that a document settles it. A credential holder is not a person. The HMAC scheme is symmetric, so a holder can forge an attestation as readily as verify one. A demo cannot attest. And every step except certificate revocation is performed by a human. What changed is that the item is now **auditable** under D09 §10.1: there is a written process against which someone's actions can be checked, which is a weaker claim than a control and a stronger one than nothing."));
+
+doc.push(H3("12.6 — Verification for the stage"));
+doc.push(PB("Suite 346 to 351 to **359**, re-run against HEAD at close: 359 passed, 0 failed. Per-file counts were checked individually — `test_ingest.py` 25, `test_ingest_auth.py` 18, `test_http_session.py` 9, `test_issue_reviewer_key.py` 4, `test_attribution.py` 60, `test_key_directory.py` 17 — because Stage 11 recorded what happens when the aggregate rises on tests that never ran. Both new guards are mutation-tested in isolation: each fails exactly one test when removed, and no other."));
+doc.push(PB("Every mechanism claim in §8.4 was **executed** rather than reasoned about: a revoked certificate stopping a live session, a revoked account refusing re-enrolment, `ledger_export.py keygen` writing a `0600` key and printing only the `key_id`, and the C01 command as the docket writes it. One further defect was in my own writing — the phase-two record placed the B01 AD-2 bullet at \"§10\" in a document with no §10 — and it was corrected before commit. Two build records were written, `assets/mutation-survivors-closed-2026-11-11.md` and `assets/key-custody-procedure-2026-11-11.md`."));
 
 // ================================================================ PART III
 doc.push(H1("Part III — The docket, document by document"));
@@ -1079,7 +1132,7 @@ doc.push(table(
     ["backend/", "physics.py (models 1–5), simulate.py (synthetic fleet), warrants.py (fusion and hashing), roi.py (model 6, the ROI panel), store.py (append-only SQLite ledger), ledger_export.py (signed export), main.py (stdlib HTTP server and routes)", "Code"],
     ["tools/", "verify_ledger_export.py — standalone export verifier, imports nothing from backend/", "Code"],
     ["frontend/", "index.html, style.css, app.js — vanilla JS canvas dashboard, zero dependencies", "Code"],
-    ["tests/", "test_physics.py (physics formulas plus the A1 constants guard), test_store.py (ledger), test_export.py (signed export), test_ledger_replication.py (cadence, chaining, inspection), run_tests.py (stdlib runner, discovers test_*.py) — 114 tests", "Code"],
+    ["tests/", "test_physics.py (physics formulas plus the A1 constants guard), test_store.py (ledger), test_export.py (signed export), test_ledger_replication.py (cadence, chaining, inspection), test_ingest.py, test_ingest_auth.py, test_attribution.py, test_key_directory.py, test_http_session.py, test_issue_reviewer_key.py, run_tests.py (stdlib runner, discovers test_*.py) — 359 tests", "Code"],
     ["client-assets/MASTER-BRIEF-DOCKET/", "The 38-artifact docket: A1–A2, B01–B05, C01–C02, D00–D14, F00–F13 (36 Markdown + xlsx + html)", "Client-facing"],
     ["assets/", "Q6 entity analysis, IP strategy, library reconciliation, carrier dossiers, cost model, arithmetic pass, model decision paper, export and replication build records, each with its check script", "Internal — never forwardable"],
     ["project-logs/", "CURRENT-STATE, README, chat-1/2/3/4 summaries and carry-forwards, transcripts with raw jsonl, extract_transcript.py, build-history-summary.js", "Internal"],
@@ -1149,7 +1202,7 @@ doc.push(table(
   ],
   { width: [1.5, 1.3, 0.8, 6.4], size: 14, mono: [1] },
 ));
-doc.push(P("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3, and it is the stage that changed the most after it was written — two of its four phases were materially repaired because an independent audit found what the author had not. Stage 8 is chat-4, which ran two phases: the replication series, and the model decision that closed both findings Part VII had carried since chat-3. Its most transferable lesson is in §8.3 — a numeric defect valued a missed defect 29× too high, and the test guarding it could not fail. Stage 9 is chat-5: the ledger audit, the ingest path, three supply-chain tools built but not applied, and per-disposition attribution, where an audit found a relabelling attack a green suite had been built to catch and did not. Stage 10 is chat-6, and it is the shortest demonstration of the pattern: a revocation guard written to close a race, called by a route that passed it a boolean, and tested only with a guard that raised — so the guard was inert and 310 tests were green. Stage 11 is chat-7: two AD-2 halves built, one of them gated *after* the write it was guarding, and a mutation run in which four of eighteen guards could be deleted with the suite still green. The pattern has now held across five sessions, and the varying part is only which surface the green number was lying about.", { spaceBefore: 120 }));
+doc.push(PB("Stage 6 is the rebuild-and-process stage: it recovered the lost chat-1 work, installed the write-in-repo rule, and built the transcript-preservation machinery that makes this document possible. Stage 7 is chat-3, and it is the stage that changed the most after it was written — two of its four phases were materially repaired because an independent audit found what the author had not. Stage 8 is chat-4, which ran two phases: the replication series, and the model decision that closed both findings Part VII had carried since chat-3. Its most transferable lesson is in §8.3 — a numeric defect valued a missed defect 29× too high, and the test guarding it could not fail. Stage 9 is chat-5: the ledger audit, the ingest path, three supply-chain tools built but not applied, and per-disposition attribution, where an audit found a relabelling attack a green suite had been built to catch and did not. Stage 10 is chat-6, and it is the shortest demonstration of the pattern: a revocation guard written to close a race, called by a route that passed it a boolean, and tested only with a guard that raised — so the guard was inert and 310 tests were green. Stage 11 is chat-7: two AD-2 halves built, one of them gated *after* the write it was guarding, and a mutation run in which four of eighteen guards could be deleted with the suite still green. Stage 12 is chat-8: a two-rung ladder in which the second rung was writing the key-custody procedure down — and doing so exposed three things the code did not support, including a key that could be registered to a second reviewer and quietly transferred. The pattern has now held across six sessions, and the varying part is only which surface the green number was lying about.", { spaceBefore: 120 }));
 
 doc.push(H2("Current status at a glance"));
 doc.push(table(

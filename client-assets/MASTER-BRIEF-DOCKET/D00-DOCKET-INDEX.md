@@ -99,7 +99,7 @@ Contracts say what the rules are. **Forms are how the rules are actually applied
 | **F05** | Payment Terms Schedule | **Built** | What is paid, when, and how. Includes the invoicing-discipline rules and the non-suspension commitment. |
 | **F06** | Deliverable Acceptance | **Built** | Acceptance, acceptance-with-notes, or specific non-conformity. **Silence past 10 Business Days is acceptance.** |
 | **F07** | Travel & Expense Claim | **Built** | Reimbursement at actual cost, no markup, with cap reconciliation. |
-| **F08** | Reviewer Certification Application | **Built** | Application, assessment, certification, and revocation. **Still the authoritative certification record** — the key registry exists (2026-11-11) but F08 is what a key is issued from, and entry is not yet gated on either. |
+| **F08** | Reviewer Certification Application | **Built** | Application, assessment, certification, and revocation. **Still the authoritative certification record** — the key registry exists (2026-11-11) and F08 is what a key is issued from. **Disposition entry has been gated since 2026-11-11:** a decision requires a live session token bound to a certified account (B01 §7 item 1). What F08 supplies is what software cannot: the identity of the person behind the credential. |
 | **F09** | Advisory Disposition Record | **Built** | The human decision, recorded. The most legally significant record the Platform produces. Discloses the append-only gap in Part 7. |
 | **F10** | Security Incident Notification | **Built** | 72-hour Supplier notice, 24-hour Customer notice, RCA, and regulatory hand-off. |
 | **F11** | Site Visit Report | **Built** | What we observed, **and what we declined to do.** Part 4 records every boundary event. |
