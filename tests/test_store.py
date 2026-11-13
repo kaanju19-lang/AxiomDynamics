@@ -327,6 +327,50 @@ def test_migration_is_idempotent():
     assert store.ledger_size() == before
 
 
+@test
+def test_ledger_actually_runs_in_wal_mode():
+    """
+    B01 §4, §5 and B02 all describe the ledger as WAL. Before 2026-11-13 the
+    code never set journal_mode at all, so every one of those statements
+    described a mode the file was not in, and the claimed failure-mode benefit
+    ("edge box loses power: WAL recovers committed dispositions") did not exist.
+
+    This asserts the mode on a live connection AND asserts that a writer does not
+    block a reader, which is the property WAL is being claimed for. Checking only
+    the pragma string would pass on a file whose writer still serialises every
+    read, so it would not test the claim.
+    """
+    fresh()
+    store.save_disposition("AD-WAL", "A", "C1", "concur_dispatch")
+
+    raw = sqlite3.connect(store.DB_PATH)
+    try:
+        mode = raw.execute("PRAGMA journal_mode").fetchone()[0]
+    finally:
+        raw.close()
+    assert mode.lower() == "wal", f"journal_mode is {mode!r}, not 'wal'"
+
+    # A reader must see the committed row without waiting on a write lock, and
+    # an open write transaction must not stop a concurrent reader. In rollback
+    # journal the reader here raises "database is locked".
+    writer = sqlite3.connect(store.DB_PATH, isolation_level=None)
+    reader = sqlite3.connect(store.DB_PATH, timeout=0.05)
+    try:
+        writer.execute("BEGIN IMMEDIATE")
+        writer.execute(
+            "INSERT INTO dispositions (advisory_id, reviewer_name, cert_id, "
+            "disposition, note, recorded_at, prev_hash, record_hash) VALUES "
+            "('AD-WAL2','A','C1','concur_dispatch','', '2026-01-01T00:00:00Z', '', 'x')"
+        )
+        # Must not raise: WAL lets the read proceed against the last commit.
+        n = reader.execute("SELECT COUNT(*) FROM dispositions").fetchone()[0]
+        assert n >= 1, "reader could not see committed rows while a writer held a lock"
+        writer.execute("ROLLBACK")
+    finally:
+        reader.close()
+        writer.close()
+
+
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     width = max(len(n) for n, _, _ in RESULTS)

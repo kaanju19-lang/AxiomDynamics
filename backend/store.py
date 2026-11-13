@@ -53,10 +53,45 @@ GENESIS_HASH = "0" * 64
 SCHEMA_VERSION = 2
 
 
+# Seconds a connection waits for a competing writer before raising. With rollback
+# journal (the SQLite default) a writer holds an exclusive lock for the whole
+# commit, so two concurrent disposition writes on a busy box would otherwise fail
+# immediately with "database is locked" rather than queueing.
+_BUSY_TIMEOUT_S = 30.0
+
+
+def _configure(conn):
+    """
+    Set the pragmas every connection needs, on every connection.
+
+    WAL is set here rather than once at creation because journal_mode is a
+    property of the *database file*, but a connection opened before it is set
+    still runs in rollback journal — and `sqlite3.connect` does not read a
+    config file. Setting it per connection is idempotent and cheap.
+
+    Why WAL at all: B01 §4/§5 and B02 both describe the ledger as WAL, and the
+    failure mode claimed for it ("edge box loses power: SQLite WAL recovers
+    committed dispositions") depends on it. Until 2026-11-13 the code never set
+    it, so the docket described a mode the file was not in. Readers and the
+    single writer can then proceed concurrently, and a committed transaction
+    survives an abrupt power loss without the reader having to wait for it.
+
+    `synchronous=NORMAL` is the pairing WAL is normally used with, and it is a
+    deliberate choice recorded here rather than an accident: in WAL mode it puts
+    a commit at risk only of the last transaction on a power cut under a
+    non-checkpointing OS, and this ledger's durability claim is about committed
+    records surviving, which WAL+NORMAL still provides on the box this ships to.
+    """
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout=%d" % int(_BUSY_TIMEOUT_S * 1000))
+
+
 @contextmanager
 def _connect():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    _configure(conn)
     try:
         yield conn
         conn.commit()
@@ -315,6 +350,10 @@ def save_disposition(advisory_id: str, reviewer_name: str, cert_id: str,
 def _connect_atomic():
     conn = sqlite3.connect(DB_PATH, isolation_level=None)
     conn.row_factory = sqlite3.Row
+    # Same pragmas as the plain path. Without busy_timeout here a second writer
+    # waiting on BEGIN IMMEDIATE would fail instantly rather than queue, which is
+    # the concurrency hole WAL is meant to close.
+    _configure(conn)
     try:
         conn.execute("BEGIN IMMEDIATE")
         yield conn

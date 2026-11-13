@@ -27,7 +27,7 @@
 | Physics engine | `backend/physics.py` | 500 | Python + numpy |
 | Fleet simulation | `backend/simulate.py` | 299 | Python + numpy |
 | Return-on-investment model | `backend/roi.py` | 222 | Python |
-| Disposition persistence | `backend/store.py` | 415 | Python + sqlite3 |
+| Disposition persistence | `backend/store.py` | 454 | Python + sqlite3 |
 | Account and session authentication | `backend/accounts.py` | 690 | Python |
 | Reviewer attestation registry | `backend/attribution.py` | 633 | Python |
 | Sensor ingest validation | `backend/ingest.py` | 381 | Python |
@@ -40,7 +40,7 @@
 | Dashboard styling | `frontend/style.css` | 803 | CSS |
 | Dashboard markup | `frontend/index.html` | 111 | HTML |
 | Dashboard icon sprite | `frontend/icons.js` | 207 | Vanilla JavaScript |
-| **Total** | | **8,200** | |
+| **Total** | | **8,239** | |
 
 **Seven of these modules did not exist when this table was first written**, and
 it did not change when they did. That is the defect this revision corrects: the
