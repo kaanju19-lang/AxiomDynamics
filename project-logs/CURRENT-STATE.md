@@ -1,6 +1,30 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-13 (**chat-12 closed**). Next session: read
+**Last updated:** 2026-11-13 (**chat-13 closed**). Next session: read
+`CURRENT-STATE.md`, then `project-logs/chat-13/CARRY-FORWARD.md`. Suite **411**;
+Chat-13 ran the cross-document sweep — the class chat-12 named as untested — and
+found **three defects in two documents**: B02 §2 contradicted its own status
+block four lines apart and still said ingest authentication did not exist; D09
+§4.2 promised export "by an Admin" when `B01 §4.5a` states the server holds no
+administrator credential; and the same table called role enforcement
+"Implemented per role model" when the `accounts` table has no role column and
+nothing in `backend/` branches on Operator, Reviewer or Administrator. It also
+found a fourth defect **in the guard it wrote during the chat** —
+`tools/check_cross_refs.py` passed its own mutation test because section numbers
+were compared by string prefix. Cross-references, insurance limits and pricing
+were swept clean and are recorded so they are not re-swept. **Suite 402 → 411.**
+The independent audit rung did not run; the token cap arrived first, and it is
+first in chat-14's ladder. Phase record:
+`assets/chat-13-phase-record-2026-11-13.md`.
+
+**Chat-12's close was never actually committed** — five artifacts were untracked
+and a stale `.git/index.lock` from that session blocked staging. Fixed at
+chat-13's open (`9c67de1`). **`git log` shows what was committed, not what was
+left behind; check `git status --porcelain -uall` at every open.**
+
+**The chat-12 text immediately below is retained for history:**
+
+Old next-session pointer, chat-12: read
 `CURRENT-STATE.md`, then `project-logs/chat-12/CARRY-FORWARD.md`. Suite **402**;
 Chat-12 measured the two invented numbers in the asymmetric-signature paper
 (signature cost **10.2 ms** unprotected vs **299.3 ms** passphrase-protected,
