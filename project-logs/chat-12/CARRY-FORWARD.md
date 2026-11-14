@@ -85,6 +85,15 @@ written here, because a hash in a file is stale the moment it is committed.
 
 7. **D07 §14.5 — governing law, seat and forum** *(counsel, not engineering)*.
 
+4b. **The build-history document is three chats behind.** *(medium)* The close gate
+   reports that `build-history-summary.js` has no Stage for chat-12, and its last
+   stage is Stage 13, which is chat-9. **Chat-10, chat-11 and chat-12 are all
+   absent from the docx** — the gate's note names only chat-12 because it compares
+   against the current chat, not against every chat since the last stage. Adding
+   three stages and rebuilding the docx (with the italics tokeniser fixed in
+   chat-9) is a real piece of work and the obvious candidate for a full phase.
+   **Do not assume the next stage number from this file — read the generator.**
+
 **Do not open chat-13 by assuming there is code to write.** Items 1–3 are an owner
 action, a product decision and a rubric decision. Item 4 is a sweep and is the only
 one likely to produce a commit.
