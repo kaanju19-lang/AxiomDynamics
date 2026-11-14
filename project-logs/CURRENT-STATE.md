@@ -1,7 +1,27 @@
 # AxiomDynamics — Current State
 
-**Last updated:** 2026-11-13 (**chat-11 closed**). Next session: read
-`CURRENT-STATE.md`, then `project-logs/chat-11/CARRY-FORWARD.md`. Suite **398**;
+**Last updated:** 2026-11-13 (**chat-12 closed**). Next session: read
+`CURRENT-STATE.md`, then `project-logs/chat-12/CARRY-FORWARD.md`. Suite **402**;
+Chat-12 measured the two invented numbers in the asymmetric-signature paper
+(signature cost **10.2 ms** unprotected vs **299.3 ms** passphrase-protected,
+which retired the latency argument and left the write-lock argument standing),
+found the disposition rate had been stated in B01 §6 all along, set **WAL** —
+which four docket statements had claimed since chat-3 and the code never did —
+and corrected D09 §5.2's claim that data could be purged "via an admin interface
+or SQL". An independent audit then found **nine defects in that work**, the worst
+being a commit message asserting a fix the diff did not contain. Phase record:
+`assets/chat-12-phase-record-2026-11-13.md`; benchmark:
+`assets/gpg-benchmark-2026-11-13.md`.
+
+**Chat-12's finding, worth carrying:** a commit message is a claim and can be
+false. `70077a8` said the D09 termination sentence was corrected; it sat three
+lines below the paragraph announcing its removal, still citing D07 §15.5 for an
+obligation §15.5 does not contain. **Only an adversarial audit found it.** The
+commit message needs the same verification as the diff.
+
+**The chat-11 text immediately below is retained for history:**
+
+Suite **398**;
 Chat-11 wrote the Master % Tracker rubric (the real total is **78.4**, not the
 79.1 chat-10 carried), corrected B04's inventory from 2,695 to 8,200 lines,
 corrected B02 §9's "ingest is not built at all", and corrected D10's false claim
@@ -15,9 +35,13 @@ chat-9 and chat-10 each fixed one by hand. `tests/test_docket_currency.py` now
 holds six capabilities and fails if any document asserts one is absent.
 
 **The next chat opens on two low items that produce no commits:** the dashboard has
-never been looked at by anyone (three chats now), and the `gnupg` decision is the
-owner's to make and blocks the asymmetric build. Do not assume there is code to
-write.
+never been looked at by anyone (**four chats now**), and the `gnupg` decision is
+the owner's to make and blocks the asymmetric build. Do not assume there is code to
+write. **Chat-12 added a third:** the Master % Tracker's docket-documents bucket
+scores documents *existing*, so a chat that spends its whole budget making existing
+documents true scores zero movement — recorded in the chat-12 phase record and
+deliberately not acted on, because changing a denominator in the chat that scores
+by it is the error chat-10 was caught making.
 
 **The buildable queue inside this repository is near-empty.** Three of chat-9's
 six rungs are blocked outside it: the real payload schema needs the Railroad, the
